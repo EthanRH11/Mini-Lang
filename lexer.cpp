@@ -3,6 +3,7 @@
 #include<string>
 #include<cstring>
 #include<vector>
+#include<fstream>
 
 #include"lexer.hpp"
 
@@ -161,6 +162,17 @@ Token* Lexer::tokenizeStrVal(){
     return strToken;
 }
 
+Token* Lexer::tokenizeSPECIAL(enum tokenType TYPE){
+    Token* newToken = new Token;
+    newToken->TYPE = TYPE;
+    newToken->value = std::string(1, advanceCursor());
+    return newToken;
+}
+
+bool Lexer::eof() const{
+    return cursor >= size;
+}
+
 std::vector<Token*> Lexer::tokenize(){
     std::vector<Token*> tokens;
     Token* token;
@@ -243,6 +255,23 @@ std::vector<Token*> Lexer::tokenize(){
             }
             continue;
         }
+
+            switch(current){
+                case '=':
+                    tokens.push_back(tokenizeSPECIAL(TOKEN_EQUALS));
+                    break;
+                case '(':
+                    tokens.push_back(tokenizeSPECIAL(TOKEN_LEFT_PAREN));
+                    break;
+                case ')':
+                    tokens.push_back(tokenizeSPECIAL(TOKEN_RIGHT_PAREN));
+                    break;
+                case ';':
+                    tokens.push_back(tokenizeSPECIAL(TOKEN_SEMICOLON));
+                    break;
+                default:
+                    std::cerr << "Character not recognized: " << current << std::endl;
+            }
     }
 }
 

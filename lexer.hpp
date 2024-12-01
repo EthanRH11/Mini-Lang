@@ -43,6 +43,9 @@ public:
     Token* tokenizeDoubleVal();
     Token* tokenizeCharVal();
     Token* tokenizeStrVal();
+    Token* tokenizeSPECIAL(enum tokenType);
+
+    bool eof() const;
 
     Token* tokenizeIntegerID();
     Token* tokenizeDoubleID();
