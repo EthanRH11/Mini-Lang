@@ -21,5 +21,7 @@ int main(int argc, char* argv[]) {
     }
     std::string sourceCode = buffer.str();
     std::cout << "This is the source code: " << std::endl << sourceCode;
+    Lexer lexer(sourceCode);
+    std::vector<Token*> tokenize
     
 }

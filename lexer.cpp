@@ -11,7 +11,7 @@ Lexer::Lexer(std::string sourceCode){
     size = sourceCode.length();
 }
 
-char Lexer::advanceCursor(){
+char Lexer::advanceCursorCursor(){
     if(cursor < size){
         char temp = current;
         ++cursor;
@@ -31,7 +31,7 @@ bool Lexer::matchKeyword(const std::string& keyword){
 void Lexer::consumeKeyword(const char* keyword){
     int len = strlen(keyword);
     for(int i = 0; i < len; ++i){
-        advance();
+        advanceCursor();
     }
 }
 
@@ -45,7 +45,7 @@ char Lexer::peakAhead(int offset){
 
 void Lexer::checkAndSkip(){
     while(current == ' ' || current == '\n' || current == '\t' || current == '\r'){
-        advanceCursor();
+        advanceCursorCursor();
     }
 }
 
@@ -55,7 +55,7 @@ Token* Lexer::tokenizeIntegerID(){
     std::stringstream buffer;
     while(isalnum(current) || current == '_'){
         buffer << current;
-        advance();
+        advanceCursor();
     }
 
     Token* newToken = new Token;
@@ -70,7 +70,7 @@ Token* Lexer::tokenizeDoubleID(){
     std::stringstream buffer;
     while(isalnum(current) || current == '_'){
         buffer << current;
-        advance();
+        advanceCursor();
     }
 
     Token* newToken = new Token;
@@ -86,6 +86,7 @@ Token* Lexer::tokenizeCharID(){
     std::stringstream buffer;
     while(isalnum(current) || current == '_'){
         buffer << current;
+        advanceCursor();
     }
 
     Token* newToken = new Token;
@@ -99,6 +100,7 @@ Token* Lexer::tokenizeStrID(){
 
     while(isalnum(current) || current == '_'){
         buffer << current;
+        advanceCursor();
     }
 
     Token* newToken = new Token;
@@ -107,25 +109,138 @@ Token* Lexer::tokenizeStrID(){
     return newToken;
 }
 
+Token* Lexer::tokenizeIntegerVal(){
+    std::stringstream buffer;
+    while(isadigit(current)){
+        buffer << current;
+        advanceCursor();
+    }
+        Token* newToken = new Token;
+        newToken->TYPE = TOKEN_INTEGER_VAL;
+        newToken->value = buffer.str();
+        return newToken;
+}
+Token* Lexer::tokenizeDoubleVal(){
+    std::stringstream buffer;
+    while(isadigit(current)){
+        buffer << current;
+        advanceCursor();
+    }
+    Token* newToken = new Token;
+    newToken->TYPE = TOKEN_DOUBLE_VAL;
+    newToken->value = buffer.str();
+    return newToken;
+}
+
+Token* Lexer::tokenizeCharVal(){
+    std::stringstream buffer;
+    while(ischar(current)){
+        buffer << current;
+        advanceCursor();
+    }
+
+    Token* charToken = new Token;
+    charToken->TYPE = TOKEN_CHAR_VAL;
+    charToken->value = buffer.str();
+    return charToken;
+}
+
+Token* Lexer::tokenizeStrVal(){
+    std::stringstream buffer;
+    while(ischar(current)){
+        buffer << current;
+        advanceCursor();
+    }
+
+    Token* strToken = new Token;
+    strToken->TYPE = TOKEN_STR_VAL;
+    strToken->value = buffer.str();
+    return strToken;
+}
+
 std::vector<Token*> Lexer::tokenize(){
     std::vector<Token*> tokens;
     Token* token;
 
-    while(cursor < size && !eof()){
-        checkAndSkip();
-        if(matchKeyword("int")){
+        while(cursor < size && !eof()){
+            checkAndSkip();
+
+            if(matchKeyword("int")){
+                Token* intToken = new Token;
+                intToken->TYPE = TOKEN_KEYWORD_INT;
+                intToken->value = "int";
+                tokens.push_back(intToken);
+
+                checkAndSkip();
+
                 tokens.push_back(tokenizeIntegerID());
-                continue;
-            } else if(matchKeyword("double")){
-                tokens.push_back(tokenizeDoubleID());
-                continue;
-            } else if(matchKeyword("char")){
-                tokenizeCharID();
-                continue;
-            } else if(matchKeyword("str")){
-                tokenizeStrID();
+                checkAndSkip();
+
+                if(current == '='){
+                    advanceCursor();
+                    checkAndSkip();
+
+                    if(isdigit(current)){
+                        tokens.push_back(tokenizeIntegerVal());
+                    } else {
+                        throw std::runtime_error("Expected integer value after '='");
+                    }
+                }
                 continue;
             }
+        } else if(matchKeyword("double")){
+            Token* doubleToken = new Token;
+            doubleToken->TYPE = TOKEN_KEYWORD_DOUBLE;
+            doubleToken->value = "double";
+            tokens.push_back(doubleToken);
+
+            checkAndSkip();
+
+            tokens.push_back(tokenizeDoubleID());
+            checkAndSkip();
+
+            if(current == '='){
+                advanceCursor();
+                checkAndSkip();
+
+                if(isdigit(current)){
+                    tokens.push_back(tokenizeDoubleVal());
+                } else {
+                    throw std::runtime_error("Error: expected double value after '='");
+                }
+            }
+            continue;
+        } else if(matchKeyword("char")){
+            Token* charToken = new Token;
+            charToken->TYPE = TOKEN_KEYWORD_CHAR;
+            charToken->value = "char";
+            tokens.push_back(charToken);
+            checkAndSkip();
+            tokens.push_back(tokenizeCharID());
+            checkAndSkip();
+            if(current == '='){
+                tokens.push_back(tokenizeCharVal());
+            } else {
+                throw std::runtime_error("Error: Expected char value after '='");
+            }
+            continue;
+        } else if(matchKeyword("str")){
+            Token* strToken = new Token;
+            strToken->TYPE = TOKEN_KEYWORD_STR;
+            strToken->value = "str";
+            tokens.push_back(strToken);
+            
+            checkAndSkip();
+
+            tokens.push_back(tokenizeStrID());
+            checkAndSkip();
+            if(current == '='){
+                tokens.push_back(tokenizeStrVal());
+            } else {
+                throw std::runtime_error("Error: Expected a string value after '='");
+            }
+            continue;
         }
     }
 }
+

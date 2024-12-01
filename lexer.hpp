@@ -12,8 +12,14 @@ enum tokenType{
     TOKEN_SEMICOLON,
     TOKEN_LEFT_PAREN,
     TOKEN_RIGHT_PAREN,
-
-
+    TOKEN_INTEGER_VAL,
+    TOKEN_DOUBLE_VAL,
+    TOKEN_CHAR_VAL,
+    TOKEN_STR_VAL,
+    TOKEN_KEYWORD_INT,
+    TOKEN_KEYWORD_DOUBLE,
+    TOKEN_KEYWORD_CHAR,
+    TOKEN_KEYWORD_STR,
 };
 
 struct Token{
@@ -31,6 +37,10 @@ public:
     bool matchKeyword(const std::string&);
     void consumeKeyword(std::string);
 
+    Token* tokenizeIntegerVal();
+    Token* tokenizeDoubleVal();
+    Token* tokenizeCharVal();
+    Token* tokenizeStrVal();
 
     Token* tokenizeIntegerID();
     Token* tokenizeDoubleID();
