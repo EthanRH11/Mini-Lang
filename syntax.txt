@@ -1,0 +1,7 @@
+identifiers:
+    int: how you define a integer
+    double: how you define a double
+    str: how you define a string
+    char: how you define a char
+
+    def: how you define a function
