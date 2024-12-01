@@ -3,6 +3,8 @@
 #include<string>
 #include<sstream>
 
+#include"lexer.hpp"
+
 int main(int argc, char* argv[]) {
     if(argc > 2){
         std::cerr << "Error: not enough file arguments. <sourceFile>.\n";
@@ -22,6 +24,7 @@ int main(int argc, char* argv[]) {
     std::string sourceCode = buffer.str();
     std::cout << "This is the source code: " << std::endl << sourceCode;
     Lexer lexer(sourceCode);
-    std::vector<Token*> tokenize
+    std::vector<Token*> tokenize();
+    std::cout << std::endl << "This is the end of the program: " << std::endl << sourceCode;
     
 }

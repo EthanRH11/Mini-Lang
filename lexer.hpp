@@ -1,6 +1,8 @@
 #ifndef _LEXER_HPP
 #define _LEXER_HPP
 #include<string>
+#include<vector>
+#include<sstream>
 
 enum tokenType{
     TOKEN_ID,
@@ -35,7 +37,7 @@ public:
     char advanceCursor();
     char peakAhead(int);
     bool matchKeyword(const std::string&);
-    void consumeKeyword(std::string);
+    void consumeKeyword(const char*);
 
     Token* tokenizeIntegerVal();
     Token* tokenizeDoubleVal();

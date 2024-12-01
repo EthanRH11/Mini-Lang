@@ -1,6 +1,8 @@
 #include<iostream>
 #include<sstream>
 #include<string>
+#include<cstring>
+#include<vector>
 
 #include"lexer.hpp"
 
@@ -11,7 +13,7 @@ Lexer::Lexer(std::string sourceCode){
     size = sourceCode.length();
 }
 
-char Lexer::advanceCursorCursor(){
+char Lexer::advanceCursor(){
     if(cursor < size){
         char temp = current;
         ++cursor;
@@ -25,7 +27,7 @@ bool Lexer::matchKeyword(const std::string& keyword){
     if(cursor + keyword.size() > size){
         return false;
     }
-    return input.substr(cursor, keyword.size()) == keyword;
+    return source.substr(cursor, keyword.size()) == keyword;
 }
 
 void Lexer::consumeKeyword(const char* keyword){
@@ -45,7 +47,7 @@ char Lexer::peakAhead(int offset){
 
 void Lexer::checkAndSkip(){
     while(current == ' ' || current == '\n' || current == '\t' || current == '\r'){
-        advanceCursorCursor();
+        advanceCursor();
     }
 }
 
@@ -59,7 +61,7 @@ Token* Lexer::tokenizeIntegerID(){
     }
 
     Token* newToken = new Token;
-    newToken->type = TOKEN_INTEGER_ID;
+    newToken->TYPE = TOKEN_INTEGER_ID;
     newToken->value = buffer.str();
     return newToken;
 }
@@ -74,8 +76,8 @@ Token* Lexer::tokenizeDoubleID(){
     }
 
     Token* newToken = new Token;
-    newToken->type = TOKEN_DOUBLE_ID;
-    newToken->value = buffer.str;
+    newToken->TYPE = TOKEN_DOUBLE_ID;
+    newToken->value = buffer.str();
     return newToken;
 
 }
@@ -98,6 +100,7 @@ Token* Lexer::tokenizeCharID(){
 Token* Lexer::tokenizeStrID(){
     consumeKeyword("str");
 
+    std::stringstream buffer;
     while(isalnum(current) || current == '_'){
         buffer << current;
         advanceCursor();
@@ -111,7 +114,7 @@ Token* Lexer::tokenizeStrID(){
 
 Token* Lexer::tokenizeIntegerVal(){
     std::stringstream buffer;
-    while(isadigit(current)){
+    while(isdigit(current)){
         buffer << current;
         advanceCursor();
     }
@@ -122,7 +125,7 @@ Token* Lexer::tokenizeIntegerVal(){
 }
 Token* Lexer::tokenizeDoubleVal(){
     std::stringstream buffer;
-    while(isadigit(current)){
+    while(isdigit(current)){
         buffer << current;
         advanceCursor();
     }
@@ -134,7 +137,7 @@ Token* Lexer::tokenizeDoubleVal(){
 
 Token* Lexer::tokenizeCharVal(){
     std::stringstream buffer;
-    while(ischar(current)){
+    while(isalpha(current)){
         buffer << current;
         advanceCursor();
     }
@@ -147,7 +150,7 @@ Token* Lexer::tokenizeCharVal(){
 
 Token* Lexer::tokenizeStrVal(){
     std::stringstream buffer;
-    while(ischar(current)){
+    while(isalpha(current)){
         buffer << current;
         advanceCursor();
     }
@@ -187,8 +190,7 @@ std::vector<Token*> Lexer::tokenize(){
                     }
                 }
                 continue;
-            }
-        } else if(matchKeyword("double")){
+            } else if(matchKeyword("double")){
             Token* doubleToken = new Token;
             doubleToken->TYPE = TOKEN_KEYWORD_DOUBLE;
             doubleToken->value = "double";
