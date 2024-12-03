@@ -16,15 +16,29 @@ Lexer::Lexer(std::string sourceCode)
     size = sourceCode.length();
 }
 
+// char Lexer::advanceCursor()
+// {
+//     if (cursor < size)
+//     {
+//         current = source[cursor++];
+//         return current;
+//     }
+//     else
+//     {
+//         return '\0';
+//     }
+// }
 char Lexer::advanceCursor()
 {
+    cursor++;
     if (cursor < size)
     {
-        current = source[cursor++];
+        current = source[cursor];
         return current;
     }
     else
     {
+        current = '\0';
         return '\0';
     }
 }
@@ -62,7 +76,7 @@ char Lexer::peakAhead(int offset)
 
 void Lexer::checkAndSkip()
 {
-    while (current == ' ' || current == '\n' || current == '\t' || current == '\r')
+    while (!eof() && (current == ' ' || current == '\n' || current == '\t' || current == '\r'))
     {
         advanceCursor();
     }
@@ -160,54 +174,60 @@ Token *Lexer::processStringLiteral()
         throw std::runtime_error("Error: Invalid string literal.");
     }
 }
+
 Token *Lexer::processCharLiteral()
 {
     if (current == '\'' && peakAhead(1) != '\'' && peakAhead(2) == '\'')
     {
-        advanceCursor();
+        advanceCursor(); // Skip first single quote
         char charValue = current;
-        advanceCursor();
-        advanceCursor();
+        advanceCursor(); // Move to second quote
 
+        if (current != '\'')
+        {
+            throw std::runtime_error("Error: Invalid character literal.");
+        }
+
+        advanceCursor(); // Move past closing quote
         return new Token{TOKEN_CHAR_VAL, std::string(1, charValue)};
     }
+    throw std::runtime_error("Error: Invalid character literal format.");
 }
 
-void Lexer::processKeyword(std::vector<Token *> &tokens)
+Token *Lexer::processKeyword(std::vector<Token *> &tokens)
 {
     std::string keyword;
 
-    // Build the keyword string as long as it's alphanumeric or a dash.
-    while (std::isalnum(current) || current == '-')
+    // Collect the full keyword or identifier
+    while (std::isalpha(current))
     {
         keyword += current;
         advanceCursor();
     }
 
-    // Check if the keyword matches one of the known keywords.
+    // Explicitly map keywords to their specific token types
     if (keyword == "int")
     {
-        tokens.push_back(new Token{TOKEN_KEYWORD_INT, "int"});
+        return new Token{TOKEN_KEYWORD_INT, keyword};
     }
     else if (keyword == "double")
     {
-        tokens.push_back(new Token{TOKEN_KEYWORD_DOUBLE, "double"});
+        return new Token{TOKEN_KEYWORD_DOUBLE, keyword};
     }
     else if (keyword == "str")
     {
-        tokens.push_back(new Token{TOKEN_KEYWORD_STR, "str"});
+        return new Token{TOKEN_KEYWORD_STR, keyword};
     }
     else if (keyword == "char")
     {
-        tokens.push_back(new Token{TOKEN_KEYWORD_CHAR, "char"});
+        return new Token{TOKEN_KEYWORD_CHAR, keyword};
     }
     else
     {
-        // If it doesn't match a keyword, treat it as an identifier
-        tokens.push_back(new Token{TOKEN_IDENTIFIER, keyword});
+        // If it doesn't match a known keyword, treat it as an identifier
+        return new Token{TOKEN_IDENTIFIER, keyword};
     }
 }
-
 std::vector<Token *> Lexer::tokenize()
 {
     std::vector<Token *> tokens;
@@ -216,25 +236,53 @@ std::vector<Token *> Lexer::tokenize()
     {
         checkAndSkip();
 
-        if (std::isalpha(current)) // If it's an alphabetic character, it's a keyword or identifier
+        // Debug print
+        std::cout << "Processing character: '" << current << "'" << std::endl;
+
+        if (std::isalpha(current))
         {
-            processKeyword(tokens);
+            Token *token = processKeyword(tokens);
+            tokens.push_back(token);
+            // Debug print
+            std::cout << "Processed token: "
+                      << token->value
+                      << " (Type: " << token->TYPE
+                      << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
         }
-        else if (std::isdigit(current)) // If it's a digit, it's a number
+        else if (std::isdigit(current))
         {
-            tokens.push_back(processNumber());
+            Token *token = processNumber();
+            tokens.push_back(token);
+
+            // Debug print
+            std::cout << "Processed number: "
+                      << token->value
+                      << " (Type: " << token->TYPE
+                      << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
         }
-        else if (current == '\'') // Handle character literals
+        else if (std::ispunct(current))
         {
-            tokens.push_back(processCharLiteral());
-        }
-        else if (current == '"') // Handle string literals
-        {
-            tokens.push_back(processStringLiteral());
-        }
-        else if (std::ispunct(current)) // Handle operators and punctuation
-        {
-            tokens.push_back(processOperator());
+            if (current == '"')
+            {
+                Token *token = processStringLiteral();
+                tokens.push_back(token);
+
+                std::cout << "Process string literal: "
+                          << token->value
+                          << " (Type: " << token->TYPE
+                          << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            }
+            else
+            {
+                Token *token = processOperator();
+                tokens.push_back(token);
+
+                // Debug print
+                std::cout << "Processed operator: "
+                          << token->value
+                          << " (Type: " << token->TYPE
+                          << ", Enum name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            }
         }
         else
         {
@@ -243,4 +291,54 @@ std::vector<Token *> Lexer::tokenize()
     }
 
     return tokens;
+}
+
+// helper function
+std::string Lexer::getTokenTypeName(tokenType type)
+{
+    switch (type)
+    {
+    case TOKEN_ID:
+        return "TOKEN_ID";
+
+    case TOKEN_INTEGER_VAL:
+        return "TOKEN_INTEGER_VAL";
+
+    case TOKEN_DOUBLE_VAL:
+        return "TOKEN_DOUBLE_VAL";
+    case TOKEN_CHAR_VAL:
+        return "TOKEN_CHAR_VAL";
+    case TOKEN_STRING_VAL:
+        return "TOKEN_STRING_VAL";
+
+    case TOKEN_EQUALS:
+        return "TOKEN_EQUALS";
+    case TOKEN_OPERATOR_ADD:
+        return "TOKEN_OPERATOR_ADD";
+    case TOKEN_OPERATOR_SUBT:
+        return "TOKEN_OPERATOR_SUBT";
+    case TOKEN_OPERATOR_MULT:
+        return "TOKEN_OPERATOR_MULT";
+    case TOKEN_OPERATOR_DIV:
+        return "TOKEN_OPERATOR_DIV";
+
+    case TOKEN_SEMICOLON:
+        return "TOKEN_SEMICOLON";
+    case TOKEN_LEFT_PAREN:
+        return "TOKEN_LEFT_PAREN";
+    case TOKEN_RIGHT_PAREN:
+        return "TOKEN_RIGHT_PAREN";
+
+    case TOKEN_KEYWORD_INT:
+        return "TOKEN_KEYWORD_INT";
+    case TOKEN_KEYWORD_DOUBLE:
+        return "TOKEN_KEYWORD_DOUBLE";
+    case TOKEN_KEYWORD_CHAR:
+        return "TOKEN_KEYWORD_CHAR";
+    case TOKEN_KEYWORD_STR:
+        return "TOKEN_KEYWORD_STR";
+
+    case TOKEN_IDENTIFIER:
+        return "TOKEN_IDENTIFIER";
+    }
 }

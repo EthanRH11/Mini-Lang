@@ -1,33 +1,33 @@
-#ifndef _LEXER_HPP
-#define _LEXER_HPP
+#ifndef LEXER_HPP
+#define LEXER_HPP
 #include <string>
 #include <vector>
 #include <sstream>
 
 enum tokenType
 {
-    TOKEN_ID,
-    TOKEN_INTEGER_VAL,
-    TOKEN_DOUBLE_VAL,
-    TOKEN_CHAR_VAL,
-    TOKEN_STRING_VAL,
+    TOKEN_ID = 0,
+    TOKEN_INTEGER_VAL = 1,
+    TOKEN_DOUBLE_VAL = 2,
+    TOKEN_CHAR_VAL = 3,
+    TOKEN_STRING_VAL = 4,
 
-    TOKEN_EQUALS,
-    TOKEN_OPERATOR_ADD,
-    TOKEN_OPERATOR_SUBT,
-    TOKEN_OPERATOR_MULT,
-    TOKEN_OPERATOR_DIV,
+    TOKEN_EQUALS = 5,
+    TOKEN_OPERATOR_ADD = 6,
+    TOKEN_OPERATOR_SUBT = 7,
+    TOKEN_OPERATOR_MULT = 8,
+    TOKEN_OPERATOR_DIV = 9,
 
-    TOKEN_SEMICOLON,
-    TOKEN_LEFT_PAREN,
-    TOKEN_RIGHT_PAREN,
+    TOKEN_SEMICOLON = 10,
+    TOKEN_LEFT_PAREN = 11,
+    TOKEN_RIGHT_PAREN = 12,
 
-    TOKEN_KEYWORD_INT,
-    TOKEN_KEYWORD_DOUBLE,
-    TOKEN_KEYWORD_CHAR,
-    TOKEN_KEYWORD_STR,
+    TOKEN_KEYWORD_INT = 13,
+    TOKEN_KEYWORD_DOUBLE = 14,
+    TOKEN_KEYWORD_CHAR = 15,
+    TOKEN_KEYWORD_STR = 16,
 
-    TOKEN_IDENTIFIER,
+    TOKEN_IDENTIFIER = 17,
 };
 
 struct Token
@@ -50,10 +50,11 @@ public:
     Token *processStringLiteral();
     Token *tokenizeSPECIAL(enum tokenType);
 
+    std::string getTokenTypeName(tokenType);
     Token *processCharLiteral();
     Token *processOperator();
     Token *processNumber();
-    void processKeyword(std::vector<Token *> &);
+    Token *processKeyword(std::vector<Token *> &);
     bool eof() const;
     Token *tokenizeID(tokenType, const std::string &);
 
