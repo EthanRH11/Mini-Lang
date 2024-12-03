@@ -1,277 +1,246 @@
-#include<iostream>
-#include<sstream>
-#include<string>
-#include<cstring>
-#include<vector>
-#include<fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cstring>
+#include <vector>
+#include <cctype>
+#include <fstream>
 
-#include"lexer.hpp"
+#include "lexer.hpp"
 
-Lexer::Lexer(std::string sourceCode){
+Lexer::Lexer(std::string sourceCode)
+{
     source = sourceCode;
     cursor = 0;
     current = sourceCode.at(cursor);
     size = sourceCode.length();
 }
 
-char Lexer::advanceCursor(){
-    if(cursor < size){
-        char temp = current;
-        ++cursor;
-        cursor = (cursor < size) ? source[cursor] : '\0';
-    } else {
+char Lexer::advanceCursor()
+{
+    if (cursor < size)
+    {
+        current = source[cursor++];
+        return current;
+    }
+    else
+    {
         return '\0';
     }
 }
 
-bool Lexer::matchKeyword(const std::string& keyword){
-    if(cursor + keyword.size() > size){
+bool Lexer::matchKeyword(const std::string &keyword)
+{
+    if (cursor + keyword.size() > size)
+    {
         return false;
     }
     return source.substr(cursor, keyword.size()) == keyword;
 }
 
-void Lexer::consumeKeyword(const char* keyword){
-    int len = strlen(keyword);
-    for(int i = 0; i < len; ++i){
-        advanceCursor();
+void Lexer::consumeKeyword(const std::string &keyword)
+{
+    if (!matchKeyword(keyword))
+    {
+        throw std::runtime_error("Error: Keyword mismatch during consumeKeyword.");
     }
+    cursor += keyword.length();
+    current = (cursor < size) ? source[cursor] : '\0';
 }
 
-char Lexer::peakAhead(int offset){
-    if(cursor + offset < size){
+char Lexer::peakAhead(int offset)
+{
+    if (cursor + offset < size)
+    {
         return source[cursor + offset];
-    } else {
+    }
+    else
+    {
         return '\0';
     }
 }
 
-void Lexer::checkAndSkip(){
-    while(current == ' ' || current == '\n' || current == '\t' || current == '\r'){
+void Lexer::checkAndSkip()
+{
+    while (current == ' ' || current == '\n' || current == '\t' || current == '\r')
+    {
         advanceCursor();
     }
 }
 
-Token* Lexer::tokenizeIntegerID(){
-    consumeKeyword("int");
-
+Token *Lexer::tokenizeID(tokenType type, const std::string &keyword)
+{
+    consumeKeyword(keyword);
     std::stringstream buffer;
-    while(isalnum(current) || current == '_'){
+    while (isalnum(current) || current == '-')
+    {
         buffer << current;
         advanceCursor();
     }
 
-    Token* newToken = new Token;
-    newToken->TYPE = TOKEN_INTEGER_ID;
+    Token *newToken = new Token;
+    newToken->TYPE = type;
     newToken->value = buffer.str();
     return newToken;
 }
 
-Token* Lexer::tokenizeDoubleID(){
-    consumeKeyword("double");
-
-    std::stringstream buffer;
-    while(isalnum(current) || current == '_'){
-        buffer << current;
-        advanceCursor();
-    }
-
-    Token* newToken = new Token;
-    newToken->TYPE = TOKEN_DOUBLE_ID;
-    newToken->value = buffer.str();
-    return newToken;
-
-}
-
-Token* Lexer::tokenizeCharID(){
-    consumeKeyword("char");
-
-    std::stringstream buffer;
-    while(isalnum(current) || current == '_'){
-        buffer << current;
-        advanceCursor();
-    }
-
-    Token* newToken = new Token;
-    newToken->TYPE = TOKEN_CHAR_ID;
-    newToken->value = buffer.str();
-    return newToken;
-}
-
-Token* Lexer::tokenizeStrID(){
-    consumeKeyword("str");
-
-    std::stringstream buffer;
-    while(isalnum(current) || current == '_'){
-        buffer << current;
-        advanceCursor();
-    }
-
-    Token* newToken = new Token;
-    newToken->TYPE = TOKEN_STR_ID;
-    newToken->value = buffer.str();
-    return newToken;
-}
-
-Token* Lexer::tokenizeIntegerVal(){
-    std::stringstream buffer;
-    while(isdigit(current)){
-        buffer << current;
-        advanceCursor();
-    }
-        Token* newToken = new Token;
-        newToken->TYPE = TOKEN_INTEGER_VAL;
-        newToken->value = buffer.str();
-        return newToken;
-}
-Token* Lexer::tokenizeDoubleVal(){
-    std::stringstream buffer;
-    while(isdigit(current)){
-        buffer << current;
-        advanceCursor();
-    }
-    Token* newToken = new Token;
-    newToken->TYPE = TOKEN_DOUBLE_VAL;
-    newToken->value = buffer.str();
-    return newToken;
-}
-
-Token* Lexer::tokenizeCharVal(){
-    std::stringstream buffer;
-    while(isalpha(current)){
-        buffer << current;
-        advanceCursor();
-    }
-
-    Token* charToken = new Token;
-    charToken->TYPE = TOKEN_CHAR_VAL;
-    charToken->value = buffer.str();
-    return charToken;
-}
-
-Token* Lexer::tokenizeStrVal(){
-    std::stringstream buffer;
-    while(isalpha(current)){
-        buffer << current;
-        advanceCursor();
-    }
-
-    Token* strToken = new Token;
-    strToken->TYPE = TOKEN_STR_VAL;
-    strToken->value = buffer.str();
-    return strToken;
-}
-
-Token* Lexer::tokenizeSPECIAL(enum tokenType TYPE){
-    Token* newToken = new Token;
-    newToken->TYPE = TYPE;
-    newToken->value = std::string(1, advanceCursor());
-    return newToken;
-}
-
-bool Lexer::eof() const{
+bool Lexer::eof() const
+{
     return cursor >= size;
 }
 
-std::vector<Token*> Lexer::tokenize(){
-    std::vector<Token*> tokens;
-    Token* token;
-
-        while(cursor < size && !eof()){
-            checkAndSkip();
-
-            if(matchKeyword("int")){
-                Token* intToken = new Token;
-                intToken->TYPE = TOKEN_KEYWORD_INT;
-                intToken->value = "int";
-                tokens.push_back(intToken);
-
-                checkAndSkip();
-
-                tokens.push_back(tokenizeIntegerID());
-                checkAndSkip();
-
-                if(current == '='){
-                    advanceCursor();
-                    checkAndSkip();
-
-                    if(isdigit(current)){
-                        tokens.push_back(tokenizeIntegerVal());
-                    } else {
-                        throw std::runtime_error("Expected integer value after '='");
-                    }
-                }
-                continue;
-            } else if(matchKeyword("double")){
-            Token* doubleToken = new Token;
-            doubleToken->TYPE = TOKEN_KEYWORD_DOUBLE;
-            doubleToken->value = "double";
-            tokens.push_back(doubleToken);
-
-            checkAndSkip();
-
-            tokens.push_back(tokenizeDoubleID());
-            checkAndSkip();
-
-            if(current == '='){
-                advanceCursor();
-                checkAndSkip();
-
-                if(isdigit(current)){
-                    tokens.push_back(tokenizeDoubleVal());
-                } else {
-                    throw std::runtime_error("Error: expected double value after '='");
-                }
+Token *Lexer::processNumber()
+{
+    std::string number;
+    bool isDouble = false;
+    while (std::isdigit(current) || current == '.')
+    {
+        if (current == '.')
+        {
+            if (isDouble)
+            {
+                throw std::runtime_error("Error: Invalid number format with multiple decimals.");
             }
-            continue;
-        } else if(matchKeyword("char")){
-            Token* charToken = new Token;
-            charToken->TYPE = TOKEN_KEYWORD_CHAR;
-            charToken->value = "char";
-            tokens.push_back(charToken);
-            checkAndSkip();
-            tokens.push_back(tokenizeCharID());
-            checkAndSkip();
-            if(current == '='){
-                tokens.push_back(tokenizeCharVal());
-            } else {
-                throw std::runtime_error("Error: Expected char value after '='");
-            }
-            continue;
-        } else if(matchKeyword("str")){
-            Token* strToken = new Token;
-            strToken->TYPE = TOKEN_KEYWORD_STR;
-            strToken->value = "str";
-            tokens.push_back(strToken);
-            
-            checkAndSkip();
-
-            tokens.push_back(tokenizeStrID());
-            checkAndSkip();
-            if(current == '='){
-                tokens.push_back(tokenizeStrVal());
-            } else {
-                throw std::runtime_error("Error: Expected a string value after '='");
-            }
-            continue;
+            isDouble = true;
         }
+        number += current;
+        advanceCursor();
+    }
+    return new Token{isDouble ? TOKEN_DOUBLE_VAL : TOKEN_INTEGER_VAL, number};
+}
+Token *Lexer::processOperator()
+{
+    char symbol = current;
+    advanceCursor();
 
-            switch(current){
-                case '=':
-                    tokens.push_back(tokenizeSPECIAL(TOKEN_EQUALS));
-                    break;
-                case '(':
-                    tokens.push_back(tokenizeSPECIAL(TOKEN_LEFT_PAREN));
-                    break;
-                case ')':
-                    tokens.push_back(tokenizeSPECIAL(TOKEN_RIGHT_PAREN));
-                    break;
-                case ';':
-                    tokens.push_back(tokenizeSPECIAL(TOKEN_SEMICOLON));
-                    break;
-                default:
-                    std::cerr << "Character not recognized: " << current << std::endl;
-            }
+    switch (symbol)
+    {
+    case '+':
+        return new Token{TOKEN_OPERATOR_ADD, "+"};
+    case '-':
+        return new Token{TOKEN_OPERATOR_SUBT, "-"};
+    case '*':
+        return new Token{TOKEN_OPERATOR_MULT, "*"};
+    case '/':
+        return new Token{TOKEN_OPERATOR_DIV, "/"};
+    case '(':
+        return new Token{TOKEN_LEFT_PAREN, "("};
+    case ')':
+        return new Token{TOKEN_RIGHT_PAREN, ")"};
+    case ';':
+        return new Token{TOKEN_SEMICOLON, ";"};
+    case '=':
+        return new Token{TOKEN_EQUALS, "="};
+    default:
+        throw std::runtime_error("Error: Unknown symbol or operator: " + std::string(1, symbol));
     }
 }
 
+Token *Lexer::processStringLiteral()
+{
+    if (current == '"')
+    {
+        advanceCursor();
+        std::string value;
+        while (current != '"' && !eof())
+        {
+            value += current;
+            advanceCursor();
+        }
+
+        if (current != '"')
+        {
+            throw std::runtime_error("Error: Unterminated String Literal.");
+        }
+        advanceCursor();
+        return new Token{TOKEN_STRING_VAL, value};
+    }
+    else
+    {
+        throw std::runtime_error("Error: Invalid string literal.");
+    }
+}
+Token *Lexer::processCharLiteral()
+{
+    if (current == '\'' && peakAhead(1) != '\'' && peakAhead(2) == '\'')
+    {
+        advanceCursor();
+        char charValue = current;
+        advanceCursor();
+        advanceCursor();
+
+        return new Token{TOKEN_CHAR_VAL, std::string(1, charValue)};
+    }
+}
+
+void Lexer::processKeyword(std::vector<Token *> &tokens)
+{
+    std::string keyword;
+
+    // Build the keyword string as long as it's alphanumeric or a dash.
+    while (std::isalnum(current) || current == '-')
+    {
+        keyword += current;
+        advanceCursor();
+    }
+
+    // Check if the keyword matches one of the known keywords.
+    if (keyword == "int")
+    {
+        tokens.push_back(new Token{TOKEN_KEYWORD_INT, "int"});
+    }
+    else if (keyword == "double")
+    {
+        tokens.push_back(new Token{TOKEN_KEYWORD_DOUBLE, "double"});
+    }
+    else if (keyword == "str")
+    {
+        tokens.push_back(new Token{TOKEN_KEYWORD_STR, "str"});
+    }
+    else if (keyword == "char")
+    {
+        tokens.push_back(new Token{TOKEN_KEYWORD_CHAR, "char"});
+    }
+    else
+    {
+        // If it doesn't match a keyword, treat it as an identifier
+        tokens.push_back(new Token{TOKEN_IDENTIFIER, keyword});
+    }
+}
+
+std::vector<Token *> Lexer::tokenize()
+{
+    std::vector<Token *> tokens;
+
+    while (!eof())
+    {
+        checkAndSkip();
+
+        if (std::isalpha(current)) // If it's an alphabetic character, it's a keyword or identifier
+        {
+            processKeyword(tokens);
+        }
+        else if (std::isdigit(current)) // If it's a digit, it's a number
+        {
+            tokens.push_back(processNumber());
+        }
+        else if (current == '\'') // Handle character literals
+        {
+            tokens.push_back(processCharLiteral());
+        }
+        else if (current == '"') // Handle string literals
+        {
+            tokens.push_back(processStringLiteral());
+        }
+        else if (std::ispunct(current)) // Handle operators and punctuation
+        {
+            tokens.push_back(processOperator());
+        }
+        else
+        {
+            throw std::runtime_error("Error: Unexpected character: " + std::string(1, current));
+        }
+    }
+
+    return tokens;
+}
