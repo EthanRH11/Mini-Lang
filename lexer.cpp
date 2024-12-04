@@ -261,7 +261,7 @@ std::vector<Token *> Lexer::tokenize()
         checkAndSkip();
 
         // Debug print
-        // std::cout << "Processing character: '" << current << "'" << std::endl;
+        std::cout << "Processing character: '" << current << "'" << std::endl;
 
         if (std::isalpha(current))
         {

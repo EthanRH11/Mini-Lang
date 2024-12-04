@@ -10,7 +10,6 @@ void printTokens(const std::vector<Token *> &tokens)
     for (const auto &token : tokens)
     {
         std::cout << "<" << getTokenTypeName(token->TYPE) << ">"
-                  << "\n"
                   << "\t" << "<" << token->value << ">" << std::endl;
     }
 }
