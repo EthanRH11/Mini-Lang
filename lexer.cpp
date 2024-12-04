@@ -126,6 +126,7 @@ Token *Lexer::processNumber()
 Token *Lexer::processPrint()
 {
     return 0;
+    // TODO: Process keyword "out.to.console".
 }
 Token *Lexer::processOperator()
 {
