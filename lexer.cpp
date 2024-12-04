@@ -125,8 +125,20 @@ Token *Lexer::processNumber()
 
 Token *Lexer::processPrint()
 {
-    return 0;
-    // TODO: Process keyword "out.to.console".
+    std::string printStatement;
+    while (std::isalpha(current) || current == '.')
+    {
+        printStatement += current;
+        advanceCursor();
+    }
+    if (printStatement == "out.to.console")
+    {
+        return new Token{TOKEN_KEYWORD_PRINT, printStatement};
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 Token *Lexer::processOperator()
 {
@@ -253,13 +265,23 @@ std::vector<Token *> Lexer::tokenize()
 
         if (std::isalpha(current))
         {
-            Token *token = processKeyword(tokens);
-            tokens.push_back(token);
-            // Debug print
-            // std::cout << "Processed token: "
-            //           << token->value
-            //           << " (Type: " << token->TYPE
-            //           << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            Token *printToken = processPrint();
+            if (printToken != nullptr)
+            {
+                tokens.push_back(printToken);
+                continue;
+            }
+            else
+            {
+                Token *token = processKeyword(tokens);
+                tokens.push_back(token);
+
+                // Debug print
+                // std::cout << "Processed token: "
+                //           << token->value
+                //           << " (Type: " << token->TYPE
+                //           << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            }
         }
         else if (std::isdigit(current))
         {
