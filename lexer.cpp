@@ -122,6 +122,11 @@ Token *Lexer::processNumber()
     }
     return new Token{isDouble ? TOKEN_DOUBLE_VAL : TOKEN_INTEGER_VAL, number};
 }
+
+Token *Lexer::processPrint()
+{
+    return 0;
+}
 Token *Lexer::processOperator()
 {
     char symbol = current;
@@ -145,6 +150,8 @@ Token *Lexer::processOperator()
         return new Token{TOKEN_SEMICOLON, ";"};
     case '=':
         return new Token{TOKEN_EQUALS, "="};
+    case '.':
+        return new Token{TOKEN_DOT, "."};
     default:
         throw std::runtime_error("Error: Unknown symbol or operator: " + std::string(1, symbol));
     }
@@ -222,6 +229,10 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     {
         return new Token{TOKEN_KEYWORD_CHAR, keyword};
     }
+    else if (keyword == "end")
+    {
+        return new Token{TOKEN_EOF, keyword};
+    }
     else
     {
         // If it doesn't match a known keyword, treat it as an identifier
@@ -237,17 +248,17 @@ std::vector<Token *> Lexer::tokenize()
         checkAndSkip();
 
         // Debug print
-        std::cout << "Processing character: '" << current << "'" << std::endl;
+        // std::cout << "Processing character: '" << current << "'" << std::endl;
 
         if (std::isalpha(current))
         {
             Token *token = processKeyword(tokens);
             tokens.push_back(token);
             // Debug print
-            std::cout << "Processed token: "
-                      << token->value
-                      << " (Type: " << token->TYPE
-                      << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            // std::cout << "Processed token: "
+            //           << token->value
+            //           << " (Type: " << token->TYPE
+            //           << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
         }
         else if (std::isdigit(current))
         {
@@ -255,10 +266,10 @@ std::vector<Token *> Lexer::tokenize()
             tokens.push_back(token);
 
             // Debug print
-            std::cout << "Processed number: "
-                      << token->value
-                      << " (Type: " << token->TYPE
-                      << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            // std::cout << "Processed number: "
+            //           << token->value
+            //           << " (Type: " << token->TYPE
+            //           << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
         }
         else if (std::ispunct(current))
         {
@@ -267,10 +278,20 @@ std::vector<Token *> Lexer::tokenize()
                 Token *token = processStringLiteral();
                 tokens.push_back(token);
 
-                std::cout << "Process string literal: "
-                          << token->value
-                          << " (Type: " << token->TYPE
-                          << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+                // std::cout << "Process string literal: "
+                //           << token->value
+                //           << " (Type: " << token->TYPE
+                //           << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            }
+            else if (current == '\'')
+            {
+                Token *token = processCharLiteral();
+                tokens.push_back(token);
+
+                // std::cout << "Process char literal: "
+                //           << token->value
+                //           << " (Type: " << token->TYPE
+                //           << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
             }
             else
             {
@@ -278,10 +299,10 @@ std::vector<Token *> Lexer::tokenize()
                 tokens.push_back(token);
 
                 // Debug print
-                std::cout << "Processed operator: "
-                          << token->value
-                          << " (Type: " << token->TYPE
-                          << ", Enum name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+                // std::cout << "Processed operator: "
+                //           << token->value
+                //           << " (Type: " << token->TYPE
+                //           << ", Enum name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
             }
         }
         else
@@ -294,23 +315,20 @@ std::vector<Token *> Lexer::tokenize()
 }
 
 // helper function
-std::string Lexer::getTokenTypeName(tokenType type)
+std::string getTokenTypeName(tokenType type)
 {
     switch (type)
     {
     case TOKEN_ID:
         return "TOKEN_ID";
-
     case TOKEN_INTEGER_VAL:
         return "TOKEN_INTEGER_VAL";
-
     case TOKEN_DOUBLE_VAL:
         return "TOKEN_DOUBLE_VAL";
     case TOKEN_CHAR_VAL:
         return "TOKEN_CHAR_VAL";
     case TOKEN_STRING_VAL:
         return "TOKEN_STRING_VAL";
-
     case TOKEN_EQUALS:
         return "TOKEN_EQUALS";
     case TOKEN_OPERATOR_ADD:
@@ -321,14 +339,12 @@ std::string Lexer::getTokenTypeName(tokenType type)
         return "TOKEN_OPERATOR_MULT";
     case TOKEN_OPERATOR_DIV:
         return "TOKEN_OPERATOR_DIV";
-
     case TOKEN_SEMICOLON:
         return "TOKEN_SEMICOLON";
     case TOKEN_LEFT_PAREN:
         return "TOKEN_LEFT_PAREN";
     case TOKEN_RIGHT_PAREN:
         return "TOKEN_RIGHT_PAREN";
-
     case TOKEN_KEYWORD_INT:
         return "TOKEN_KEYWORD_INT";
     case TOKEN_KEYWORD_DOUBLE:
@@ -337,8 +353,15 @@ std::string Lexer::getTokenTypeName(tokenType type)
         return "TOKEN_KEYWORD_CHAR";
     case TOKEN_KEYWORD_STR:
         return "TOKEN_KEYWORD_STR";
-
     case TOKEN_IDENTIFIER:
         return "TOKEN_IDENTIFIER";
+    case TOKEN_DOT:
+        return "TOKEN_DOT";
+    case TOKEN_KEYWORD_PRINT:
+        return "TOKEN_KEYWORD_PRINT";
+    case TOKEN_EOF:
+        return "TOKEN_EOF";
+    default:
+        return "Error, unknown token identifier";
     }
 }

@@ -17,17 +17,20 @@ enum tokenType
     TOKEN_OPERATOR_SUBT = 7,
     TOKEN_OPERATOR_MULT = 8,
     TOKEN_OPERATOR_DIV = 9,
+    TOKEN_DOT = 10,
 
-    TOKEN_SEMICOLON = 10,
-    TOKEN_LEFT_PAREN = 11,
-    TOKEN_RIGHT_PAREN = 12,
+    TOKEN_SEMICOLON = 11,
+    TOKEN_LEFT_PAREN = 12,
+    TOKEN_RIGHT_PAREN = 13,
 
-    TOKEN_KEYWORD_INT = 13,
-    TOKEN_KEYWORD_DOUBLE = 14,
-    TOKEN_KEYWORD_CHAR = 15,
-    TOKEN_KEYWORD_STR = 16,
+    TOKEN_KEYWORD_INT = 14,
+    TOKEN_KEYWORD_DOUBLE = 15,
+    TOKEN_KEYWORD_CHAR = 16,
+    TOKEN_KEYWORD_STR = 17,
+    TOKEN_KEYWORD_PRINT = 18,
 
-    TOKEN_IDENTIFIER = 17,
+    TOKEN_IDENTIFIER = 19,
+    TOKEN_EOF = 20,
 };
 
 struct Token
@@ -50,11 +53,13 @@ public:
     Token *processStringLiteral();
     Token *tokenizeSPECIAL(enum tokenType);
 
-    std::string getTokenTypeName(tokenType);
+    friend std::string getTokenTypeName(tokenType);
+    Token *processPrint();
     Token *processCharLiteral();
     Token *processOperator();
     Token *processNumber();
     Token *processKeyword(std::vector<Token *> &);
+
     bool eof() const;
     Token *tokenizeID(tokenType, const std::string &);
 
@@ -67,4 +72,5 @@ private:
     int size;
 };
 
+std::string getTokenTypeName(tokenType);
 #endif
