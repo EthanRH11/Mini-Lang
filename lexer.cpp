@@ -266,25 +266,25 @@ std::vector<Token *> Lexer::tokenize()
 
         if (std::isalpha(current))
         {
-            Token *printToken = processPrint();
-            if (printToken != nullptr)
-            {
-                tokens.push_back(printToken);
-                std::cout << "Debug: printToken being pushed onto the stack" << std::endl;
-                continue;
-            }
-            else
-            {
-                Token *token = processKeyword(tokens);
-                tokens.push_back(token);
+            // Token *printToken = processPrint();
+            // if (printToken != nullptr)
+            // {
+            //     tokens.push_back(printToken);
+            //     std::cout << "Debug: printToken being pushed onto the stack" << std::endl;
+            //     continue;
+            // }
+            // else
+            // {
+            Token *token = processKeyword(tokens);
+            tokens.push_back(token);
 
-                // Debug print
-                std::cout
-                    << "Processed token: "
-                    << token->value
-                    << " (Type: " << token->TYPE
-                    << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
-            }
+            // Debug print
+            std::cout
+                << "Processed token: "
+                << token->value
+                << " (Type: " << token->TYPE
+                << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            //}
         }
         else if (std::isdigit(current))
         {
