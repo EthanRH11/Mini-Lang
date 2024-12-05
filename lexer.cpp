@@ -269,6 +269,7 @@ std::vector<Token *> Lexer::tokenize()
             if (printToken != nullptr)
             {
                 tokens.push_back(printToken);
+                std::cout << "Debug: printToken being pushed onto the stack" << std::endl;
                 continue;
             }
             else
@@ -277,10 +278,11 @@ std::vector<Token *> Lexer::tokenize()
                 tokens.push_back(token);
 
                 // Debug print
-                // std::cout << "Processed token: "
-                //           << token->value
-                //           << " (Type: " << token->TYPE
-                //           << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+                std::cout
+                    << "Processed token: "
+                    << token->value
+                    << " (Type: " << token->TYPE
+                    << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
             }
         }
         else if (std::isdigit(current))
