@@ -223,6 +223,7 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     {
         keyword += current;
         advanceCursor();
+        std::cout << "Test: after processPrint consumes char |" << keyword << "|" << std::endl;
     }
 
     // Explicitly map keywords to their specific token types
@@ -265,25 +266,25 @@ std::vector<Token *> Lexer::tokenize()
 
         if (std::isalpha(current))
         {
-            // Token *printToken = processPrint();
-            // if (printToken != nullptr)
-            // {
-            //     tokens.push_back(printToken);
-            //     std::cout << "Debug: printToken being pushed onto the stack" << std::endl;
-            //     continue;
-            // }
-            // else
-            // {
-            Token *token = processKeyword(tokens);
-            tokens.push_back(token);
+            Token *printToken = processPrint();
+            if (printToken != nullptr)
+            {
+                tokens.push_back(printToken);
+                std::cout << "Debug: printToken being pushed onto the stack" << std::endl;
+                continue;
+            }
+            else
+            {
+                Token *token = processKeyword(tokens);
+                tokens.push_back(token);
 
-            // Debug print
-            std::cout
-                << "Processed token: "
-                << token->value
-                << " (Type: " << token->TYPE
-                << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
-            //}
+                // Debug print
+                std::cout
+                    << "Processed token: "
+                    << token->value
+                    << " (Type: " << token->TYPE
+                    << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            }
         }
         else if (std::isdigit(current))
         {
@@ -330,6 +331,19 @@ std::vector<Token *> Lexer::tokenize()
                 //           << ", Enum name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
             }
         }
+        // else if (matchKeyword("out.to.console"))
+        // {
+        //     Token *printToken = processPrint();
+        //     if (printToken != nullptr)
+        //     {
+        //         tokens.push_back(printToken);
+        //         continue;
+        //     }
+        //     else
+        //     {
+        //         std::cout << "Error: invalid print statement";
+        //     }
+        // }
         else
         {
             throw std::runtime_error("Error: Unexpected character: " + std::string(1, current));
