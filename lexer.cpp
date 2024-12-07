@@ -142,32 +142,69 @@ Token *Lexer::processPrint()
 }
 Token *Lexer::processOperator()
 {
-    char symbol = current;
+    std::string op(1, current);
     advanceCursor();
 
-    switch (symbol)
+    if (current == '=')
     {
-    case '+':
-        return new Token{TOKEN_OPERATOR_ADD, "+"};
-    case '-':
-        return new Token{TOKEN_OPERATOR_SUBT, "-"};
-    case '*':
-        return new Token{TOKEN_OPERATOR_MULT, "*"};
-    case '/':
-        return new Token{TOKEN_OPERATOR_DIV, "/"};
-    case '(':
-        return new Token{TOKEN_LEFT_PAREN, "("};
-    case ')':
-        return new Token{TOKEN_RIGHT_PAREN, ")"};
-    case ';':
-        return new Token{TOKEN_SEMICOLON, ";"};
-    case '=':
-        return new Token{TOKEN_EQUALS, "="};
-    case '.':
-        return new Token{TOKEN_DOT, "."};
-    default:
-        throw std::runtime_error("Error: Unknown symbol or operator: " + std::string(1, symbol));
+        if (op == "=")
+        {
+            advanceCursor();
+            return new Token{TOKEN_OPERATOR_EQUALS, "=="};
+        }
+        else if (op == "+")
+        {
+            advanceCursor();
+            return new Token{TOKEN_OPERATOR_ADD_ASSIGN, "+="};
+        }
+        // Add other cases if needed
     }
+
+    // Single-character operators
+    if (current == '+')
+    {
+        if (op == "+")
+        {
+            advanceCursor();
+            return new Token{TOKEN_OPERATOR_INCREMENT, "++"};
+        }
+        else
+        {
+            return new Token{TOKEN_OPERATOR_ADD, "+"};
+        }
+    }
+    if (current == '-')
+    {
+        if (op == "-")
+        {
+            advanceCursor();
+            return new Token{TOKEN_OPERATOR_DECREMENT, "--"};
+        }
+        else
+        {
+            return new Token{TOKEN_OPERATOR_SUBT, "-"};
+        }
+    }
+    if (op == "*")
+        return new Token{TOKEN_OPERATOR_MULT, "*"};
+    if (op == "/")
+        return new Token{TOKEN_OPERATOR_DIV, "/"};
+    if (op == "=")
+        return new Token{TOKEN_EQUALS, "="};
+    if (op == ";")
+        return new Token{TOKEN_SEMICOLON, ";"};
+    if (op == "(")
+        return new Token{TOKEN_LEFT_PAREN, "("};
+    if (op == ")")
+        return new Token{TOKEN_RIGHT_PAREN, ")"};
+    if (op == "<")
+        return new Token{TOKEN_OPERATOR_LESSTHAN, "<"};
+    if (op == "{")
+        return new Token{TOKEN_LEFT_CURL, "{"};
+    if (op == "}")
+        return new Token{TOKEN_RIGHT_CURL, "}"};
+
+    throw std::runtime_error("Error: Unknown operator: " + op);
 }
 
 Token *Lexer::processStringLiteral()
@@ -213,7 +250,6 @@ Token *Lexer::processCharLiteral()
     }
     throw std::runtime_error("Error: Invalid character literal format.");
 }
-
 Token *Lexer::processKeyword(std::vector<Token *> &tokens)
 {
     std::string keyword;
@@ -246,6 +282,18 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     {
         return new Token{TOKEN_KEYWORD_PRINT, keyword};
     }
+    else if (keyword == "if")
+    {
+        return new Token{TOKEN_KEYWORD_IF, keyword};
+    }
+    else if (keyword == "else")
+    {
+        return new Token{TOKEN_KEYWORD_ELSE, keyword};
+    }
+    else if (keyword == "for")
+    {
+        return new Token{TOKEN_KEYWORD_FOR, keyword};
+    }
     else if (keyword == "end")
     {
         return new Token{TOKEN_EOF, keyword};
@@ -263,7 +311,6 @@ std::vector<Token *> Lexer::tokenize()
     while (!eof())
     {
         checkAndSkip();
-
         // Debug print
         // std::cout << "Processing character: '" << current << "'" << std::endl;
 
@@ -367,6 +414,8 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_OPERATOR_MULT";
     case TOKEN_OPERATOR_DIV:
         return "TOKEN_OPERATOR_DIV";
+    case TOKEN_DOT:
+        return "TOKEN_DOT";
     case TOKEN_SEMICOLON:
         return "TOKEN_SEMICOLON";
     case TOKEN_LEFT_PAREN:
@@ -381,14 +430,38 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_KEYWORD_CHAR";
     case TOKEN_KEYWORD_STR:
         return "TOKEN_KEYWORD_STR";
-    case TOKEN_IDENTIFIER:
-        return "TOKEN_IDENTIFIER";
-    case TOKEN_DOT:
-        return "TOKEN_DOT";
     case TOKEN_KEYWORD_PRINT:
         return "TOKEN_KEYWORD_PRINT";
+    case TOKEN_IDENTIFIER:
+        return "TOKEN_IDENTIFIER";
     case TOKEN_EOF:
         return "TOKEN_EOF";
+    case TOKEN_OPERATOR_LESSTHAN:
+        return "TOKEN_OPERATOR_LESSTHAN";
+    case TOKEN_OPERATOR_GREATERTHAN:
+        return "TOKEN_OPERATOR_GREATERTHAN";
+    case TOKEN_RIGHT_CURL:
+        return "TOKEN_RIGHT_CURL";
+    case TOKEN_LEFT_CURL:
+        return "TOKEN_LEFT_CURL";
+    case TOKEN_KEYWORD_IF:
+        return "TOKEN_KEYWORD_IF";
+    case TOKEN_KEYWORD_ELSE:
+        return "TOKEN_KEYWORD_ELSE";
+    case TOKEN_OPERATOR_LESS_EQUAL:
+        return "TOKEN_OPERATOR_LESS_EQUAL";
+    case TOKEN_OPERATOR_GREATER_EQUAL:
+        return "TOKEN_OPERATOR_GREATER_EQUAL";
+    case TOKEN_OPERATOR_EQUALS:
+        return "TOKEN_OPERATOR_EQUALS";
+    case TOKEN_OPERATOR_ADD_ASSIGN:
+        return "TOKEN_OPERATOR_ADD_ASSIGN";
+    case TOKEN_KEYWORD_FOR:
+        return "TOKEN_OPERATOR_FOR";
+    case TOKEN_OPERATOR_INCREMENT:
+        return "TOKEN_OPERATOR_INCREMENT";
+    case TOKEN_OPERATOR_DECREMENT:
+        return "TOKEN_OPERATOR_DECREMENT";
     default:
         return "Error, unknown token identifier";
     }

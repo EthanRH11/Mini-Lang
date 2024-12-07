@@ -2,6 +2,15 @@ int x = 5;
 double y = 5.34;
 str line = "hello";
 int z = 10;
+if(x < z){
+    out_to_console(z);
+} else {
+    out_to_console(x);
+}
+for(int i = 0; i < size; ++i){
+    out_to_console(i);
+}
 char ch = 's';
-out_to_console(x + y + z);
+out_to_console(ch);
+--z;
 end;
