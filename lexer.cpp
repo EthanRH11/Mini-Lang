@@ -126,12 +126,12 @@ Token *Lexer::processNumber()
 Token *Lexer::processPrint()
 {
     std::string printStatement;
-    while (std::isalpha(current) || current == '.')
+    while (std::isalpha(current) || current == '_')
     {
         printStatement += current;
         advanceCursor();
     }
-    if (printStatement == "out.to.console")
+    if (printStatement == "out_to_console")
     {
         return new Token{TOKEN_KEYWORD_PRINT, printStatement};
     }
@@ -219,14 +219,13 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     std::string keyword;
 
     // Collect the full keyword or identifier
-    while (std::isalpha(current))
+    while (std::isalpha(current) || current == '_')
     {
         keyword += current;
         advanceCursor();
-        std::cout << "Test: after processPrint consumes char |" << keyword << "|" << std::endl;
     }
-
-    // Explicitly map keywords to their specific token types
+    // std::cout << "Processing Keyword: " << keyword << std::endl;
+    //  Explicitly map keywords to their specific token types
     if (keyword == "int")
     {
         return new Token{TOKEN_KEYWORD_INT, keyword};
@@ -242,6 +241,10 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     else if (keyword == "char")
     {
         return new Token{TOKEN_KEYWORD_CHAR, keyword};
+    }
+    else if (keyword == "out_to_print")
+    {
+        return new Token{TOKEN_KEYWORD_PRINT, keyword};
     }
     else if (keyword == "end")
     {
@@ -262,28 +265,27 @@ std::vector<Token *> Lexer::tokenize()
         checkAndSkip();
 
         // Debug print
-        std::cout << "Processing character: '" << current << "'" << std::endl;
+        // std::cout << "Processing character: '" << current << "'" << std::endl;
 
         if (std::isalpha(current))
         {
             // Token *printToken = processPrint();
-            // if (printToken != nullptr)
-            // {
-            //     tokens.push_back(printToken);
-            //     std::cout << "Debug: printToken being pushed onto the stack" << std::endl;
-            //     continue;
-            // }
-            // else
-            // {
+            //  if (printToken != nullptr)
+            //  {
+            //      tokens.push_back(printToken);
+            //      std::cout << "Debug: printToken being pushed onto the stack" << std::endl;
+            //      continue;
+            //  }
+            //  else
+            //  {
             Token *token = processKeyword(tokens);
             tokens.push_back(token);
-
             // Debug print
-            std::cout
-                << "Processed token: "
-                << token->value
-                << " (Type: " << token->TYPE
-                << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
+            //    std::cout
+            //       << "Processed token: "
+            //        << token->value
+            //        << " (Type: " << token->TYPE
+            //        << ", Enum Name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
             //}
         }
         else if (std::isdigit(current))
@@ -331,19 +333,6 @@ std::vector<Token *> Lexer::tokenize()
                 //           << ", Enum name: " << getTokenTypeName(token->TYPE) << ")" << std::endl;
             }
         }
-        // else if (matchKeyword("out.to.console"))
-        // {
-        //     Token *printToken = processPrint();
-        //     if (printToken != nullptr)
-        //     {
-        //         tokens.push_back(printToken);
-        //         continue;
-        //     }
-        //     else
-        //     {
-        //         std::cout << "Error: invalid print statement";
-        //     }
-        // }
         else
         {
             throw std::runtime_error("Error: Unexpected character: " + std::string(1, current));
