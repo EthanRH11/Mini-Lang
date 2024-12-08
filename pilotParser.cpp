@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "lexer.hpp"
+#include "parser.hpp"
 
 void printTokens(const std::vector<Token *> &tokens)
 {
@@ -84,5 +85,18 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    try
+    {
+        Lexer lexer(sourceCode);
+        std::vector<Token *> tokens = lexer.tokenize();
+
+        Parser parse(tokens);
+        // AST_NODE *ROOT = parser.parse();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error during parsing: " << e.what() << std::endl;
+        return 1;
+    }
     return 0;
 }
