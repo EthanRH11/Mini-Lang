@@ -15,19 +15,6 @@ Lexer::Lexer(std::string sourceCode)
     current = sourceCode.at(cursor);
     size = sourceCode.length();
 }
-
-// char Lexer::advanceCursor()
-// {
-//     if (cursor < size)
-//     {
-//         current = source[cursor++];
-//         return current;
-//     }
-//     else
-//     {
-//         return '\0';
-//     }
-// }
 char Lexer::advanceCursor()
 {
     cursor++;

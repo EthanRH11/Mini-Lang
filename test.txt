@@ -1,0 +1,3 @@
+int x = 5;
+out_to_console(x);
+end;
