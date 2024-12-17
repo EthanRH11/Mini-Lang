@@ -69,22 +69,6 @@ void Lexer::checkAndSkip()
     }
 }
 
-Token *Lexer::tokenizeID(tokenType type, const std::string &keyword)
-{
-    consumeKeyword(keyword);
-    std::stringstream buffer;
-    while (isalnum(current) || current == '-')
-    {
-        buffer << current;
-        advanceCursor();
-    }
-
-    Token *newToken = new Token;
-    newToken->TYPE = type;
-    newToken->value = buffer.str();
-    return newToken;
-}
-
 bool Lexer::eof() const
 {
     return cursor >= size;

@@ -74,7 +74,6 @@ public:
     Token *processKeyword(std::vector<Token *> &);
 
     bool eof() const;
-    Token *tokenizeID(tokenType, const std::string &);
 
     std::vector<Token *> tokenize();
 
