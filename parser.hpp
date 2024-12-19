@@ -75,6 +75,10 @@ public:
           out_to_console(str);  should be able to print a string that is stored in a variable */
     }
 
+    AST_NODE *parseEquals();
+    AST_NODE *parserIntegerValue();
+    AST_NODE *parseSemicolon();
+
     AST_NODE *parseKeywordInt()
     {
         /*Could set it up in 2 seperate ways
@@ -147,6 +151,12 @@ public:
                 break;
             case TOKEN_EOF:
                 ROOT->SUB_STATEMENTS.push_back(parseKeywordEof());
+            case TOKEN_EQUALS:
+                ROOT->SUB_STATEMENTS.push_back(parseEquals());
+            case TOKEN_INTEGER_VAL:
+                ROOT->SUB_STATEMENTS.push_back(pasreIntegerValue());
+            case TOKEN_SEMICOLON:
+                ROOT->SUB_STATEMENTS.push_back(parseSemicolon());
             default:
             {
                 std::cerr << "< Syntax Error >" << std::endl;
