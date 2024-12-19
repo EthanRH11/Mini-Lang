@@ -14,6 +14,7 @@ enum NODE_TYPE
     NODE_PRINT,
     NODE_RETURN,
     NODE_INT,
+    NODE_EOF,
 };
 
 struct AST_NODE
@@ -52,10 +53,26 @@ public:
     AST_NODE *parseKeywordEof()
     {
         /*Program is done executing*/
-        }
+        proceed(TOKEN_EOF);
+
+        std::string *endWord = &current->value;
+
+        /*Only one case, either it is eof and stop executing and nothing else should throw a eof token*/
+        AST_NODE *newNode = new AST_NODE();
+        newNode->TYPE = NODE_EOF;
+        newNode->VALUE = endWord;
+    }
     AST_NODE *parseKeywordPrint()
     {
         /*Must be with in a parenthesis to print*/
+        /*A couple of things to consider,
+          out_to_console("String"); A string print needs to check syntax and accept strings
+
+          out_to_console(x); variables that are ints, doubles, and floats should be printed
+
+          out_to_console(ch); chars should be able to prints 'a'
+
+          out_to_console(str);  should be able to print a string that is stored in a variable */
     }
 
     AST_NODE *parseKeywordInt()
