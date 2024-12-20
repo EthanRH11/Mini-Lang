@@ -8,7 +8,6 @@
 - [Features](#features)
 - [Usage](#usage)
 - [Current Status](#current-status)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## About
