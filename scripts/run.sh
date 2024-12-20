@@ -1,2 +1,2 @@
 #!/bin/bash
-../bin/parser ../resources/example.txt
+../bin/parser ../test/data/simple_input.txt

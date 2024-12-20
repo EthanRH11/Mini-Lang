@@ -1,0 +1,4 @@
+int x = 5;
+int y = 10 + x;
+out_to_console(y);
+end;

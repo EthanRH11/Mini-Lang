@@ -1,0 +1,7 @@
+int x = 6;
+int y = 22;
+if(y > x){
+    out_to_console(x);
+} else {
+    out_to_console(y)
+}
