@@ -8,12 +8,14 @@
 
 void printTokens(const std::vector<Token *> &tokens)
 {
+    // Helper function for debugging
     for (const auto &token : tokens)
     {
         std::cout << "<" << getTokenTypeName(token->TYPE) << ">"
                   << "\t" << "<" << token->value << ">" << std::endl;
     }
 }
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -34,34 +36,35 @@ int main(int argc, char *argv[])
                            std::istreambuf_iterator<char>());
     inputFile.close();
 
+    // try
+    // {
+    //     Lexer lexer(sourceCode);
+    //     std::vector<Token *> tokens = lexer.tokenize();
+    //     printTokens(tokens);
+    //     // Clean up dynamically allocated tokens
+    //     for (auto &token : tokens)
+    //     {
+    //         delete token;
+    //     }
+    // }
+    // catch (const std::exception &e)
+    // {
+    //     std::cerr << "Error during tokenization: " << e.what() << std::endl;
+    //     return 1;
+    // }
+
     try
     {
         Lexer lexer(sourceCode);
         std::vector<Token *> tokens = lexer.tokenize();
-
-        // Print the tokens
         printTokens(tokens);
+        Parser parse(tokens);
+        auto statements = parse.parse();
 
-        // Clean up dynamically allocated tokens
         for (auto &token : tokens)
         {
             delete token;
         }
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error during tokenization: " << e.what() << std::endl;
-        return 1;
-    }
-
-    try
-    {
-        Lexer lexer(sourceCode);
-        std::vector<Token *> tokens = lexer.tokenize();
-
-        Parser parse(tokens);
-        auto statements = parse.parse();
-        // AST_NODE *ROOT = parser.parse();
     }
     catch (const std::exception &e)
     {

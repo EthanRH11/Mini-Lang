@@ -111,51 +111,49 @@ Token *Lexer::processPrint()
         return nullptr;
     }
 }
+
 Token *Lexer::processOperator()
 {
     std::string op(1, current);
     advanceCursor();
 
-    if (current == '=')
+    // Handle two-character operators
+    if (op == "=" && current == '=')
     {
-        if (op == "=")
-        {
-            advanceCursor();
-            return new Token{TOKEN_OPERATOR_EQUALS, "=="};
-        }
-        else if (op == "+")
-        {
-            advanceCursor();
-            return new Token{TOKEN_OPERATOR_ADD_ASSIGN, "+="};
-        }
-        // Add other cases if needed
+        advanceCursor();
+        return new Token{TOKEN_OPERATOR_EQUALS, "=="};
+    }
+    else if (op == "+" && current == '=')
+    {
+        advanceCursor();
+        return new Token{TOKEN_OPERATOR_ADD_ASSIGN, "+="};
+    }
+    else if (op == "+" && current == '+')
+    {
+        advanceCursor();
+        return new Token{TOKEN_OPERATOR_INCREMENT, "++"};
+    }
+    else if (op == "-" && current == '-')
+    {
+        advanceCursor();
+        return new Token{TOKEN_OPERATOR_DECREMENT, "--"};
+    }
+    else if (op == "<" && current == '=')
+    {
+        advanceCursor();
+        return new Token{TOKEN_OPERATOR_LESS_EQUAL, "<="};
+    }
+    else if (op == ">" && current == '=')
+    {
+        advanceCursor();
+        return new Token{TOKEN_OPERATOR_GREATER_EQUAL, ">="};
     }
 
     // Single-character operators
-    if (current == '+')
-    {
-        if (op == "+")
-        {
-            advanceCursor();
-            return new Token{TOKEN_OPERATOR_INCREMENT, "++"};
-        }
-        else
-        {
-            return new Token{TOKEN_OPERATOR_ADD, "+"};
-        }
-    }
-    if (current == '-')
-    {
-        if (op == "-")
-        {
-            advanceCursor();
-            return new Token{TOKEN_OPERATOR_DECREMENT, "--"};
-        }
-        else
-        {
-            return new Token{TOKEN_OPERATOR_SUBT, "-"};
-        }
-    }
+    if (op == "+")
+        return new Token{TOKEN_OPERATOR_ADD, "+"};
+    if (op == "-")
+        return new Token{TOKEN_OPERATOR_SUBT, "-"};
     if (op == "*")
         return new Token{TOKEN_OPERATOR_MULT, "*"};
     if (op == "/")
@@ -170,10 +168,14 @@ Token *Lexer::processOperator()
         return new Token{TOKEN_RIGHT_PAREN, ")"};
     if (op == "<")
         return new Token{TOKEN_OPERATOR_LESSTHAN, "<"};
+    if (op == ">")
+        return new Token{TOKEN_OPERATOR_GREATERTHAN, ">"};
     if (op == "{")
         return new Token{TOKEN_LEFT_CURL, "{"};
     if (op == "}")
         return new Token{TOKEN_RIGHT_CURL, "}"};
+    if (op == ".")
+        return new Token{TOKEN_DOT, "."};
 
     throw std::runtime_error("Error: Unknown operator: " + op);
 }
