@@ -23,10 +23,22 @@ This project serves as a parser and tokenizer, which processes a stream of text 
 
 ## Usage
 
-This section will be updated as the project progresses and more functionality becomes available.
+### Building and Running the Parser
 
-Currently, the project is not in a state where it can be cloned or used as a library. This README will be updated once the functionality is ready for use or further testing.
+To build and run the parser, follow these steps:
 
+1. Navigate to the scripts directory:
+    '''bash
+    cd scripts
+2. Build the project:
+    ./build.sh
+3. Run the parser with a test file (specified in run.sh)
+    ./run.sh
+4. Clean up build artifacts.
+    ./clean.sh
+
+Note: To parse a different input file, you can modify run.sh script
+    ../build/parser path/to/your/file.txt
 ## Current Status
 
 - **Development Stage**: The project is still in progress.
