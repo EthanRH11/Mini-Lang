@@ -36,23 +36,6 @@ int main(int argc, char *argv[])
                            std::istreambuf_iterator<char>());
     inputFile.close();
 
-    // try
-    // {
-    //     Lexer lexer(sourceCode);
-    //     std::vector<Token *> tokens = lexer.tokenize();
-    //     printTokens(tokens);
-    //     // Clean up dynamically allocated tokens
-    //     for (auto &token : tokens)
-    //     {
-    //         delete token;
-    //     }
-    // }
-    // catch (const std::exception &e)
-    // {
-    //     std::cerr << "Error during tokenization: " << e.what() << std::endl;
-    //     return 1;
-    // }
-
     try
     {
         Lexer lexer(sourceCode);
