@@ -27,17 +27,17 @@ This project serves as a parser and tokenizer, which processes a stream of text 
 
 To build and run the parser, follow these steps:
 
-**1. Navigate to the scripts directory:**
+### **1. Navigate to the scripts directory:**
     '''bash
     cd scripts
-**3. Build the project:**
+### **3. Build the project:**
     ./build.sh
-**4. Run the parser with a test file (specified in run.sh):**
+### **4. Run the parser with a test file (specified in run.sh):**
     ./run.sh
-**5. Clean up build artifacts:**
+### **5. Clean up build artifacts:**
     ./clean.sh
 
-**Note: To parse a different input file, you can modify run.sh script:**
+### **Note: To parse a different input file, you can modify run.sh script:**
     ../build/parser path/to/your/file.txt
 ## Current Status
 
