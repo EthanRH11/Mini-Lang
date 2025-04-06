@@ -42,8 +42,8 @@ To build and run the parser, follow these steps:
 ## Current Status
 
 - **Development Stage**: The project is still in progress.
-- **What’s Done**: Initial tokenizer and parser components are being developed.
-- **Next Steps**: Expanding error handling, refining the parsing logic, and preparing for integration with real-world input examples.
+- **What’s Done**: Tokenizer and Parser are built.
+- **Next Steps**: Building interperter to run the parsed AST Tree. Continuous error handling, logic implementation, etc...
 
 ## License
 
