@@ -1,6 +1,6 @@
-# Parser-Tokenizer
+# Mini-Lang
 
-**Parser-Tokenizer** is a C++ project designed to tokenize and parse a given input string or file. The project aims to break down text into meaningful components (tokens) and process them according to specific syntactical rules. It is a work in progress and currently under development.
+**Mini-Lang** is a C++ project designed to tokenize and parse a given input string or file. Using the Parsed AST Tree, a interperter, follows pre determined syntax rules and interprets the language.
 
 ## Table of Contents
 
@@ -12,12 +12,13 @@
 
 ## About
 
-This project serves as a parser and tokenizer, which processes a stream of text into discrete tokens. These tokens are then processed according to specific syntactic rules, useful for applications like compilers, interpreters, or custom data parsing tasks. The project is written in C++ and is still under development, with ongoing improvements and features being added.
+This project serves as a tokenizer, parser, and interperter, which processes a stream of text into discrete tokens. These tokens are then processed according to specific syntactic rules, useful for applications like compilers, interpreters, or custom data parsing tasks. The project is written in C++ and is still under development, with ongoing improvements and features being added.
 
 ## Features
 
 - **Tokenizer**: Splits input text into tokens based on predefined patterns.
 - **Parser**: Uses tokens to analyze and process the input based on syntactic rules.
+- **Interpreter**: Uses AST Tree to "execute" the nodes.
 - **Error Handling**: Reports errors when tokens do not match expected patterns.
 - **Extensibility**: The design allows easy addition of new tokens and grammar rules.
 
@@ -34,7 +35,10 @@ To build and run the parser, follow these steps:
     ./build.sh
 ### **4. Run the parser with a test file (specified in run.sh):**
     ./run.sh
-### **5. Clean up build artifacts:**
+### **5. Output:
+    ../output/ 
+    compiled files will be called output_date_time.txt
+### **6. Clean up build artifacts:**
     ./clean.sh
 
 ### **Note: To parse a different input file, you can modify run.sh script:**
@@ -42,8 +46,8 @@ To build and run the parser, follow these steps:
 ## Current Status
 
 - **Development Stage**: The project is still in progress.
-- **What’s Done**: Tokenizer and Parser are built.
-- **Next Steps**: Building interperter to run the parsed AST Tree. Continuous error handling, logic implementation, etc...
+- **What’s Done**: Tokenizer, Parser, and Interperter are built.
+- **Next Steps**: Implementing Value class to handle different values. Implementing more coding aspects such as functions, if statements, and loops.
 
 ## License
 
