@@ -78,6 +78,8 @@ private:
     AST_NODE *parseAdd();
     AST_NODE *parseLeftParen();
     AST_NODE *parseRightParen();
+    AST_NODE *parseExpression();
+    AST_NODE *parseTerm();
 };
 
 #endif

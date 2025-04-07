@@ -85,6 +85,20 @@ AST_NODE *Parser::parseKeywordPrint()
 
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_PRINT;
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "Expected '(' after print keyword" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+    node->CHILD = parseExpression();
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "Expected ')' after print argument" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
 
     return node;
 }
@@ -168,7 +182,6 @@ AST_NODE *Parser::parseID()
 AST_NODE *Parser::parseKeywordINT()
 {
     proceed(TOKEN_KEYWORD_INT);
-    std::cout << "We made it here (1)" << std::endl;
 
     std::string variableName = current->value;
     proceed(TOKEN_IDENTIFIER);
@@ -181,18 +194,7 @@ AST_NODE *Parser::parseKeywordINT()
     {
         proceed(TOKEN_EQUALS);
 
-        if (current == nullptr || current->TYPE != TOKEN_INTEGER_VAL)
-        {
-            std::cerr << "< Syntax Error > Expected integer value after '=' " << std::endl;
-            exit(1);
-        }
-
-        AST_NODE *childNode = new AST_NODE();
-        childNode->TYPE = NODE_INT_LITERAL;
-        childNode->VALUE = current->value;
-
-        node->CHILD = childNode;
-        proceed(TOKEN_INTEGER_VAL);
+        node->CHILD = parseExpression();
     }
     else
     {
@@ -260,6 +262,66 @@ AST_NODE *Parser::parseAdd()
     node->TYPE = NODE_ADD;
 
     return node;
+}
+
+AST_NODE *Parser::parseTerm()
+{
+    if (current->TYPE == TOKEN_INTEGER_VAL)
+    {
+        return parseIntegerValue();
+    }
+    else if (current->TYPE == TOKEN_IDENTIFIER)
+    {
+        std::string identifierName = current->value;
+        proceed(TOKEN_IDENTIFIER);
+
+        AST_NODE *node = new AST_NODE();
+        node->TYPE = NODE_IDENTIFIER;
+        node->VALUE = identifierName;
+        return node;
+    }
+    else if (current->TYPE == TOKEN_LEFT_PAREN)
+    {
+        proceed(TOKEN_LEFT_PAREN);
+        AST_NODE *expr = parseExpression();
+
+        if (current->TYPE != TOKEN_RIGHT_PAREN)
+        {
+            std::cerr << "Expected closing parenthesis" << std::endl;
+            exit(1);
+        }
+        proceed(TOKEN_RIGHT_PAREN);
+        return expr;
+    }
+    std::cerr << "Unexpected token in expression" << std::endl;
+    exit(1);
+    return nullptr;
+}
+AST_NODE *Parser::parseExpression()
+{
+    AST_NODE *left = parseTerm();
+    while (current != nullptr &&
+           (current->TYPE == TOKEN_OPERATOR_ADD ||
+            current->TYPE == TOKEN_OPERATOR_SUBT))
+    {
+
+        AST_NODE *opNode = nullptr;
+        if (current->TYPE == TOKEN_OPERATOR_ADD)
+        {
+            proceed(TOKEN_OPERATOR_ADD);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_ADD;
+        }
+
+        // ADD FUTURE OPERATORS HERE
+        AST_NODE *right = parseTerm();
+
+        opNode->SUB_STATEMENTS.push_back(left);
+        opNode->SUB_STATEMENTS.push_back(right);
+
+        left = opNode;
+    }
+    return left;
 }
 
 AST_NODE *Parser::parse()
@@ -330,12 +392,14 @@ AST_NODE *Parser::parse()
             root->SUB_STATEMENTS.push_back(statement);
         }
 
+        // Expect a semicolon after most statements
         if (cursor < size && tokens[cursor]->TYPE == TOKEN_SEMICOLON)
         {
-            root->SUB_STATEMENTS.push_back(parseSemicolon());
+            proceed(TOKEN_SEMICOLON); // Just consume it, don't add to tree
         }
     }
 
+    // Handle EOF
     if (cursor < size && tokens[cursor]->TYPE == TOKEN_EOF)
     {
         current = tokens[cursor];
