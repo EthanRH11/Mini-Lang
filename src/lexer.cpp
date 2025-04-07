@@ -32,7 +32,7 @@ char Lexer::advanceCursor()
 
 bool Lexer::matchKeyword(const std::string &keyword)
 {
-    if (cursor + keyword.size() > size)
+    if (cursor + keyword.size() > static_cast<size_t>(size))
     {
         return false;
     }
@@ -225,6 +225,7 @@ Token *Lexer::processCharLiteral()
 }
 Token *Lexer::processKeyword(std::vector<Token *> &tokens)
 {
+    (void)tokens;
     std::string keyword;
 
     // Collect the full keyword or identifier
@@ -251,7 +252,7 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     {
         return new Token{TOKEN_KEYWORD_CHAR, keyword};
     }
-    else if (keyword == "out_to_print")
+    else if (keyword == "out_to_console")
     {
         return new Token{TOKEN_KEYWORD_PRINT, keyword};
     }

@@ -12,7 +12,7 @@ SOURCE_DIR="../src"
 OUTPUT_DIR="../build"
 LOG_FILE="build.log"
 CXX_COMPILER="g++"
-CXX_FLAGS="-g -Wall -Wextra -std=c++11"
+CXX_FLAGS="-g -Wall -Wextra -std=c++17 -lstdc++fs"
 
 # Create color codes for output formatting
 RED='\033[0;31m'

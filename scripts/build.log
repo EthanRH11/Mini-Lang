@@ -1,14 +1,2 @@
-Compilation started at Mon Apr  7 10:26:33 EDT 2025
-../src/interperter.cpp: In member function ‘int Interperter::evaluateExpression(AST_NODE*)’:
-../src/interperter.cpp:153:99: warning: control reaches end of non-void function [-Wreturn-type]
-  153 |         std::cerr << "Unexpected Expression of type: " << node->TYPE << ". With Value: " << node->VALUE;
-      |                                                                                                   ^~~~~
-../src/lexer.cpp: In member function ‘bool Lexer::matchKeyword(const std::string&)’:
-../src/lexer.cpp:35:33: warning: comparison of integer expressions of different signedness: ‘std::__cxx11::basic_string<char>::size_type’ {aka ‘long unsigned int’} and ‘int’ [-Wsign-compare]
-   35 |     if (cursor + keyword.size() > size)
-      |         ~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
-../src/lexer.cpp: In member function ‘Token* Lexer::processKeyword(std::vector<Token*>&)’:
-../src/lexer.cpp:226:52: warning: unused parameter ‘tokens’ [-Wunused-parameter]
-  226 | Token *Lexer::processKeyword(std::vector<Token *> &tokens)
-      |                              ~~~~~~~~~~~~~~~~~~~~~~^~~~~~
-Test Log Entry Mon Apr  7 10:26:34 EDT 2025
+Compilation started at Mon Apr  7 13:07:11 EDT 2025
+Test Log Entry Mon Apr  7 13:07:13 EDT 2025

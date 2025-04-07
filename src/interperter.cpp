@@ -1,75 +1,40 @@
 #include <iostream>
 #include <map>
+#include <fstream>
+#include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
+#include <filesystem>
+#include <variant>
 #include "interperter.hpp"
+#include "Value.hpp"
 
-// void Interperter::executeNode(AST_NODE *node)
-// {
-//     if (!node)
-//         return;
+namespace fs = std::filesystem;
 
-//     switch (node->TYPE)
-//     {
-//     case NODE_ROOT:
-//         // Process all statements in sequence
-//         for (auto &stmt : node->SUB_STATEMENTS)
-//         {
-//             executeNode(stmt);
-//         }
-//         break;
-//     case NODE_INT:
-//         // Handle Variable Decleration
-//         //(Recursively process the initialization expression if any)
-//         if (node->CHILD)
-//         {
-//             int value = evaluateExpression(node->CHILD);
-//             variables[node->VALUE] = value;
-//         }
-//         else
-//         {
-//             variables[node->VALUE] = 0;
-//         }
-//         break;
-//     case NODE_IDENTIFIER:
-//         if (variables.find(node->VALUE) == variables.end())
-//         {
-//             std::cerr << "ERROR: Undefined Variable '" << node->VALUE << "'" << std::endl;
-//             exit(1);
-//         }
-//         break;
-//     case NODE_PRINT:
-//         if (node->CHILD)
-//         {
-//             // Value class needs implemented
-//             // Value will hold different types and handle them
-//             Value result = evaluateExpression(node->CHILD);
+void Interperter::setupOutputFile()
+{
+    fs::create_directories("output");
 
-//             if (result.isInteger())
-//             {
-//                 std::cout << result.getInteger() << std::endl;
-//             }
-//             else if (result.isString())
-//             {
-//                 std::cout << result.getString() << std::endl;
-//             }
-//             else
-//             {
-//                 std::cout << "EMPTY PRINT STATEMENT" << std::endl;
-//             }
-//         }
+    auto now = std::chrono::system_clock::now();
+    std::time_t timeNow = std::chrono::system_clock::to_time_t(now);
 
-//     default:
-//         // Handle unknown nodes
-//         std::cerr << "Interpertation Error: Unknown node type: " << node->TYPE << std::endl;
-//         exit(1);
-//     }
-// }
+    std::stringstream ss;
+    ss << "../output/output_" << std::put_time(std::localtime(&timeNow), "%Y-%m-%d_%H-%M-%S") << ".txt";
+    std::string filename = ss.str();
+
+    outputFile.open(filename);
+    if (!outputFile.is_open())
+    {
+        std::cerr << "failed to create output file: " << filename << std::endl;
+        std::exit(1);
+    }
+}
 
 void Interperter::executeNode(AST_NODE *node)
 {
     if (!node)
         return;
-
-    std::cout << "Processing node type: " << node->TYPE << std::endl;
 
     switch (node->TYPE)
     {
@@ -101,7 +66,7 @@ void Interperter::executeNode(AST_NODE *node)
         if (node->CHILD)
         {
             int result = evaluateExpression(node->CHILD);
-            std::cout << result << std::endl;
+            printToOutput(result);
         }
         else
         {
@@ -150,7 +115,8 @@ int Interperter::evaluateExpression(AST_NODE *node)
             exit(1);
         }
     default:
-        std::cerr << "Unexpected Expression of type: " << node->TYPE << ". With Value: " << node->VALUE;
+        std::cerr << "ERROR: Unexpected Expression of type: '" << node->VALUE << "'" << std::endl;
+        exit(1);
     }
 }
 void Interperter::executeStatement(AST_NODE *node)
@@ -190,8 +156,8 @@ void Interperter::executeStatement(AST_NODE *node)
         //  - output result
         if (node->CHILD)
         {
-            int result = evaluateExpression(node->CHILD);
-            std::cout << result << std::endl;
+            Value result = evaluateExpression(node->CHILD);
+            outputFile << result.toString() << std::endl;
         }
         else
         {
