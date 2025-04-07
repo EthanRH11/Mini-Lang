@@ -5,6 +5,7 @@
 
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "interperter.hpp"
 
 void printTokens(const std::vector<Token *> &tokens)
 {
@@ -40,10 +41,14 @@ int main(int argc, char *argv[])
     {
         Lexer lexer(sourceCode);
         std::vector<Token *> tokens = lexer.tokenize();
-        printTokens(tokens);
-        Parser parse(tokens);
-        auto statements = parse.parse();
 
+        printTokens(tokens);
+
+        Parser parser(tokens);
+        AST_NODE *root = parser.parse();
+
+        Interperter interperter(root);
+        interperter.execute();
         for (auto &token : tokens)
         {
             delete token;

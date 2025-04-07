@@ -10,20 +10,20 @@
 // Node Types for the AST
 enum NODE_TYPE
 {
-    NODE_ROOT,
-    NODE_VARIABLE,
-    NODE_PRINT,
-    NODE_RETURN,
-    NODE_INT,
-    NODE_INT_LITERAL,
-    NODE_EQUALS,
-    NODE_SEMICOLON,
-    NODE_IDENTIFIER,
-    NODE_ADD,
-    NODE_LEFT_PAREN,
-    NODE_RIGHT_PAREN,
-    NODE_PAREN_EXPR,
-    NODE_EOF,
+    NODE_ROOT,        // 0
+    NODE_VARIABLE,    // 1
+    NODE_PRINT,       // 2
+    NODE_RETURN,      // 3
+    NODE_INT,         // 4
+    NODE_INT_LITERAL, // 5
+    NODE_EQUALS,      // 6
+    NODE_SEMICOLON,   // 7
+    NODE_IDENTIFIER,  // 8
+    NODE_ADD,         // 9
+    NODE_LEFT_PAREN,  // 10
+    NODE_RIGHT_PAREN, // 11
+    NODE_PAREN_EXPR,  // 12
+    NODE_EOF,         // 13
 };
 
 struct AST_NODE

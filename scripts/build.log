@@ -1,4 +1,8 @@
-Compilation started at Sun Apr  6 11:07:19 EDT 2025
+Compilation started at Sun Apr  6 20:54:21 EDT 2025
+../src/interperter.cpp: In member function ‘int Interperter::evaluateExpression(AST_NODE*)’:
+../src/interperter.cpp:153:99: warning: control reaches end of non-void function [-Wreturn-type]
+  153 |         std::cerr << "Unexpected Expression of type: " << node->TYPE << ". With Value: " << node->VALUE;
+      |                                                                                                   ^~~~~
 ../src/lexer.cpp: In member function ‘bool Lexer::matchKeyword(const std::string&)’:
 ../src/lexer.cpp:35:33: warning: comparison of integer expressions of different signedness: ‘std::__cxx11::basic_string<char>::size_type’ {aka ‘long unsigned int’} and ‘int’ [-Wsign-compare]
    35 |     if (cursor + keyword.size() > size)
@@ -7,8 +11,4 @@ Compilation started at Sun Apr  6 11:07:19 EDT 2025
 ../src/lexer.cpp:226:52: warning: unused parameter ‘tokens’ [-Wunused-parameter]
   226 | Token *Lexer::processKeyword(std::vector<Token *> &tokens)
       |                              ~~~~~~~~~~~~~~~~~~~~~~^~~~~~
-../src/pilotParser.cpp: In function ‘int main(int, char**)’:
-../src/pilotParser.cpp:62:14: warning: unused variable ‘statements’ [-Wunused-variable]
-   62 |         auto statements = parse.parse();
-      |              ^~~~~~~~~~
-Test Log Entry Sun Apr  6 11:07:20 EDT 2025
+Test Log Entry Sun Apr  6 20:54:21 EDT 2025

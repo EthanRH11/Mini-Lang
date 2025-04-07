@@ -19,8 +19,8 @@ private:
     AST_NODE *root;
     std::map<std::string, int> variables;
 
-    void executeNode(AST_NODE *node);
-    int evaluateExpression(AST_NODE *node);
+    void executeNode(AST_NODE *node);       // Main recursive function
+    int evaluateExpression(AST_NODE *node); // Evaluates expressions such as (10 + x)
     void executeStatement(AST_NODE *node);
 
     // May need to implement more handling

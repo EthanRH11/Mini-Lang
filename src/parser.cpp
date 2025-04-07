@@ -170,12 +170,6 @@ AST_NODE *Parser::parseKeywordINT()
     proceed(TOKEN_KEYWORD_INT);
     std::cout << "We made it here (1)" << std::endl;
 
-    // if (current == nullptr || current->TYPE != TOKEN_IDENTIFIER)
-    // {
-    //     std::cerr << "< Syntax Error > Expected Identifier after 'int' " << std::endl;
-    //     exit(1);
-    // }
-
     std::string variableName = current->value;
     proceed(TOKEN_IDENTIFIER);
 
