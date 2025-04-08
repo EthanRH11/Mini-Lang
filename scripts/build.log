@@ -1,2 +1,26 @@
-Compilation started at Mon Apr  7 13:07:11 EDT 2025
-Test Log Entry Mon Apr  7 13:07:13 EDT 2025
+Compilation started at Tue Apr  8 11:38:45 EDT 2025
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseKeywordDouble()’:
+../src/parser.cpp:70:1: warning: no return statement in function returning non-void [-Wreturn-type]
+   70 | }
+      | ^
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseKeywordString()’:
+../src/parser.cpp:73:1: warning: no return statement in function returning non-void [-Wreturn-type]
+   73 | }
+      | ^
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseDoubleValue()’:
+../src/parser.cpp:76:1: warning: no return statement in function returning non-void [-Wreturn-type]
+   76 | }
+      | ^
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseStringValue()’:
+../src/parser.cpp:79:1: warning: no return statement in function returning non-void [-Wreturn-type]
+   79 | }
+      | ^
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseKeywordChar()’:
+../src/parser.cpp:82:1: warning: no return statement in function returning non-void [-Wreturn-type]
+   82 | }
+      | ^
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseCharValue()’:
+../src/parser.cpp:85:1: warning: no return statement in function returning non-void [-Wreturn-type]
+   85 | }
+      | ^
+Test Log Entry Tue Apr  8 11:38:47 EDT 2025

@@ -17,6 +17,40 @@ void printTokens(const std::vector<Token *> &tokens)
     }
 }
 
+void printNodes(AST_NODE *node, int depth = 0)
+{
+    if (!node)
+        return;
+
+    // Print indentation based on depth
+    std::string indent(depth * 2, ' ');
+
+    // Print node type and value
+    std::cout << indent << "Node Type: " << node->TYPE;
+    if (!node->VALUE.empty())
+    {
+        std::cout << ", Value: \"" << node->VALUE << "\"";
+    }
+    std::cout << std::endl;
+
+    // Print child node if it exists
+    if (node->CHILD)
+    {
+        std::cout << indent << "Child:" << std::endl;
+        printNodes(node->CHILD, depth + 1);
+    }
+
+    // Print sub-statements if they exist
+    if (!node->SUB_STATEMENTS.empty())
+    {
+        std::cout << indent << "Sub-statements (" << node->SUB_STATEMENTS.size() << "):" << std::endl;
+        for (AST_NODE *subNode : node->SUB_STATEMENTS)
+        {
+            printNodes(subNode, depth + 1);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -46,6 +80,15 @@ int main(int argc, char *argv[])
 
         Parser parser(tokens);
         AST_NODE *root = parser.parse();
+
+        if (root)
+        {
+            printNodes(root);
+        }
+        else
+        {
+            std::cout << "Root node is null!" << std::endl;
+        }
 
         Interperter interperter(root);
         interperter.execute();

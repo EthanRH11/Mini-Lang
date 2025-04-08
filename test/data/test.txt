@@ -1,0 +1,10 @@
+int x = 10;
+int y = 11;
+out_to_console(x + y);
+
+out_to_console("hello world");
+
+char c = 'c';
+double val = 2.0;
+
+endd

@@ -10,20 +10,26 @@
 // Node Types for the AST
 enum NODE_TYPE
 {
-    NODE_ROOT,        // 0
-    NODE_VARIABLE,    // 1
-    NODE_PRINT,       // 2
-    NODE_RETURN,      // 3
-    NODE_INT,         // 4
-    NODE_INT_LITERAL, // 5
-    NODE_EQUALS,      // 6
-    NODE_SEMICOLON,   // 7
-    NODE_IDENTIFIER,  // 8
-    NODE_ADD,         // 9
-    NODE_LEFT_PAREN,  // 10
-    NODE_RIGHT_PAREN, // 11
-    NODE_PAREN_EXPR,  // 12
-    NODE_EOF,         // 13
+    NODE_ROOT,           // 0
+    NODE_VARIABLE,       // 1
+    NODE_PRINT,          // 2
+    NODE_RETURN,         // 3
+    NODE_INT,            // 4
+    NODE_INT_LITERAL,    // 5
+    NODE_EQUALS,         // 6
+    NODE_SEMICOLON,      // 7
+    NODE_IDENTIFIER,     // 8
+    NODE_ADD,            // 9
+    NODE_DOUBLE_LITERAL, // 10
+    NODE_DOUBLE,         // 11
+    NODE_CHAR_LITERAL,   // 12
+    NODE_CHAR,           // 13
+    NODE_STRING_LITERAL, // 14
+    NODE_STRING,         // 15
+    NODE_LEFT_PAREN,     // 16
+    NODE_RIGHT_PAREN,    // 17
+    NODE_PAREN_EXPR,     // 18
+    NODE_EOF,            // 19
 };
 
 struct AST_NODE
@@ -71,6 +77,12 @@ private:
     AST_NODE *parseKeywordPrint();
     AST_NODE *parseKeywordINT();
     AST_NODE *parseIntegerValue();
+    AST_NODE *parseKeywordDouble();
+    AST_NODE *parseKeywordString();
+    AST_NODE *parseDoubleValue();
+    AST_NODE *parseStringValue();
+    AST_NODE *parseKeywordChar();
+    AST_NODE *parseCharValue();
     AST_NODE *parseEquals();
     AST_NODE *parserIntegerValue();
     AST_NODE *parseSemicolon();

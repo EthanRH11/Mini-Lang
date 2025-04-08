@@ -65,6 +65,116 @@ Token *Parser::peakAhead()
     }
 }
 
+AST_NODE *Parser::parseDoubleValue()
+{
+    proceed(TOKEN_KEYWORD_DOUBLE);
+
+    std::string variableName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_DOUBLE_LITERAL;
+    node->VALUE = variableName;
+
+    if (current != nullptr && current->TYPE == TOKEN_EQUALS)
+    {
+        proceed(TOKEN_EQUALS);
+
+        node->CHILD = parseExpression();
+    }
+    else
+    {
+        node->CHILD = nullptr;
+    }
+    return node;
+}
+
+AST_NODE *Parser::parseKeywordDouble()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_DOUBLE;
+    node->VALUE = current->value;
+
+    proceed(TOKEN_KEYWORD_DOUBLE);
+
+    return node;
+}
+
+AST_NODE *Parser::parseStringValue()
+{
+    AST_NODE *node = new AST_NODE();
+
+    if (current->TYPE == TOKEN_STRING_VAL)
+    {
+        node->TYPE = NODE_STRING_LITERAL;
+        node->VALUE = current->value;
+
+        proceed(TOKEN_STRING_VAL);
+    }
+    else if (current->TYPE == TOKEN_KEYWORD_STR)
+    {
+        proceed(TOKEN_KEYWORD_STR);
+
+        std::string variableName = current->value;
+        proceed(TOKEN_IDENTIFIER);
+        node->TYPE = NODE_STRING;
+        node->VALUE = variableName;
+
+        if (current != nullptr && current->TYPE == TOKEN_EQUALS)
+        {
+            proceed(TOKEN_EQUALS);
+
+            node->CHILD = parseExpression();
+        }
+    }
+    else
+    {
+        std::cerr << "Unexpected token in string expression" << std::endl;
+        exit(1);
+    }
+    return node;
+}
+AST_NODE *Parser::parseKeywordString()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_STRING;
+    node->VALUE = current->value;
+
+    return node;
+}
+AST_NODE *Parser::parseKeywordChar()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_CHAR;
+    node->VALUE = current->value;
+
+    proceed(TOKEN_KEYWORD_CHAR);
+    return node;
+}
+AST_NODE *Parser::parseCharValue()
+{
+    proceed(TOKEN_KEYWORD_CHAR);
+
+    std::string variableName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_CHAR_LITERAL;
+    node->VALUE = variableName;
+
+    if (current != nullptr && current->TYPE == TOKEN_EQUALS)
+    {
+        proceed(TOKEN_EQUALS);
+
+        node->CHILD = parseExpression();
+    }
+    else
+    {
+        node->CHILD = nullptr;
+    }
+    return node;
+}
+
 // EOF Keyword
 AST_NODE *Parser::parseKeywordEOF()
 {
@@ -126,18 +236,6 @@ AST_NODE *Parser::parseEquals()
     return node;
 }
 
-AST_NODE *Parser::parserIntegerValue()
-{
-
-    AST_NODE *node = new AST_NODE();
-    node->TYPE = NODE_INT_LITERAL;
-    node->VALUE = current->value;
-
-    proceed(TOKEN_INTEGER_VAL);
-
-    return node;
-}
-
 AST_NODE *Parser::parseSemicolon()
 {
     proceed(TOKEN_SEMICOLON);
@@ -151,8 +249,30 @@ AST_NODE *Parser::parseSemicolon()
 AST_NODE *Parser::parseID()
 {
     std::string identifierName = current->value;
-
     proceed(TOKEN_IDENTIFIER);
+
+    if (identifierName == "out_to_console")
+    {
+        AST_NODE *node = new AST_NODE();
+        node->TYPE = NODE_PRINT;
+
+        if (current->TYPE != TOKEN_LEFT_PAREN)
+        {
+            std::cerr << "Expected '(' after out_to_console" << std::endl;
+            exit(1);
+        }
+        proceed(TOKEN_LEFT_PAREN);
+        node->CHILD = parseExpression();
+
+        if (current->TYPE != TOKEN_RIGHT_PAREN)
+        {
+            std::cerr << "Expected ')' after print argument" << std::endl;
+            exit(1);
+        }
+        proceed(TOKEN_RIGHT_PAREN);
+
+        return node;
+    }
 
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_IDENTIFIER;
@@ -162,20 +282,8 @@ AST_NODE *Parser::parseID()
     {
         proceed(TOKEN_EQUALS);
 
-        if (current == nullptr || current->TYPE != TOKEN_INTEGER_VAL)
-        {
-            std::cerr << "< Syntax Error > Expected value after '=' " << std::endl;
-            exit(1);
-        }
-
-        AST_NODE *childNode = new AST_NODE();
-        childNode->TYPE = NODE_INT_LITERAL;
-        childNode->VALUE = current->value;
-
-        node->CHILD = childNode;
-        proceed(TOKEN_INTEGER_VAL);
+        node->CHILD = parseExpression();
     }
-
     return node;
 }
 
@@ -293,6 +401,18 @@ AST_NODE *Parser::parseTerm()
         proceed(TOKEN_RIGHT_PAREN);
         return expr;
     }
+    else if (current->TYPE == TOKEN_CHAR_VAL)
+    {
+        return parseCharValue();
+    }
+    else if (current->TYPE == TOKEN_STRING_VAL)
+    {
+        return parseStringValue();
+    }
+    else if (current->TYPE == TOKEN_DOUBLE_VAL)
+    {
+        return parseDoubleValue();
+    }
     std::cerr << "Unexpected token in expression" << std::endl;
     exit(1);
     return nullptr;
@@ -379,6 +499,29 @@ AST_NODE *Parser::parse()
 
         case TOKEN_RIGHT_PAREN:
             statement = parseRightParen();
+            break;
+        case TOKEN_CHAR_VAL:
+            statement = parseCharValue();
+            break;
+
+        case TOKEN_KEYWORD_CHAR:
+            statement = parseKeywordChar();
+            break;
+
+        case TOKEN_DOUBLE_VAL:
+            statement = parseDoubleValue();
+            break;
+
+        case TOKEN_KEYWORD_DOUBLE:
+            statement = parseKeywordDouble();
+            break;
+
+        case TOKEN_STRING_VAL:
+            statement = parseStringValue();
+            break;
+
+        case TOKEN_KEYWORD_STR:
+            statement = parseKeywordString();
             break;
 
         default:
