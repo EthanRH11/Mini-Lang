@@ -35,7 +35,7 @@ To build and run the parser, follow these steps:
     ./build.sh
 ### **4. Run the parser with a test file (specified in run.sh):**
     ./run.sh
-### **5. Output:
+### **5. Output:**
     ../output/ 
     compiled files will be called output_date_time.txt
 ### **6. Clean up build artifacts:**
