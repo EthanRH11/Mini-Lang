@@ -6,14 +6,12 @@ Token *Parser::proceed(enum tokenType type)
     std::cout << "About to proceed: Expected " << getTokenTypeName(type)
               << ", Got " << getTokenTypeName(tokens[cursor]->TYPE)
               << ", Value: " << tokens[cursor]->value << std::endl;
-    // Check if we're at the end of the token stream
     if (cursor >= size)
     {
         std::cerr << "< Syntax Error > Unexpected end of file" << std::endl;
         exit(1);
     }
 
-    // Check if the current token matches the expected type
     if (tokens[cursor]->TYPE != type)
     {
         std::cerr << "< Syntax Error > Expected " << getTokenTypeName(type)
@@ -21,24 +19,20 @@ Token *Parser::proceed(enum tokenType type)
         exit(1);
     }
 
-    // Advance cursor
     cursor++;
 
-    // Update current pointer with bounds check
     if (cursor < size)
     {
         current = tokens[cursor];
     }
     else
     {
-        // We've reached the end of the token stream
         current = nullptr;
     }
 
     return current;
 }
 
-// Helper to get current token
 Token *Parser::getCurrentToken()
 {
     return current;
@@ -63,7 +57,6 @@ Token *Parser::peakAhead()
     }
     else
     {
-        // if we are at the end of the tokenstream return null
         return nullptr;
     }
 }

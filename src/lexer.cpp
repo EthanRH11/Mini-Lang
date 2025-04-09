@@ -228,14 +228,11 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     (void)tokens;
     std::string keyword;
 
-    // Collect the full keyword or identifier
     while (std::isalpha(current) || current == '_')
     {
         keyword += current;
         advanceCursor();
     }
-    // std::cout << "Processing Keyword: " << keyword << std::endl;
-    //  Explicitly map keywords to their specific token types
     if (keyword == "int")
     {
         return new Token{TOKEN_KEYWORD_INT, keyword};
@@ -274,7 +271,6 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     }
     else
     {
-        // If it doesn't match a known keyword, treat it as an identifier
         return new Token{TOKEN_IDENTIFIER, keyword};
     }
 }

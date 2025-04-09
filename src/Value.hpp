@@ -23,7 +23,7 @@ public:
         DOUBLE,
         BOOL,
         FLOAT,
-        CHAR // Added CHAR type
+        CHAR
     };
 
     Value(int val);
@@ -31,7 +31,7 @@ public:
     Value(double val);
     Value(float val);
     Value(bool val);
-    Value(char val); // Added char constructor
+    Value(char val);
 
     Type getType() const { return type; }
 
@@ -45,7 +45,7 @@ public:
     bool isDouble() const;
     bool isFloat() const;
     bool isBool() const;
-    bool isChar() const; // Added isChar method
+    bool isChar() const;
 
     // Getters
     int getInteger() const;
@@ -53,7 +53,7 @@ public:
     double getDouble() const;
     float getFloat() const;
     bool getBool() const;
-    char getChar() const; // Added getChar method
+    char getChar() const;
 
     std::string toString() const;
 
@@ -66,7 +66,7 @@ private:
         bool boolValue;
         double doubleValue;
         float floatValue;
-        char charValue; // Added charValue
+        char charValue;
     } data;
 
     std::string stringValue;

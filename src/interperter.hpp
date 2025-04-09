@@ -43,12 +43,6 @@ private:
     Value evaluateExpression(AST_NODE *node); // Evaluates expressions such as (10 + x)
     void executeStatement(AST_NODE *node);
 
-    // Value handleStringLiteral(AST_NODE *node);
-    // Value handleCharLiteral(AST_NODE *node);
-    // Value handleDoubleLiteral(AST_NODE *node);
-    // Value handleIntLiteral(AST_NODE *node);
-    // Value handleIdentifier(AST_NODE *node);
-
     void printToOutput(const Value &val)
     {
         if (outputFile.is_open())

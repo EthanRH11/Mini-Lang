@@ -150,7 +150,7 @@ std::ostream &operator<<(std::ostream &os, const Value &v)
 
 Value Value::operator+(const Value &other) const
 {
-    // String concatenation if either operand is a string
+
     if (isString() || other.isString())
     {
         return Value(toString() + other.toString());
@@ -192,7 +192,6 @@ Value Value::operator+(const Value &other) const
         return Value(getInteger() + other.getInteger());
     }
 
-    // Character addition (treat as ASCII values)
     if (isChar() && other.isChar())
     {
         return Value(static_cast<int>(getChar()) + static_cast<int>(other.getChar()));
@@ -208,6 +207,5 @@ Value Value::operator+(const Value &other) const
         return Value(getInteger() + static_cast<int>(other.getChar()));
     }
 
-    // If no compatible operation found, convert both to string and concatenate
     return Value(toString() + other.toString());
 }
