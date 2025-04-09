@@ -132,14 +132,7 @@ AST_NODE *Parser::parseStringValue()
     }
     return node;
 }
-AST_NODE *Parser::parseKeywordString()
-{
-    AST_NODE *node = new AST_NODE();
-    node->TYPE = NODE_STRING;
-    node->VALUE = current->value;
 
-    return node;
-}
 AST_NODE *Parser::parseKeywordChar()
 {
     proceed(TOKEN_KEYWORD_CHAR);
@@ -383,6 +376,148 @@ AST_NODE *Parser::parseAdd()
     return node;
 }
 
+AST_NODE *Parser::parseLeftCurl()
+{
+    proceed(TOKEN_LEFT_CURL);
+
+    AST_NODE *blockNode = new AST_NODE();
+    blockNode->TYPE = NODE_BLOCK;
+
+    while (current != nullptr && current->TYPE != TOKEN_RIGHT_CURL)
+    {
+        AST_NODE *statement = nullptr;
+
+        switch (current->TYPE)
+        {
+        case TOKEN_IDENTIFIER:
+            statement = parseID();
+            break;
+        case TOKEN_KEYWORD_INT:
+            statement = parseKeywordINT();
+            break;
+        case TOKEN_KEYWORD_PRINT:
+            statement = parseKeywordPrint();
+            break;
+        case TOKEN_KEYWORD_CHAR:
+            statement = parseKeywordChar();
+            break;
+        case TOKEN_KEYWORD_DOUBLE:
+            statement = parseKeywordDouble();
+            break;
+        case TOKEN_KEYWORD_STR:
+            statement = parseStringValue();
+            break;
+        default:
+            std::cerr << "< Syntax Error > Unexpected token in block: "
+                      << getTokenTypeName(current->TYPE) << std::endl;
+            exit(1);
+        }
+
+        if (statement != nullptr)
+        {
+            blockNode->SUB_STATEMENTS.push_back(statement);
+        }
+
+        // Handle semicolons within the block
+        if (current != nullptr && current->TYPE == TOKEN_SEMICOLON)
+        {
+            proceed(TOKEN_SEMICOLON);
+        }
+    }
+
+    // Check for the closing brace
+    if (current == nullptr || current->TYPE != TOKEN_RIGHT_CURL)
+    {
+        std::cerr << "< Syntax Error > Expected '}' to close block" << std::endl;
+        exit(1);
+    }
+
+    // Consume the closing brace
+    proceed(TOKEN_RIGHT_CURL);
+
+    return blockNode;
+}
+
+AST_NODE *Parser::parseRightCurl()
+{
+    // This should not be called directly
+    // If we make it here, it means we found a closing brace without a matching open brace
+    std::cerr << "< Syntax Error > Unexpected '}' without matching '{'" << std::endl;
+    exit(1);
+
+    return nullptr;
+}
+AST_NODE *Parser::greaterThan()
+{
+}
+AST_NODE *Parser::lessThan()
+{
+}
+
+AST_NODE *Parser::parseKeywordIf()
+{
+    proceed(TOKEN_KEYWORD_IF);
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "Expected '(' after if keyword" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+    AST_NODE *condition = parseExpression();
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "Expected ')' after if condition" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    // parse 'then' block
+    AST_NODE *thenBlock = nullptr;
+
+    if (current->TYPE == TOKEN_LEFT_CURL)
+    {
+        thenBlock = parseLeftCurl();
+    }
+    else
+    {
+        thenBlock = new AST_NODE();
+        thenBlock->TYPE = NODE_BLOCK;
+        thenBlock->SUB_STATEMENTS.push_back(parseStatement());
+    }
+
+    AST_NODE *elseBlock = nullptr;
+    if (current != nullptr && current->TYPE == TOKEN_KEYWORD_ELSE)
+    {
+        proceed(TOKEN_KEYWORD_ELSE);
+
+        if (current->TYPE == TOKEN_LEFT_CURL)
+        {
+            elseBlock = parseLeftCurl();
+        }
+        else
+        {
+            elseBlock = new AST_NODE();
+            elseBlock->TYPE = NODE_BLOCK;
+            elseBlock->SUB_STATEMENTS.push_back(parseStatement());
+        }
+    }
+
+    // Create if statement node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_IF;
+    node->CHILD = condition;
+    node->SUB_STATEMENTS.push_back(thenBlock);
+    if (elseBlock != nullptr)
+    {
+        node->SUB_STATEMENTS.push_back(elseBlock);
+    }
+    return node;
+}
+AST_NODE *Parser::parseKeywordElse()
+{
+}
+
 AST_NODE *Parser::parseTerm()
 {
     if (current->TYPE == TOKEN_INTEGER_VAL)
@@ -527,12 +662,28 @@ AST_NODE *Parser::parse()
             statement = parseKeywordDouble();
             break;
 
-        case TOKEN_STRING_VAL:
+        case TOKEN_KEYWORD_STR:
             statement = parseStringValue();
             break;
 
-        case TOKEN_KEYWORD_STR:
-            statement = parseKeywordString();
+        case TOKEN_KEYWORD_IF:
+            statement = parseKeywordIf();
+            break;
+
+        case TOKEN_OPERATOR_GREATERTHAN:
+            statement = greaterThan();
+            break;
+
+        case TOKEN_LEFT_CURL:
+            statement = parseLeftCurl();
+            break;
+
+        case TOKEN_RIGHT_CURL:
+            statement = parseRightCurl();
+            break;
+
+        case TOKEN_KEYWORD_ELSE:
+            statement = parseKeywordElse();
             break;
 
         default:
@@ -556,8 +707,21 @@ AST_NODE *Parser::parse()
     // Handle EOF
     if (cursor < size && tokens[cursor]->TYPE == TOKEN_EOF)
     {
-        current = tokens[cursor];
-        root->SUB_STATEMENTS.push_back(parseKeywordEOF());
+        if (tokens[cursor]->value == "end")
+        {
+            current = tokens[cursor];
+            root->SUB_STATEMENTS.push_back(parseKeywordEOF());
+        }
+        else
+        {
+            std::cerr << "< Syntax Error > Program must end with keyword 'end'" << std::endl;
+            exit(1);
+        }
+    }
+    else
+    {
+        std::cerr << "< Syntax Error > Program must end with keyword 'end'" << std::endl;
+        exit(1);
     }
     return root;
 }
@@ -604,9 +768,129 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_RIGHT_PAREN"; // 17
     case NODE_PAREN_EXPR:
         return "NODE_PAREN_EXPR"; // 18
+    case NODE_LEFT_CURL:
+        return "NODE_LEFT_CURL"; // 19
+    case NODE_RIGHT_CURL:
+        return "NODE_RIGHT_CURL"; // 20
+    case NODE_LESS_THAN:
+        return "NODE_LESS_THAN"; // 21
+    case NODE_GREATER_THAN:
+        return "NODE_GREATER_THAN"; // 22
+    case NODE_BLOCK:
+        return "NODE_BLOCK"; // 23
+    case NODE_IF:
+        return "NODE_IF"; // 24
     case NODE_EOF:
-        return "NODE_EOF"; // 19
+        return "NODE_EOF"; // 25
     default:
         return "Unknown node";
     }
+}
+
+AST_NODE *Parser::parseStatement()
+{
+    if (current == nullptr)
+    {
+        std::cerr << "Unexpected end of file while parsing statement" << std::endl;
+        exit(1);
+    }
+
+    AST_NODE *statement = nullptr;
+
+    switch (current->TYPE)
+    {
+    case TOKEN_IDENTIFIER:
+        statement = parseID();
+        break;
+
+    case TOKEN_KEYWORD_INT:
+        statement = parseKeywordINT();
+        break;
+
+    case TOKEN_KEYWORD_PRINT:
+        statement = parseKeywordPrint();
+        break;
+
+    case TOKEN_EOF:
+        statement = parseKeywordEOF();
+        break;
+
+    case TOKEN_EQUALS:
+        statement = parseEquals();
+        break;
+
+    case TOKEN_INTEGER_VAL:
+        statement = parseIntegerValue();
+        break;
+
+    case TOKEN_SEMICOLON:
+        statement = parseSemicolon();
+        break;
+
+    case TOKEN_OPERATOR_ADD:
+        statement = parseAdd();
+        break;
+
+    case TOKEN_LEFT_PAREN:
+        statement = parseLeftParen();
+        break;
+
+    case TOKEN_RIGHT_PAREN:
+        statement = parseRightParen();
+        break;
+
+    case TOKEN_CHAR_VAL:
+        statement = parseCharValue();
+        break;
+
+    case TOKEN_KEYWORD_CHAR:
+        statement = parseKeywordChar();
+        break;
+
+    case TOKEN_DOUBLE_VAL:
+        statement = parseDoubleValue();
+        break;
+
+    case TOKEN_KEYWORD_DOUBLE:
+        statement = parseKeywordDouble();
+        break;
+
+    case TOKEN_KEYWORD_STR:
+        statement = parseStringValue();
+        break;
+
+    case TOKEN_STRING_VAL:
+        statement = parseStringValue();
+        break;
+
+    case TOKEN_LEFT_CURL:
+        statement = parseLeftCurl();
+        break;
+
+    case TOKEN_RIGHT_CURL:
+        statement = parseRightCurl();
+        break;
+
+    case TOKEN_KEYWORD_IF:
+        statement = parseKeywordIf();
+        break;
+
+    default:
+        std::cerr << "< Syntax Error > Unexpected token in statement: "
+                  << getTokenTypeName(current->TYPE) << std::endl;
+        exit(1);
+    }
+
+    // Handle semicolons after statements, but only for statements that need them
+    // Don't consume semicolons after blocks or control structures that don't need them
+    if (statement != nullptr &&
+        current != nullptr &&
+        current->TYPE == TOKEN_SEMICOLON &&
+        statement->TYPE != NODE_BLOCK &&
+        statement->TYPE != NODE_IF)
+    {
+        proceed(TOKEN_SEMICOLON);
+    }
+
+    return statement;
 }

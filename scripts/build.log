@@ -1,2 +1,14 @@
-Compilation started at Tue Apr  8 21:11:15 EDT 2025
-Test Log Entry Tue Apr  8 21:11:16 EDT 2025
+Compilation started at Wed Apr  9 12:23:02 EDT 2025
+../src/parser.cpp: In member function ‘AST_NODE* Parser::greaterThan()’:
+../src/parser.cpp:452:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  452 | }
+      | ^
+../src/parser.cpp: In member function ‘AST_NODE* Parser::lessThan()’:
+../src/parser.cpp:455:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  455 | }
+      | ^
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseKeywordElse()’:
+../src/parser.cpp:519:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  519 | }
+      | ^
+Test Log Entry Wed Apr  9 12:23:05 EDT 2025

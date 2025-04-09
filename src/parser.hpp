@@ -29,7 +29,13 @@ enum NODE_TYPE
     NODE_LEFT_PAREN,     // 16
     NODE_RIGHT_PAREN,    // 17
     NODE_PAREN_EXPR,     // 18
-    NODE_EOF,            // 19
+    NODE_LEFT_CURL,      // 19
+    NODE_RIGHT_CURL,     // 20
+    NODE_LESS_THAN,      // 21
+    NODE_GREATER_THAN,   // 22
+    NODE_BLOCK,          // 23
+    NODE_IF,             // 24
+    NODE_EOF,            // 25
 };
 
 struct AST_NODE
@@ -76,15 +82,16 @@ private:
     AST_NODE *parseKeywordEOF();
     AST_NODE *parseKeywordPrint();
     AST_NODE *parseKeywordINT();
-    AST_NODE *parseIntegerValue();
     AST_NODE *parseKeywordDouble();
-    AST_NODE *parseKeywordString();
+    AST_NODE *parseKeywordChar();
+
+    AST_NODE *parseIntegerValue();
     AST_NODE *parseDoubleValue();
     AST_NODE *parseStringValue();
-    AST_NODE *parseKeywordChar();
     AST_NODE *parseCharValue();
-    AST_NODE *parseEquals();
     AST_NODE *parserIntegerValue();
+
+    AST_NODE *parseEquals();
     AST_NODE *parseSemicolon();
     AST_NODE *parseID();
     AST_NODE *parseAdd();
@@ -92,6 +99,16 @@ private:
     AST_NODE *parseRightParen();
     AST_NODE *parseExpression();
     AST_NODE *parseTerm();
+
+    AST_NODE *parseLeftCurl();
+    AST_NODE *parseRightCurl();
+    AST_NODE *greaterThan();
+    AST_NODE *lessThan();
+
+    AST_NODE *parseKeywordIf();
+    AST_NODE *parseKeywordElse();
+
+    AST_NODE *parseStatement();
 };
 
 std::string getNodeTypeName(NODE_TYPE type);
