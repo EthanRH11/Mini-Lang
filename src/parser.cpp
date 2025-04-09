@@ -454,6 +454,13 @@ AST_NODE *Parser::lessThan()
 {
 }
 
+AST_NODE *Parser::parseMult()
+{
+}
+AST_NODE *Parser::parseSubt()
+{
+}
+
 AST_NODE *Parser::parseKeywordIf()
 {
     proceed(TOKEN_KEYWORD_IF);
@@ -686,6 +693,12 @@ AST_NODE *Parser::parse()
             statement = parseKeywordElse();
             break;
 
+        case TOKEN_OPERATOR_MULT:
+            statement = parseMult();
+            break;
+        case TOKEN_OPERATOR_SUBT:
+            statement = parseSubt();
+            break;
         default:
             std::cerr << "< Syntax Error > Unexpected token: "
                       << getTokenTypeName(current->TYPE) << std::endl;

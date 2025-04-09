@@ -35,7 +35,8 @@ enum NODE_TYPE
     NODE_GREATER_THAN,   // 22
     NODE_BLOCK,          // 23
     NODE_IF,             // 24
-    NODE_EOF,            // 25
+    NODE_MULT,           // 25
+    NODE_EOF,            // 26
 };
 
 struct AST_NODE
@@ -95,6 +96,8 @@ private:
     AST_NODE *parseSemicolon();
     AST_NODE *parseID();
     AST_NODE *parseAdd();
+    AST_NODE *parseMult();
+    AST_NODE *parseSubt();
     AST_NODE *parseLeftParen();
     AST_NODE *parseRightParen();
     AST_NODE *parseExpression();

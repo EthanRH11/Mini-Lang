@@ -1,4 +1,4 @@
-Compilation started at Wed Apr  9 12:23:02 EDT 2025
+Compilation started at Wed Apr  9 14:52:25 EDT 2025
 ../src/parser.cpp: In member function ‘AST_NODE* Parser::greaterThan()’:
 ../src/parser.cpp:452:1: warning: no return statement in function returning non-void [-Wreturn-type]
   452 | }
@@ -11,4 +11,4 @@ Compilation started at Wed Apr  9 12:23:02 EDT 2025
 ../src/parser.cpp:519:1: warning: no return statement in function returning non-void [-Wreturn-type]
   519 | }
       | ^
-Test Log Entry Wed Apr  9 12:23:05 EDT 2025
+Test Log Entry Wed Apr  9 14:52:27 EDT 2025
