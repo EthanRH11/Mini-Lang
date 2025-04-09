@@ -12,13 +12,18 @@
 class Value
 {
 public:
+    Value() : type(Type::INTEGER)
+    {
+        data.intValue = 0;
+    }
     enum class Type
     {
         INTEGER,
         STRING,
         DOUBLE,
         BOOL,
-        FLOAT
+        FLOAT,
+        CHAR // Added CHAR type
     };
 
     Value(int val);
@@ -26,16 +31,21 @@ public:
     Value(double val);
     Value(float val);
     Value(bool val);
+    Value(char val); // Added char constructor
 
     Type getType() const { return type; }
 
     friend std::ostream &operator<<(std::ostream &os, const Value &v);
+
+    // Addition operator for combining values
+    Value operator+(const Value &other) const;
 
     bool isInteger() const;
     bool isString() const;
     bool isDouble() const;
     bool isFloat() const;
     bool isBool() const;
+    bool isChar() const; // Added isChar method
 
     // Getters
     int getInteger() const;
@@ -43,6 +53,7 @@ public:
     double getDouble() const;
     float getFloat() const;
     bool getBool() const;
+    char getChar() const; // Added getChar method
 
     std::string toString() const;
 
@@ -55,6 +66,7 @@ private:
         bool boolValue;
         double doubleValue;
         float floatValue;
+        char charValue; // Added charValue
     } data;
 
     std::string stringValue;

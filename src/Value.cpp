@@ -1,18 +1,15 @@
 #include "Value.hpp"
-#include <string>
-#include <stdexcept>
-
-#include "Value.hpp"
 #include <stdexcept>
 #include <iomanip>
 
-// Constructors
 Value::Value(int val) : type(Type::INTEGER)
 {
     data.intValue = val;
 }
 
-Value::Value(const std::string &val) : type(Type::STRING), stringValue(val) {}
+Value::Value(const std::string &val) : type(Type::STRING), stringValue(val)
+{
+}
 
 Value::Value(double val) : type(Type::DOUBLE)
 {
@@ -29,7 +26,11 @@ Value::Value(bool val) : type(Type::BOOL)
     data.boolValue = val;
 }
 
-// Type checks
+Value::Value(char val) : type(Type::CHAR)
+{
+    data.charValue = val;
+}
+
 bool Value::isInteger() const
 {
     return type == Type::INTEGER;
@@ -55,87 +56,158 @@ bool Value::isBool() const
     return type == Type::BOOL;
 }
 
-// Getters
+bool Value::isChar() const
+{
+    return type == Type::CHAR;
+}
+
 int Value::getInteger() const
 {
-    if (!isInteger())
+    if (type != Type::INTEGER)
+    {
         throw std::runtime_error("Value is not an integer");
+    }
     return data.intValue;
 }
 
 std::string Value::getString() const
 {
-    if (!isString())
+    if (type != Type::STRING)
+    {
         throw std::runtime_error("Value is not a string");
+    }
     return stringValue;
 }
 
 double Value::getDouble() const
 {
-    if (!isDouble())
+    if (type != Type::DOUBLE)
+    {
         throw std::runtime_error("Value is not a double");
+    }
     return data.doubleValue;
 }
 
 float Value::getFloat() const
 {
-    if (!isFloat())
+    if (type != Type::FLOAT)
+    {
         throw std::runtime_error("Value is not a float");
+    }
     return data.floatValue;
 }
 
 bool Value::getBool() const
 {
-    if (!isBool())
-        throw std::runtime_error("Value is not a bool");
+    if (type != Type::BOOL)
+    {
+        throw std::runtime_error("Value is not a boolean");
+    }
     return data.boolValue;
 }
 
-// String representation
+char Value::getChar() const
+{
+    if (type != Type::CHAR)
+    {
+        throw std::runtime_error("Value is not a char");
+    }
+    return data.charValue;
+}
+
 std::string Value::toString() const
 {
-    std::ostringstream oss;
+    std::stringstream ss;
     switch (type)
     {
     case Type::INTEGER:
-        oss << data.intValue;
+        ss << data.intValue;
         break;
     case Type::STRING:
-        oss << stringValue;
+        ss << stringValue;
         break;
     case Type::DOUBLE:
-        oss << std::fixed << std::setprecision(6) << data.doubleValue;
+        ss << std::fixed << std::setprecision(1) << data.doubleValue;
         break;
     case Type::FLOAT:
-        oss << std::fixed << std::setprecision(6) << data.floatValue;
+        ss << data.floatValue;
         break;
     case Type::BOOL:
-        oss << (data.boolValue ? "true" : "false");
+        ss << (data.boolValue ? "true" : "false");
+        break;
+    case Type::CHAR:
+        ss << data.charValue;
         break;
     }
-    return oss.str();
+    return ss.str();
 }
 
-// Stream output
 std::ostream &operator<<(std::ostream &os, const Value &v)
 {
-    switch (v.type)
-    {
-    case Value::Type::INTEGER:
-        os << v.data.intValue;
-        break;
-    case Value::Type::STRING:
-        os << v.stringValue;
-        break;
-    case Value::Type::DOUBLE:
-        os << std::fixed << std::setprecision(6) << v.data.doubleValue;
-        break;
-    case Value::Type::FLOAT:
-        os << std::fixed << std::setprecision(6) << v.data.floatValue;
-        break;
-    case Value::Type::BOOL:
-        os << (v.data.boolValue ? "true" : "false");
-        break;
-    }
+    os << v.toString();
     return os;
+}
+
+Value Value::operator+(const Value &other) const
+{
+    // String concatenation if either operand is a string
+    if (isString() || other.isString())
+    {
+        return Value(toString() + other.toString());
+    }
+
+    // Numeric addition
+    if (isDouble() && other.isDouble())
+    {
+        return Value(getDouble() + other.getDouble());
+    }
+
+    if (isFloat() && other.isFloat())
+    {
+        return Value(getFloat() + other.getFloat());
+    }
+
+    if (isDouble() && other.isInteger())
+    {
+        return Value(getDouble() + other.getInteger());
+    }
+
+    if (isInteger() && other.isDouble())
+    {
+        return Value(getInteger() + other.getDouble());
+    }
+
+    if (isFloat() && other.isInteger())
+    {
+        return Value(getFloat() + other.getInteger());
+    }
+
+    if (isInteger() && other.isFloat())
+    {
+        return Value(getInteger() + other.getFloat());
+    }
+
+    if (isInteger() && other.isInteger())
+    {
+        return Value(getInteger() + other.getInteger());
+    }
+
+    // Character addition (treat as ASCII values)
+    if (isChar() && other.isChar())
+    {
+        return Value(static_cast<int>(getChar()) + static_cast<int>(other.getChar()));
+    }
+
+    if (isChar() && other.isInteger())
+    {
+        return Value(static_cast<int>(getChar()) + other.getInteger());
+    }
+
+    if (isInteger() && other.isChar())
+    {
+        return Value(getInteger() + static_cast<int>(other.getChar()));
+    }
+
+    // If no compatible operation found, convert both to string and concatenate
+    return Value(toString() + other.toString());
 }

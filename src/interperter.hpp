@@ -36,20 +36,27 @@ public:
 
 private:
     AST_NODE *root;
-    std::map<std::string, int> variables;
+    std::map<std::string, Value> variables;
     std::ofstream outputFile;
 
-    void executeNode(AST_NODE *node);       // Main recursive function
-    int evaluateExpression(AST_NODE *node); // Evaluates expressions such as (10 + x)
+    void executeNode(AST_NODE *node);         // Main recursive function
+    Value evaluateExpression(AST_NODE *node); // Evaluates expressions such as (10 + x)
     void executeStatement(AST_NODE *node);
+
+    // Value handleStringLiteral(AST_NODE *node);
+    // Value handleCharLiteral(AST_NODE *node);
+    // Value handleDoubleLiteral(AST_NODE *node);
+    // Value handleIntLiteral(AST_NODE *node);
+    // Value handleIdentifier(AST_NODE *node);
 
     void printToOutput(const Value &val)
     {
         if (outputFile.is_open())
         {
-            outputFile << val << std::endl;
+            outputFile << val.toString() << std::endl;
         }
     }
+
     // May need to implement more handling
 };
 

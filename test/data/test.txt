@@ -7,4 +7,6 @@ out_to_console("hello world");
 char c = 'c';
 double val = 2.0;
 
-endd
+out_to_console(val);
+
+end

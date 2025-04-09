@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <filesystem>
 #include <variant>
+
 #include "interperter.hpp"
 #include "Value.hpp"
 
@@ -36,6 +37,8 @@ void Interperter::executeNode(AST_NODE *node)
     if (!node)
         return;
 
+    std::cout << "Executing node: " << getNodeTypeName(node->TYPE) << std::endl;
+
     switch (node->TYPE)
     {
     case NODE_ROOT:
@@ -47,12 +50,45 @@ void Interperter::executeNode(AST_NODE *node)
     case NODE_INT:
         if (node->CHILD)
         {
-            int value = evaluateExpression(node->CHILD);
+            Value value = evaluateExpression(node->CHILD);
             variables[node->VALUE] = value;
         }
         else
         {
-            variables[node->VALUE] = 0;
+            variables[node->VALUE] = Value(0);
+        }
+        break;
+    case NODE_DOUBLE:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value(0.0);
+        }
+        break;
+    case NODE_CHAR:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value('\0');
+        }
+        break;
+    case NODE_STRING:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value("");
         }
         break;
     case NODE_IDENTIFIER:
@@ -65,7 +101,7 @@ void Interperter::executeNode(AST_NODE *node)
     case NODE_PRINT:
         if (node->CHILD)
         {
-            int result = evaluateExpression(node->CHILD);
+            Value result = evaluateExpression(node->CHILD);
             printToOutput(result);
         }
         else
@@ -87,23 +123,44 @@ void Interperter::executeNode(AST_NODE *node)
     case NODE_EOF:
         break;
     default:
-        std::cerr << "Interpertation Error: Unknown node type: " << node->TYPE << std::endl;
+        std::cerr << "Interpretation Error: Unknown node type: " << getNodeTypeName(node->TYPE) << std::endl;
         exit(1);
     }
 }
 
-int Interperter::evaluateExpression(AST_NODE *node)
+Value Interperter::evaluateExpression(AST_NODE *node)
 {
     if (!node)
-        return 0;
+        return Value(0);
+
+    std::cout << "Evaluation expression node: " << getNodeTypeName(node->TYPE) << std::endl;
 
     switch (node->TYPE)
     {
     case NODE_INT_LITERAL:
-        return std::stoi(node->VALUE);
+        return Value(std::stoi(node->VALUE));
+    case NODE_DOUBLE_LITERAL:
+        return Value(std::stod(node->VALUE));
+    case NODE_CHAR_LITERAL:
+        if (node->VALUE.length() == 1)
+        {
+            return Value(node->VALUE);
+        }
+        else
+        {
+            return Value('\0');
+        }
+    case NODE_STRING_LITERAL:
+        return Value(node->VALUE);
     case NODE_ADD:
-        return evaluateExpression(node->SUB_STATEMENTS[0]) +
-               evaluateExpression(node->SUB_STATEMENTS[1]);
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return left + right;
+        }
+        return Value(0);
     case NODE_IDENTIFIER:
         if (variables.find(node->VALUE) != variables.end())
         {
@@ -111,53 +168,68 @@ int Interperter::evaluateExpression(AST_NODE *node)
         }
         else
         {
-            std::cerr << "ERROR: Undefined variable '" << node->VALUE << "'" << std::endl;
+            std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
             exit(1);
         }
     default:
-        std::cerr << "ERROR: Unexpected Expression of type: '" << node->VALUE << "'" << std::endl;
+        std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
         exit(1);
     }
 }
+
 void Interperter::executeStatement(AST_NODE *node)
 {
     /*Handle Statements such as:
      * Variable Declerations
      * Assignment Statements
      * Print Statements
-     * Implement more later on...*/
+     * Implement more in future*/
+
     if (!node)
-    {
         return;
-    }
+
+    std::cout << "Executing statement: " << getNodeTypeName(node->TYPE) << std::endl;
 
     switch (node->TYPE)
     {
     case NODE_INT:
-        // Handle variable declerations
-        //  - get var name
-        //  - check if theres an initializer
-        //  - if yes evaluate it
-        //  - store in symbol table
         if (node->CHILD)
         {
-            int value = evaluateExpression(node->CHILD);
+            Value value = evaluateExpression(node->CHILD);
             variables[node->VALUE] = value;
         }
         else
         {
-            variables[node->VALUE] = 0;
+            variables[node->VALUE] = Value(0);
+        }
+        break;
+    case NODE_DOUBLE:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value(0.0);
+        }
+        break;
+    case NODE_CHAR:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value("");
         }
         break;
     case NODE_PRINT:
-        // Handle print:
-        //  - check if there is an expression to print
-        //  - evaluate it
-        //  - output result
         if (node->CHILD)
         {
             Value result = evaluateExpression(node->CHILD);
-            outputFile << result.toString() << std::endl;
+            printToOutput(result);
         }
         else
         {
@@ -167,7 +239,7 @@ void Interperter::executeStatement(AST_NODE *node)
     case NODE_SEMICOLON:
         break;
     default:
-        std::cerr << "Unknown Statement Type" << std::endl;
+        std::cerr << "Unknown Statement Type: " << getNodeTypeName(node->TYPE) << std::endl;
         exit(1);
     }
 }

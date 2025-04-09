@@ -3,6 +3,9 @@
 
 Token *Parser::proceed(enum tokenType type)
 {
+    std::cout << "About to proceed: Expected " << getTokenTypeName(type)
+              << ", Got " << getTokenTypeName(tokens[cursor]->TYPE)
+              << ", Value: " << tokens[cursor]->value << std::endl;
     // Check if we're at the end of the token stream
     if (cursor >= size)
     {
@@ -67,14 +70,26 @@ Token *Parser::peakAhead()
 
 AST_NODE *Parser::parseDoubleValue()
 {
-    proceed(TOKEN_KEYWORD_DOUBLE);
-
-    std::string variableName = current->value;
-    proceed(TOKEN_IDENTIFIER);
+    std::string doubleValue = current->value;
+    proceed(TOKEN_DOUBLE_VAL);
 
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_DOUBLE_LITERAL;
-    node->VALUE = variableName;
+    node->VALUE = doubleValue;
+
+    return node;
+}
+
+AST_NODE *Parser::parseKeywordDouble()
+{
+    proceed(TOKEN_KEYWORD_DOUBLE);
+
+    std::string identifierName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_DOUBLE;
+    node->VALUE = identifierName;
 
     if (current != nullptr && current->TYPE == TOKEN_EQUALS)
     {
@@ -86,16 +101,6 @@ AST_NODE *Parser::parseDoubleValue()
     {
         node->CHILD = nullptr;
     }
-    return node;
-}
-
-AST_NODE *Parser::parseKeywordDouble()
-{
-    AST_NODE *node = new AST_NODE();
-    node->TYPE = NODE_DOUBLE;
-    node->VALUE = current->value;
-
-    proceed(TOKEN_KEYWORD_DOUBLE);
 
     return node;
 }
@@ -144,23 +149,13 @@ AST_NODE *Parser::parseKeywordString()
 }
 AST_NODE *Parser::parseKeywordChar()
 {
-    AST_NODE *node = new AST_NODE();
-    node->TYPE = NODE_CHAR;
-    node->VALUE = current->value;
-
     proceed(TOKEN_KEYWORD_CHAR);
-    return node;
-}
-AST_NODE *Parser::parseCharValue()
-{
-    proceed(TOKEN_KEYWORD_CHAR);
-
-    std::string variableName = current->value;
+    std::string identifierName = current->value;
     proceed(TOKEN_IDENTIFIER);
 
     AST_NODE *node = new AST_NODE();
-    node->TYPE = NODE_CHAR_LITERAL;
-    node->VALUE = variableName;
+    node->TYPE = NODE_CHAR;
+    node->VALUE = identifierName;
 
     if (current != nullptr && current->TYPE == TOKEN_EQUALS)
     {
@@ -172,6 +167,18 @@ AST_NODE *Parser::parseCharValue()
     {
         node->CHILD = nullptr;
     }
+
+    return node;
+}
+AST_NODE *Parser::parseCharValue()
+{
+    std::string charValue = current->value;
+    proceed(TOKEN_CHAR_VAL);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_CHAR_LITERAL;
+    node->VALUE = charValue;
+
     return node;
 }
 
@@ -180,6 +187,13 @@ AST_NODE *Parser::parseKeywordEOF()
 {
     std::string eofValue = current->value;
     proceed(TOKEN_EOF);
+
+    if (cursor < size)
+    {
+        std::cerr << "Unexpected token after EOF: "
+                  << getTokenTypeName(tokens[cursor]->TYPE) << std::endl;
+        exit(1);
+    }
 
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_EOF;
@@ -272,6 +286,10 @@ AST_NODE *Parser::parseID()
         proceed(TOKEN_RIGHT_PAREN);
 
         return node;
+    }
+    else if (identifierName == "end")
+    {
+        return parseKeywordEOF();
     }
 
     AST_NODE *node = new AST_NODE();
@@ -549,4 +567,53 @@ AST_NODE *Parser::parse()
         root->SUB_STATEMENTS.push_back(parseKeywordEOF());
     }
     return root;
+}
+
+std::string getNodeTypeName(NODE_TYPE type)
+{
+    switch (type)
+    {
+    case NODE_ROOT:
+        return "NODE_ROOT";
+    case NODE_VARIABLE:
+        return "NODE_VARIABLE";
+    case NODE_PRINT:
+        return "NODE_PRINT"; // 2
+    case NODE_RETURN:
+        return "NODE_RETURN"; // 3
+    case NODE_INT:
+        return "NODE_INT"; // 4
+    case NODE_INT_LITERAL:
+        return "NODE_INT_LITERAL"; // 5
+    case NODE_EQUALS:
+        return "NODE_EQUALS"; // 6
+    case NODE_SEMICOLON:
+        return "NODE_SEMICOLON"; // 7
+    case NODE_IDENTIFIER:
+        return "NODE_IDENTIFIER"; // 8
+    case NODE_ADD:
+        return "NODE_ADD"; // 9
+    case NODE_DOUBLE_LITERAL:
+        return "NODE_DOUBLE_LITERAL"; // 10
+    case NODE_DOUBLE:
+        return "NODE_DOUBLE"; // 11
+    case NODE_CHAR_LITERAL:
+        return "NODE_CHAR_LITERAL"; // 12
+    case NODE_CHAR:
+        return "NODE_CHAR"; // 13
+    case NODE_STRING_LITERAL:
+        return "NODE_STRING_LITERAL"; // 14
+    case NODE_STRING:
+        return "NODE_STRING"; // 15
+    case NODE_LEFT_PAREN:
+        return "NODE_LEFT_PAREN"; // 16
+    case NODE_RIGHT_PAREN:
+        return "NODE_RIGHT_PAREN"; // 17
+    case NODE_PAREN_EXPR:
+        return "NODE_PAREN_EXPR"; // 18
+    case NODE_EOF:
+        return "NODE_EOF"; // 19
+    default:
+        return "Unknown node";
+    }
 }

@@ -94,4 +94,6 @@ private:
     AST_NODE *parseTerm();
 };
 
+std::string getNodeTypeName(NODE_TYPE type);
+
 #endif

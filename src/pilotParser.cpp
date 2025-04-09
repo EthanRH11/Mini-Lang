@@ -26,7 +26,7 @@ void printNodes(AST_NODE *node, int depth = 0)
     std::string indent(depth * 2, ' ');
 
     // Print node type and value
-    std::cout << indent << "Node Type: " << node->TYPE;
+    std::cout << indent << "Node type: " << getNodeTypeName(node->TYPE);
     if (!node->VALUE.empty())
     {
         std::cout << ", Value: \"" << node->VALUE << "\"";
