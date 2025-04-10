@@ -1,3 +1,5 @@
-int result = (5 + 3) * 2 - 4 / 2;
+int result = (5 + 3) * 2 - 4;
+int newResult = (((4 + 8) * 2) - 13);
 out_to_console(result);
-end;
+out_to_console(newResult);
+end
