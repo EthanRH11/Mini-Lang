@@ -449,16 +449,40 @@ AST_NODE *Parser::parseRightCurl()
 }
 AST_NODE *Parser::greaterThan()
 {
+    proceed(TOKEN_OPERATOR_GREATERTHAN);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_GREATER_THAN;
+
+    return node;
 }
 AST_NODE *Parser::lessThan()
 {
+    proceed(TOKEN_OPERATOR_LESSTHAN);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_LESS_THAN;
+
+    return node;
 }
 
 AST_NODE *Parser::parseMult()
 {
+    proceed(TOKEN_OPERATOR_MULT);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_MULT;
+
+    return node;
 }
 AST_NODE *Parser::parseSubt()
 {
+    proceed(TOKEN_OPERATOR_SUBT);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_SUBT;
+
+    return node;
 }
 
 AST_NODE *Parser::parseKeywordIf()
@@ -471,6 +495,7 @@ AST_NODE *Parser::parseKeywordIf()
         exit(1);
     }
     proceed(TOKEN_LEFT_PAREN);
+    std::cout << "After left paren: " << getTokenTypeName(current->TYPE);
     AST_NODE *condition = parseExpression();
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
@@ -523,6 +548,10 @@ AST_NODE *Parser::parseKeywordIf()
 }
 AST_NODE *Parser::parseKeywordElse()
 {
+    std::cerr << "< Syntax Error > Unexpected 'else' without matching if" << std::endl;
+    exit(1);
+
+    return nullptr;
 }
 
 AST_NODE *Parser::parseTerm()
@@ -575,15 +604,43 @@ AST_NODE *Parser::parseExpression()
     AST_NODE *left = parseTerm();
     while (current != nullptr &&
            (current->TYPE == TOKEN_OPERATOR_ADD ||
-            current->TYPE == TOKEN_OPERATOR_SUBT))
+            current->TYPE == TOKEN_OPERATOR_SUBT ||
+            current->TYPE == TOKEN_OPERATOR_MULT ||
+            current->TYPE == TOKEN_OPERATOR_LESSTHAN ||
+            current->TYPE == TOKEN_OPERATOR_GREATERTHAN))
     {
 
         AST_NODE *opNode = nullptr;
+
         if (current->TYPE == TOKEN_OPERATOR_ADD)
         {
             proceed(TOKEN_OPERATOR_ADD);
             opNode = new AST_NODE();
             opNode->TYPE = NODE_ADD;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_SUBT)
+        {
+            proceed(TOKEN_OPERATOR_SUBT);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_SUBT;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_MULT)
+        {
+            proceed(TOKEN_OPERATOR_MULT);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_MULT;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_LESSTHAN)
+        {
+            proceed(TOKEN_OPERATOR_LESSTHAN);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_LESS_THAN;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_GREATERTHAN)
+        {
+            proceed(TOKEN_OPERATOR_GREATERTHAN);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_GREATER_THAN;
         }
 
         // ADD FUTURE OPERATORS HERE

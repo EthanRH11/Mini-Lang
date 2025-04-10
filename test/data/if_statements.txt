@@ -1,7 +1,7 @@
 int x = 6;
 int y = 22;
 
-if(y > x){
+if(x > y){
     out_to_console(x);
 } else {
     out_to_console(y)

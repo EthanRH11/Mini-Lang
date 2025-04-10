@@ -47,6 +47,46 @@ void Interperter::executeNode(AST_NODE *node)
             executeNode(stmt);
         }
         break;
+    case NODE_IF:
+    {
+        Value condition = evaluateExpression(node->CHILD);
+
+        bool conditionResult = false;
+
+        if (condition.isInteger())
+        {
+            conditionResult = condition.getInteger() != 0;
+        }
+        else if (condition.isDouble())
+        {
+            conditionResult = condition.getDouble() != 0.0;
+        }
+        else if (condition.isBool())
+        {
+            conditionResult = condition.getBool();
+        }
+        else if (condition.isString())
+        {
+            conditionResult = !condition.getString().empty();
+        }
+        else if (condition.isChar())
+        {
+            conditionResult = condition.getChar() != '\0';
+        }
+
+        if (conditionResult)
+        {
+            if (node->SUB_STATEMENTS.size() > 0)
+            {
+                executeNode(node->SUB_STATEMENTS[0]);
+            }
+        }
+        else if (node->SUB_STATEMENTS.size() > 1)
+        {
+            executeNode(node->SUB_STATEMENTS[1]);
+        }
+    }
+    break;
     case NODE_INT:
         if (node->CHILD)
         {
@@ -115,6 +155,12 @@ void Interperter::executeNode(AST_NODE *node)
             evaluateExpression(node->CHILD);
         }
         break;
+    case NODE_BLOCK:
+        for (auto &stmt : node->SUB_STATEMENTS)
+        {
+            executeNode(stmt);
+        }
+        break;
     case NODE_ADD:
         evaluateExpression(node);
         break;
@@ -161,6 +207,44 @@ Value Interperter::evaluateExpression(AST_NODE *node)
             return left + right;
         }
         return Value(0);
+    case NODE_SUBT:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            // Implement operator-
+            return Value(left.getInteger() - right.getInteger());
+        }
+        return Value(0);
+    case NODE_MULT:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            // Implement operator*
+            return Value(left.getInteger() * right.getInteger());
+        }
+        return Value(0);
+    case NODE_LESS_THAN:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() < right.getInteger());
+        }
+        return Value(false);
+    case NODE_GREATER_THAN:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() > right.getInteger());
+        }
+        return Value(false);
     case NODE_IDENTIFIER:
         if (variables.find(node->VALUE) != variables.end())
         {

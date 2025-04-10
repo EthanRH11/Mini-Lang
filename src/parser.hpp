@@ -36,7 +36,8 @@ enum NODE_TYPE
     NODE_BLOCK,          // 23
     NODE_IF,             // 24
     NODE_MULT,           // 25
-    NODE_EOF,            // 26
+    NODE_SUBT,           // 26
+    NODE_EOF,            // 27
 };
 
 struct AST_NODE
