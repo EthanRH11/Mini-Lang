@@ -1,5 +1,5 @@
 # Mini-Lang
-![Uploading lang-pict.PNG…]()
+
 
 **Mini-Lang** is a C++ project designed to tokenize and parse a given input string or file. Using the Parsed AST Tree, a interperter, follows pre determined syntax rules and interprets the language.
 
