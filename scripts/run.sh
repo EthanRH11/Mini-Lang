@@ -11,7 +11,7 @@ PROJECT_NAME="parser"
 BUILD_DIR="../build"
 EXECUTABLE="${BUILD_DIR}/${PROJECT_NAME}"
 TEST_DATA_DIR="../test/data"
-INPUT_FILE="${TEST_DATA_DIR}/expressions.txt"
+INPUT_FILE="${TEST_DATA_DIR}/for-loop.txt"
 
 # Create color codes for output formatting
 RED='\033[0;31m'
