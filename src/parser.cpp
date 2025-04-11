@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "lexer.hpp"
 #include <iostream>
 
 Token *Parser::proceed(enum tokenType type)
@@ -485,6 +486,115 @@ AST_NODE *Parser::parseSubt()
     return node;
 }
 
+AST_NODE *Parser::parseIncrementOperator()
+{
+    proceed(TOKEN_OPERATOR_INCREMENT);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_OPERATOR_INCREMENT;
+
+    return node;
+}
+
+AST_NODE *Parser::parseArgs()
+{
+    AST_NODE *args = new AST_NODE();
+    args->TYPE = NODE_FOR_ARGS;
+
+    if (current->TYPE != TOKEN_SEMICOLON)
+    {
+        if (current->TYPE == TOKEN_KEYWORD_INT || current->TYPE == TOKEN_KEYWORD_DOUBLE)
+        {
+            AST_NODE *init = parseStatement();
+            args->SUB_STATEMENTS.push_back(init);
+        }
+        else
+        {
+            AST_NODE *init = parseExpression();
+            args->SUB_STATEMENTS.push_back(init);
+
+            if (current->TYPE != TOKEN_SEMICOLON)
+            {
+                std::cerr << "< Syntax Error > Expected ';' after initialization in for loop" << std::endl;
+                exit(1);
+            }
+            proceed(TOKEN_SEMICOLON);
+        }
+    }
+    else
+    {
+        args->SUB_STATEMENTS.push_back(nullptr);
+        proceed(TOKEN_SEMICOLON);
+    }
+
+    if (current->TYPE != TOKEN_SEMICOLON)
+    {
+        AST_NODE *condition = parseExpression();
+        args->SUB_STATEMENTS.push_back(condition);
+    }
+    else
+    {
+        args->SUB_STATEMENTS.push_back(nullptr);
+    }
+
+    if (current->TYPE != TOKEN_SEMICOLON)
+    {
+        std::cerr << "< Syntax Error > Expected ';' after condition in for loop" << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_SEMICOLON);
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        AST_NODE *increment = parseExpression();
+        args->SUB_STATEMENTS.push_back(increment);
+    }
+    else
+    {
+        args->SUB_STATEMENTS.push_back(nullptr);
+    }
+    return args;
+}
+
+AST_NODE *Parser::parseKeywordFor()
+{
+    proceed(TOKEN_KEYWORD_FOR);
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' after for keyword" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    AST_NODE *args = parseArgs();
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "Expected ')'  after for args" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    AST_NODE *forBlock = nullptr;
+    if (current->TYPE == TOKEN_LEFT_CURL)
+    {
+        forBlock = parseLeftCurl();
+    }
+    else
+    {
+        forBlock = new AST_NODE();
+        forBlock->TYPE = NODE_BLOCK;
+        forBlock->SUB_STATEMENTS.push_back(parseStatement());
+    }
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_FOR;
+    node->CHILD = args;
+    node->SUB_STATEMENTS.push_back(forBlock);
+
+    return node;
+}
+
 AST_NODE *Parser::parseKeywordIf()
 {
     proceed(TOKEN_KEYWORD_IF);
@@ -595,6 +705,27 @@ AST_NODE *Parser::parseTerm()
     {
         return parseDoubleValue();
     }
+    else if (current->TYPE == TOKEN_OPERATOR_INCREMENT)
+    {
+        proceed(TOKEN_OPERATOR_INCREMENT);
+        if (current->TYPE != TOKEN_IDENTIFIER)
+        {
+            std::cerr << "Expected identifier after increment operator" << std::endl;
+            exit(1);
+        }
+        std::string identifierName = current->value;
+        proceed(TOKEN_IDENTIFIER);
+
+        AST_NODE *idNode = new AST_NODE();
+        idNode->TYPE = NODE_IDENTIFIER;
+        idNode->VALUE = identifierName;
+
+        AST_NODE *incNode = new AST_NODE();
+        incNode->TYPE = NODE_OPERATOR_INCREMENT;
+        incNode->SUB_STATEMENTS.push_back(idNode);
+
+        return incNode;
+    }
     std::cerr << "Unexpected token in expression" << std::endl;
     exit(1);
     return nullptr;
@@ -607,7 +738,8 @@ AST_NODE *Parser::parseExpression()
             current->TYPE == TOKEN_OPERATOR_SUBT ||
             current->TYPE == TOKEN_OPERATOR_MULT ||
             current->TYPE == TOKEN_OPERATOR_LESSTHAN ||
-            current->TYPE == TOKEN_OPERATOR_GREATERTHAN))
+            current->TYPE == TOKEN_OPERATOR_GREATERTHAN ||
+            current->TYPE == TOKEN_OPERATOR_INCREMENT))
     {
 
         AST_NODE *opNode = nullptr;
@@ -641,6 +773,15 @@ AST_NODE *Parser::parseExpression()
             proceed(TOKEN_OPERATOR_GREATERTHAN);
             opNode = new AST_NODE();
             opNode->TYPE = NODE_GREATER_THAN;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_INCREMENT)
+        {
+            proceed(TOKEN_OPERATOR_INCREMENT);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_OPERATOR_INCREMENT;
+
+            opNode->SUB_STATEMENTS.push_back(left);
+            return opNode;
         }
 
         // ADD FUTURE OPERATORS HERE
@@ -683,6 +824,10 @@ AST_NODE *Parser::parse()
             statement = parseKeywordPrint();
             break;
 
+        case TOKEN_OPERATOR_INCREMENT:
+            statement = parseIncrementOperator();
+            break;
+
         case TOKEN_EOF:
             statement = parseKeywordEOF();
             break;
@@ -705,6 +850,10 @@ AST_NODE *Parser::parse()
 
         case TOKEN_LEFT_PAREN:
             statement = parseLeftParen();
+            break;
+
+        case TOKEN_KEYWORD_FOR:
+            statement = parseKeywordFor();
             break;
 
         case TOKEN_RIGHT_PAREN:
@@ -852,6 +1001,17 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_IF"; // 24
     case NODE_EOF:
         return "NODE_EOF"; // 25
+    case NODE_MULT:
+        return "NODE_MULT"; // 25
+    case NODE_SUBT:
+        return "NODE_SUBT"; // 26
+    case NODE_FOR:
+        return "NODE_FOR"; // 27
+    case NODE_FOR_ARGS:
+        return "NODE_FOR_ARGS"; // 28
+    case NODE_OPERATOR_INCREMENT:
+        return "NODE_OPERATOR_INCREMENT";
+
     default:
         return "Unknown node";
     }
@@ -875,6 +1035,10 @@ AST_NODE *Parser::parseStatement()
 
     case TOKEN_KEYWORD_INT:
         statement = parseKeywordINT();
+        break;
+
+    case TOKEN_KEYWORD_FOR:
+        statement = parseKeywordFor();
         break;
 
     case TOKEN_KEYWORD_PRINT:

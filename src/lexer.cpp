@@ -390,7 +390,7 @@ std::string getTokenTypeName(tokenType type)
     case TOKEN_OPERATOR_ADD_ASSIGN:
         return "TOKEN_OPERATOR_ADD_ASSIGN";
     case TOKEN_KEYWORD_FOR:
-        return "TOKEN_OPERATOR_FOR";
+        return "TOKEN_KEYWORD_FOR";
     case TOKEN_OPERATOR_INCREMENT:
         return "TOKEN_OPERATOR_INCREMENT";
     case TOKEN_OPERATOR_DECREMENT:

@@ -10,34 +10,37 @@
 // Node Types for the AST
 enum NODE_TYPE
 {
-    NODE_ROOT,           // 0
-    NODE_VARIABLE,       // 1
-    NODE_PRINT,          // 2
-    NODE_RETURN,         // 3
-    NODE_INT,            // 4
-    NODE_INT_LITERAL,    // 5
-    NODE_EQUALS,         // 6
-    NODE_SEMICOLON,      // 7
-    NODE_IDENTIFIER,     // 8
-    NODE_ADD,            // 9
-    NODE_DOUBLE_LITERAL, // 10
-    NODE_DOUBLE,         // 11
-    NODE_CHAR_LITERAL,   // 12
-    NODE_CHAR,           // 13
-    NODE_STRING_LITERAL, // 14
-    NODE_STRING,         // 15
-    NODE_LEFT_PAREN,     // 16
-    NODE_RIGHT_PAREN,    // 17
-    NODE_PAREN_EXPR,     // 18
-    NODE_LEFT_CURL,      // 19
-    NODE_RIGHT_CURL,     // 20
-    NODE_LESS_THAN,      // 21
-    NODE_GREATER_THAN,   // 22
-    NODE_BLOCK,          // 23
-    NODE_IF,             // 24
-    NODE_MULT,           // 25
-    NODE_SUBT,           // 26
-    NODE_EOF,            // 27
+    NODE_ROOT,               // 0
+    NODE_VARIABLE,           // 1
+    NODE_PRINT,              // 2
+    NODE_RETURN,             // 3
+    NODE_INT,                // 4
+    NODE_INT_LITERAL,        // 5
+    NODE_EQUALS,             // 6
+    NODE_SEMICOLON,          // 7
+    NODE_IDENTIFIER,         // 8
+    NODE_ADD,                // 9
+    NODE_DOUBLE_LITERAL,     // 10
+    NODE_DOUBLE,             // 11
+    NODE_CHAR_LITERAL,       // 12
+    NODE_CHAR,               // 13
+    NODE_STRING_LITERAL,     // 14
+    NODE_STRING,             // 15
+    NODE_LEFT_PAREN,         // 16
+    NODE_RIGHT_PAREN,        // 17
+    NODE_PAREN_EXPR,         // 18
+    NODE_LEFT_CURL,          // 19
+    NODE_RIGHT_CURL,         // 20
+    NODE_LESS_THAN,          // 21
+    NODE_GREATER_THAN,       // 22
+    NODE_BLOCK,              // 23
+    NODE_IF,                 // 24
+    NODE_MULT,               // 25
+    NODE_SUBT,               // 26
+    NODE_FOR,                // 27
+    NODE_FOR_ARGS,           // 28
+    NODE_OPERATOR_INCREMENT, // 29
+    NODE_EOF,                // 30
 };
 
 struct AST_NODE
@@ -86,6 +89,7 @@ private:
     AST_NODE *parseKeywordINT();
     AST_NODE *parseKeywordDouble();
     AST_NODE *parseKeywordChar();
+    AST_NODE *parseIncrementOperator();
 
     AST_NODE *parseIntegerValue();
     AST_NODE *parseDoubleValue();
@@ -111,6 +115,8 @@ private:
 
     AST_NODE *parseKeywordIf();
     AST_NODE *parseKeywordElse();
+    AST_NODE *parseKeywordFor();
+    AST_NODE *parseArgs();
 
     AST_NODE *parseStatement();
 };
