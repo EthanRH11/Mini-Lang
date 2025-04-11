@@ -161,6 +161,76 @@ void Interperter::executeNode(AST_NODE *node)
             executeNode(stmt);
         }
         break;
+    case NODE_FOR:
+    {
+        AST_NODE *args = node->CHILD;
+        if (!args || args->TYPE != NODE_FOR_ARGS || args->SUB_STATEMENTS.size() != 3)
+        {
+            std::cerr << "Error: few too many arguments for loop structure";
+            exit(1);
+        }
+
+        AST_NODE *initNode = args->SUB_STATEMENTS[0];
+        if (initNode)
+        {
+            executeNode(initNode);
+        }
+
+        // Loop execution
+        while (true)
+        {
+            // Check condition
+            AST_NODE *condNode = args->SUB_STATEMENTS[1];
+            if (condNode)
+            {
+                Value condResult = evaluateExpression(condNode);
+
+                // Convert condition result to boolean
+                bool continueLoop = false;
+                if (condResult.isInteger())
+                {
+                    continueLoop = condResult.getInteger() != 0;
+                }
+                else if (condResult.isDouble())
+                {
+                    continueLoop = condResult.getDouble() != 0.0;
+                }
+                else if (condResult.isBool())
+                {
+                    continueLoop = condResult.getBool();
+                }
+                else if (condResult.isString())
+                {
+                    continueLoop = !condResult.getString().empty();
+                }
+                else if (condResult.isChar())
+                {
+                    continueLoop = condResult.getChar() != '\0';
+                }
+
+                // Exit loop if condition is false
+                if (!continueLoop)
+                {
+                    break;
+                }
+            }
+
+            // Execute loop body
+            if (!node->SUB_STATEMENTS.empty())
+            {
+                executeNode(node->SUB_STATEMENTS[0]);
+            }
+
+            // Execute increment expression
+            AST_NODE *incrNode = args->SUB_STATEMENTS[2];
+            if (incrNode)
+            {
+                evaluateExpression(incrNode);
+            }
+        }
+    }
+    break;
+
     case NODE_ADD:
         evaluateExpression(node);
         break;
@@ -255,6 +325,54 @@ Value Interperter::evaluateExpression(AST_NODE *node)
             std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
             exit(1);
         }
+    case NODE_OPERATOR_INCREMENT:
+    {
+        if (node->SUB_STATEMENTS.size() != 1)
+        {
+            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
+            exit(1);
+        }
+        AST_NODE *operand = node->SUB_STATEMENTS[0];
+        if (operand->TYPE != NODE_IDENTIFIER)
+        {
+            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
+            exit(1);
+        }
+
+        std::string varName = operand->VALUE;
+        if (variables.find(varName) == variables.end())
+        {
+            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            exit(1);
+        }
+
+        Value &value = variables[varName];
+        if (value.isInteger())
+        {
+            int newValue = value.getInteger() + 1;
+            value = Value(newValue);
+            return value;
+        }
+        else if (value.isDouble())
+        {
+            double newValue = value.getDouble() + 1.0;
+            value = Value(newValue);
+            return value;
+        }
+        else if (value.isChar())
+        {
+            char newValue = value.getChar() + 1;
+            value = Value(newValue);
+            return value;
+        }
+        else
+        {
+            std::cerr << "ERROR: Increment operator not supported for this type" << std::endl;
+            exit(1);
+        }
+    }
+    break;
+
     default:
         std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
         exit(1);
