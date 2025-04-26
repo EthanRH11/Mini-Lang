@@ -391,6 +391,14 @@ AST_NODE *Parser::parseLeftCurl()
         switch (current->TYPE)
         {
         case TOKEN_IDENTIFIER:
+            // if (peakAhead() != nullptr && peakAhead()->TYPE == TOKEN_EQUALS)
+            // {
+            //     statement = parseExpression();
+            // }
+            // else
+            // {
+            //     statement = parseID();
+            // }
             statement = parseID();
             break;
         case TOKEN_KEYWORD_INT:
@@ -417,6 +425,7 @@ AST_NODE *Parser::parseLeftCurl()
         case TOKEN_KEYWORD_IF:
             statement = parseKeywordIf();
             break;
+
         default:
             std::cerr << "< Syntax Error > Unexpected token in block: "
                       << getTokenTypeName(current->TYPE) << std::endl;

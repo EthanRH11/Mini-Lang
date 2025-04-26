@@ -161,12 +161,33 @@ void Interperter::executeNode(AST_NODE *node)
         break;
     }
     case NODE_IDENTIFIER:
-        if (variables.find(node->VALUE) == variables.end())
+    {
+
+        std::string varName = node->VALUE;
+
+        if (node->CHILD != nullptr)
         {
-            std::cerr << "ERROR: Undefined Variable '" << node->VALUE << "'" << std::endl;
-            exit(1);
+            Value result = evaluateExpression(node->CHILD);
+
+            if (variables.find(node->VALUE) == variables.end())
+            {
+                std::cerr << "ERROR: Undefined Variable '" << node->VALUE << "'" << std::endl;
+                exit(1);
+            }
+
+            variables[varName] = result;
+        }
+        else
+        {
+            // Just a variable reference
+            if (variables.find(varName) == variables.end())
+            {
+                std::cerr << "ERROR: Undefined Variable '" << varName << "'" << std::endl;
+                exit(1);
+            }
         }
         break;
+    }
     case NODE_NEWLINE:
         // Print a newline to both console and output file
         std::cout << std::endl;
