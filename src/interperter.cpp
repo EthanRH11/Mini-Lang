@@ -158,7 +158,6 @@ void Interperter::executeNode(AST_NODE *node)
         //     Value &value = variables[varName];
         //     evaluateExpression(node); // This calls your existing increment logic in evaluateExpression
         //     break;
-
     case NODE_IDENTIFIER:
         if (variables.find(node->VALUE) == variables.end())
         {
