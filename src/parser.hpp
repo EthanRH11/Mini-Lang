@@ -41,6 +41,7 @@ enum NODE_TYPE
     NODE_FOR_ARGS,           // 28
     NODE_OPERATOR_INCREMENT, // 29
     NODE_EOF,                // 30
+    NODE_NEWLINE,            // 31
 };
 
 struct AST_NODE
@@ -96,6 +97,7 @@ private:
     AST_NODE *parseStringValue();
     AST_NODE *parseCharValue();
     AST_NODE *parserIntegerValue();
+    AST_NODE *parseNewLine();
 
     AST_NODE *parseEquals();
     AST_NODE *parseSemicolon();

@@ -36,7 +36,6 @@ public:
     Type getType() const { return type; }
 
     friend std::ostream &operator<<(std::ostream &os, const Value &v);
-
     // Addition operator for combining values
     Value operator+(const Value &other) const;
 

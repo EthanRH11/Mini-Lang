@@ -396,6 +396,9 @@ AST_NODE *Parser::parseLeftCurl()
         case TOKEN_KEYWORD_INT:
             statement = parseKeywordINT();
             break;
+        case TOKEN_OPERATOR_INCREMENT:
+            statement = parseIncrementOperator();
+            break;
         case TOKEN_KEYWORD_PRINT:
             statement = parseKeywordPrint();
             break;
@@ -407,6 +410,12 @@ AST_NODE *Parser::parseLeftCurl()
             break;
         case TOKEN_KEYWORD_STR:
             statement = parseStringValue();
+            break;
+        case TOKEN_KEYWORD_FOR:
+            statement = parseKeywordFor();
+            break;
+        case TOKEN_KEYWORD_IF:
+            statement = parseKeywordIf();
             break;
         default:
             std::cerr << "< Syntax Error > Unexpected token in block: "
@@ -492,6 +501,16 @@ AST_NODE *Parser::parseIncrementOperator()
 
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_OPERATOR_INCREMENT;
+
+    return node;
+}
+
+AST_NODE *Parser::parseNewLine()
+{
+    proceed(TOKEN_OPERATOR_NEWLINE);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_NEWLINE;
 
     return node;
 }
@@ -726,6 +745,10 @@ AST_NODE *Parser::parseTerm()
 
         return incNode;
     }
+    else if (current->TYPE == TOKEN_OPERATOR_NEWLINE)
+    {
+        return parseNewLine();
+    }
     std::cerr << "Unexpected token in expression" << std::endl;
     exit(1);
     return nullptr;
@@ -797,6 +820,7 @@ AST_NODE *Parser::parseExpression()
 
 AST_NODE *Parser::parse()
 {
+
     AST_NODE *root = new AST_NODE();
     root->TYPE = NODE_ROOT;
 
@@ -905,6 +929,9 @@ AST_NODE *Parser::parse()
         case TOKEN_OPERATOR_SUBT:
             statement = parseSubt();
             break;
+        case TOKEN_OPERATOR_NEWLINE:
+            statement = parseNewLine();
+            break;
         default:
             std::cerr << "< Syntax Error > Unexpected token: "
                       << getTokenTypeName(current->TYPE) << std::endl;
@@ -1011,7 +1038,8 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_FOR_ARGS"; // 28
     case NODE_OPERATOR_INCREMENT:
         return "NODE_OPERATOR_INCREMENT";
-
+    case NODE_NEWLINE:
+        return "NODE_NEWLINE";
     default:
         return "Unknown node";
     }

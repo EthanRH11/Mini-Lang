@@ -221,6 +221,21 @@ Token *Lexer::processCharLiteral()
         advanceCursor(); // Move past closing quote
         return new Token{TOKEN_CHAR_VAL, std::string(1, charValue)};
     }
+    else if (current == '\'' && peakAhead(1) == '\\' && peakAhead(2) == 'n' && peakAhead(3) == '\'')
+    {
+        // Skip first single quote
+        advanceCursor();
+
+        char newLineValue = current; // this should now hold the backslash '\'
+        advanceCursor();             // Move past the 'n'
+        advanceCursor();             // Move to the '''
+        if (current != '\'')
+        {
+            throw std::runtime_error("Error: Invalid character literal.");
+        }
+        advanceCursor(); // Move past closing quote
+        return new Token{TOKEN_OPERATOR_NEWLINE, std::string(1, newLineValue)};
+    }
     throw std::runtime_error("Error: Invalid character literal format.");
 }
 Token *Lexer::processKeyword(std::vector<Token *> &tokens)
@@ -395,6 +410,8 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_OPERATOR_INCREMENT";
     case TOKEN_OPERATOR_DECREMENT:
         return "TOKEN_OPERATOR_DECREMENT";
+    case TOKEN_OPERATOR_NEWLINE:
+        return "TOKEN_OPERATOR_NEWLINE";
     default:
         return "Error, unknown token identifier";
     }

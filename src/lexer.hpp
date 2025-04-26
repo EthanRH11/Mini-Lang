@@ -44,6 +44,8 @@ enum tokenType
     TOKEN_KEYWORD_FOR = 31,
     TOKEN_OPERATOR_INCREMENT = 32,
     TOKEN_OPERATOR_DECREMENT = 33,
+
+    TOKEN_OPERATOR_NEWLINE = 34,
 };
 
 struct Token
