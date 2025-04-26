@@ -1,0 +1,54 @@
+Work Through This list to add new things
+
+1. Functions - This would be a major enhancement allowing code reuse and better organization:
+- Function declarations with parameters
+- Return values
+- Local variable scope
+
+## When you encounter a TOKEN_KEYWORD_PROC, call parseFunctionDeclaration()
+This function would parse the function name (an identifier)
+Then call parseFunctionParams() to handle the parameter list
+Then expect and parse the => arrow token
+Then call parseFunctionBody() to parse the function body (usually a block) ##
+
+
+2. Additional Operators:
+- Decrement operator (--)
+- Compound assignment operators (+=, -=, *=, /=)
+- Modulus operator (%) for remainder operations
+
+3. While Loops - A simpler loop construct that would complement your for loops:
+
+while(condition) {
+  // statements
+}
+
+4. Data Structures:
+- Arrays or lists
+- Simple dictionaries/maps
+
+5. Input Handling:
+- A function like input_from_console() to get user input
+
+6. File I/O:
+- Read from and write to files
+
+7. Comments:
+- Single-line comments (//)
+- Multi-line comments (/* */)
+
+
+8. Math Functions:
+- Basic math functions like sqrt, pow, abs, etc.
+
+9. Logical Operators:
+- And (&&), or (||), not (!)
+- Equality testing (==, !=)
+
+10. Switch/Case Statements:
+- Alternative to if/else for multi-branch conditions
+
+11. Standard Library:
+- Common functions for string manipulation
+- Math functions
+- Utility functions

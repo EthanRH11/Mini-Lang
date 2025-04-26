@@ -2,22 +2,166 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <filesystem>
+#include <memory>
 
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "interperter.hpp"
 
+namespace fs = std::filesystem;
+
+void printTokens(const std::vector<Token *> &tokens);
+void printNodes(AST_NODE *node, int depth = 0);
+void deleteASTTree(AST_NODE *node);
+void printUsage(const char *programName);
+
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        printUsage(argv[0]);
+        return 1;
+    }
+
+    std::string mode = (argc >= 3) ? argv[2] : "all";
+
+    if (mode != "lex" && mode != "parse" && mode != "interpret" && mode != "all")
+    {
+        std::cerr << "Error: Invalid mode '" << mode << "'" << std::endl;
+        printUsage(argv[0]);
+        return 1;
+    }
+
+    fs::path inputPath(argv[1]);
+    if (!fs::exists(inputPath))
+    {
+        std::cerr << "Error: Input file not found: " << inputPath << std::endl;
+        return 1;
+    }
+
+    std::ifstream inputFile(inputPath);
+    if (!inputFile.is_open())
+    {
+        std::cerr << "Error: Unable to open file " << inputPath << std::endl;
+        return 1;
+    }
+
+    std::string sourceCode((std::istreambuf_iterator<char>(inputFile)),
+                           std::istreambuf_iterator<char>());
+    inputFile.close();
+
+    try
+    {
+        // Stage 1: Tokenizing
+        Lexer lexer(sourceCode);
+        std::vector<Token *> tokens = lexer.tokenize();
+
+        if (mode == "lex" || mode == "all")
+        {
+            std::cout << "\n===== LEXICAL ANALYSIS ======\n"
+                      << std::endl;
+            printTokens(tokens);
+        }
+
+        if (mode == "lex")
+        {
+            // Cleanup the tokens
+            for (auto &token : tokens)
+            {
+                delete token;
+            }
+            return 0;
+        }
+
+        // Stage 2: Parsing
+        AST_NODE *root = nullptr;
+        Parser parser(tokens);
+        root = parser.parse();
+
+        if (mode == "parse" || mode == "all")
+        {
+            std::cout << "\n===== SYNTAX ANALYSIS =====\n"
+                      << std::endl;
+            if (root)
+            {
+                printNodes(root);
+            }
+            else
+            {
+                std::cerr << "Error: Parsing failed to produce an AST" << std::endl;
+
+                for (auto &token : tokens)
+                {
+                    delete token;
+                }
+                return 1;
+            }
+        }
+
+        if (mode == "parse")
+        {
+            for (auto &token : tokens)
+            {
+                delete token;
+            }
+            deleteASTTree(root);
+            return 0;
+        }
+
+        // Stage 3: Interpretation
+        if (mode == "interpret" || mode == "all")
+        {
+            std::cout << "\n===== PROGRAM OUTPUT =====\n"
+                      << std::endl;
+
+            Interperter interperter(root);
+            interperter.execute();
+        }
+
+        for (auto &token : tokens)
+        {
+            delete token;
+        }
+        deleteASTTree(root);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+
+    return 0;
+}
+
+// Print Usage Information
+void printUsage(const char *programName)
+{
+    std::cerr << "Usage: " << programName << " <input_file> [mode]" << std::endl;
+    std::cerr << "Modes:" << std::endl;
+    std::cerr << "  lex       - Run only lexical analysis" << std::endl;
+    std::cerr << "  parse     - Run lexical and syntax analysis" << std::endl;
+    std::cerr << "  interpret - Run only program output (minimal debug info)" << std::endl;
+    std::cerr << "  all       - Run all stages with debug output (default)" << std::endl;
+}
+
+// Print token information
 void printTokens(const std::vector<Token *> &tokens)
 {
-    // Helper function for debugging
+    std::cout << "Token Count: " << tokens.size() << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "TYPE               | VALUE" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+
     for (const auto &token : tokens)
     {
-        std::cout << "<" << getTokenTypeName(token->TYPE) << ">"
-                  << "\t" << "<" << token->value << ">" << std::endl;
+        std::cout << std::left << std::setw(18) << getTokenTypeName(token->TYPE);
+        std::cout << " | " << token->value << std::endl;
     }
 }
 
-void printNodes(AST_NODE *node, int depth = 0)
+// Print AST nodes
+void printNodes(AST_NODE *node, int depth)
 {
     if (!node)
         return;
@@ -51,56 +195,24 @@ void printNodes(AST_NODE *node, int depth = 0)
     }
 }
 
-int main(int argc, char *argv[])
+// Recursively delete the AST
+void deleteASTTree(AST_NODE *node)
 {
-    if (argc < 2)
+    if (!node)
+        return;
+
+    // Delete child node
+    if (node->CHILD)
     {
-        std::cerr << "Usage: " << argv[0] << " <input_file>" << std::endl;
-        return 1;
+        deleteASTTree(node->CHILD);
     }
 
-    std::ifstream inputFile(argv[1]);
-    if (!inputFile.is_open())
+    // Delete all sub-statements
+    for (auto subNode : node->SUB_STATEMENTS)
     {
-        std::cerr << "Error: Unable to open file " << argv[1] << std::endl;
-        return 1;
+        deleteASTTree(subNode);
     }
 
-    // Read the entire file into a string
-    std::string sourceCode((std::istreambuf_iterator<char>(inputFile)),
-                           std::istreambuf_iterator<char>());
-    inputFile.close();
-
-    try
-    {
-        Lexer lexer(sourceCode);
-        std::vector<Token *> tokens = lexer.tokenize();
-
-        printTokens(tokens);
-
-        Parser parser(tokens);
-        AST_NODE *root = parser.parse();
-
-        if (root)
-        {
-            printNodes(root);
-        }
-        else
-        {
-            std::cout << "Root node is null!" << std::endl;
-        }
-
-        Interperter interperter(root);
-        interperter.execute();
-        for (auto &token : tokens)
-        {
-            delete token;
-        }
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error during parsing: " << e.what() << std::endl;
-        return 1;
-    }
-    return 0;
+    // Delete the node itself
+    delete node;
 }

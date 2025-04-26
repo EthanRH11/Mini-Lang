@@ -148,6 +148,11 @@ Token *Lexer::processOperator()
         advanceCursor();
         return new Token{TOKEN_OPERATOR_GREATER_EQUAL, ">="};
     }
+    else if (op == "=" && current == '>')
+    {
+        advanceCursor();
+        return new Token{TOKEN_SPACESHIP, "=>"};
+    }
 
     // Single-character operators
     if (op == "+")
@@ -248,7 +253,16 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
         keyword += current;
         advanceCursor();
     }
-    if (keyword == "int")
+    if (keyword == "begin" && current == ':')
+    {
+        advanceCursor(); // consume colon
+        return new Token{TOKEN_KEYWORD_BEGIN, "begin"};
+    }
+    else if (keyword == "proc")
+    {
+        return new Token{TOKEN_KEYWORD_FUNCTION, keyword};
+    }
+    else if (keyword == "int")
     {
         return new Token{TOKEN_KEYWORD_INT, keyword};
     }
@@ -412,6 +426,12 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_OPERATOR_DECREMENT";
     case TOKEN_OPERATOR_NEWLINE:
         return "TOKEN_OPERATOR_NEWLINE";
+    case TOKEN_KEYWORD_BEGIN:
+        return "TOKEN_KEYWORD_BEGIN";
+    case TOKEN_SPACESHIP:
+        return "TOKEN_SPACESHIP";
+    case TOKEN_KEYWORD_FUNCTION:
+        return "TOKEN_KEYWORD_FUNCTION";
     default:
         return "Error, unknown token identifier";
     }
