@@ -131,33 +131,35 @@ void Interperter::executeNode(AST_NODE *node)
             variables[node->VALUE] = Value("");
         }
         break;
-        // case NODE_OPERATOR_INCREMENT:
-        //     if (node->SUB_STATEMENTS.size() != 1)
-        //     {
-        //         std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
-        //         exit(1);
-        //     }
+    case NODE_OPERATOR_INCREMENT:
+    {
+        if (node->SUB_STATEMENTS.size() != 1)
+        {
+            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
+            exit(1);
+        }
 
-        //     // Get the operand (should be an identifier)
-        //     AST_NODE *operand = node->SUB_STATEMENTS[0];
-        //     if (operand->TYPE != NODE_IDENTIFIER)
-        //     {
-        //         std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
-        //         exit(1);
-        //     }
+        // Get the operand (should be an identifier)
+        AST_NODE *operand = node->SUB_STATEMENTS[0];
+        if (operand->TYPE != NODE_IDENTIFIER)
+        {
+            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
+            exit(1);
+        }
 
-        //     // Get the variable name
-        //     std::string varName = operand->VALUE;
-        //     if (variables.find(varName) == variables.end())
-        //     {
-        //         std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
-        //         exit(1);
-        //     }
+        // Get the variable name
+        std::string varName = operand->VALUE;
+        if (variables.find(varName) == variables.end())
+        {
+            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            exit(1);
+        }
 
-        //     // Increment the value based on its type
-        //     Value &value = variables[varName];
-        //     evaluateExpression(node); // This calls your existing increment logic in evaluateExpression
-        //     break;
+        // Increment the value based on its type
+        Value &value = variables[varName];
+        evaluateExpression(node); // This calls your existing increment logic in evaluateExpression
+        break;
+    }
     case NODE_IDENTIFIER:
         if (variables.find(node->VALUE) == variables.end())
         {

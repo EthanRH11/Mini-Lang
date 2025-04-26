@@ -502,6 +502,20 @@ AST_NODE *Parser::parseIncrementOperator()
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_OPERATOR_INCREMENT;
 
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "ERROR: Expected identifier after increment operator." << std::endl;
+        exit(1);
+    }
+
+    AST_NODE *identNode = new AST_NODE();
+    identNode->TYPE = NODE_IDENTIFIER;
+    identNode->VALUE = current->value;
+
+    node->SUB_STATEMENTS.push_back(identNode);
+
+    proceed(TOKEN_IDENTIFIER);
+
     return node;
 }
 
