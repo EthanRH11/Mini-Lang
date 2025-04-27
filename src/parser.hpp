@@ -45,6 +45,9 @@ enum NODE_TYPE
     NODE_GREATER_THAN,       // Greater than operator
     NODE_OPERATOR_INCREMENT, // Increment operator (++)
     NODE_NEWLINE,            // Newline character
+    NODE_MODULUS,            // Modulus character
+    NODE_DIVISION,           // Division character
+    NODE_NOT_EQUAL,          // not equal character '=/='
 
     // Control structure nodes
     NODE_IF,       // If statement
@@ -53,6 +56,9 @@ enum NODE_TYPE
 
     // I/O nodes
     NODE_PRINT, // Print statement (out_to_console)
+
+    // NEWLINE CHAR
+    NODE_NEWLINE_SYMBOL,
 
     // Expression grouping nodes
     NODE_LEFT_PAREN,  // Left parenthesis
@@ -184,9 +190,13 @@ private:
     AST_NODE *parseAdd();
     AST_NODE *parseMult();
     AST_NODE *parseSubt();
+    AST_NODE *parseDivi();
+    AST_NODE *parseModulus();
     AST_NODE *greaterThan();
     AST_NODE *lessThan();
+    AST_NODE *parseDoesntEqual();
     AST_NODE *parseNewLine();
+    AST_NODE *parseNewLineCharacter();
 
     // Literal values
     AST_NODE *parseIntegerValue();

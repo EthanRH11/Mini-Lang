@@ -1,6 +1,10 @@
-Compilation started at Sun Apr 27 18:27:12 EDT 2025
+Compilation started at Sun Apr 27 18:57:37 EDT 2025
 ../src/interperter.cpp: In member function ‘void Interperter::executeNode(AST_NODE*)’:
 ../src/interperter.cpp:383:16: warning: unused variable ‘value’ [-Wunused-variable]
   383 |         Value &value = variables[varName];
       |                ^~~~~
-Test Log Entry Sun Apr 27 18:27:14 EDT 2025
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseNewLineCharacter()’:
+../src/parser.cpp:493:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  493 | }
+      | ^
+Test Log Entry Sun Apr 27 18:57:40 EDT 2025

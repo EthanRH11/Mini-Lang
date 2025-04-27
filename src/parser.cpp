@@ -480,6 +480,17 @@ AST_NODE *Parser::parseID()
     }
     return node;
 }
+/**
+ * @brief parses a newline character '...'
+ * @return AST_NODE creating a newline
+ * @throws Exits with error on syntax issues
+ *
+ * Handles the call of a newline character
+ */
+
+AST_NODE *Parser::parseNewLineCharacter()
+{
+}
 
 //-------------------------------------------------------------------
 // Expression and operator parsing methods
@@ -653,6 +664,44 @@ AST_NODE *Parser::lessThan()
 
     return node;
 }
+/**
+ * @brief parses division operators
+ * @return AST node representing the division operator
+ */
+AST_NODE *Parser::parseDivi()
+{
+    proceed(TOKEN_OPERATOR_DIV);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_DIVISION;
+    return node;
+}
+/**
+ * @brief parses modulus operators
+ * @return AST node representing the modulus operator
+ */
+AST_NODE *Parser::parseModulus()
+{
+    proceed(TOKEN_OPERATOR_MODULUS);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_MODULUS;
+    return node;
+}
+/**
+ * @brief parses != operators
+ * @return AST node representing the != operator
+ */
+AST_NODE *Parser::parseDoesntEqual()
+{
+    proceed(TOKEN_OPERATOR_DOESNT_EQUAL);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_NOT_EQUAL;
+
+    return node;
+}
+
 //-------------------------------------------------------------------
 // Function Handling methods
 //-------------------------------------------------------------------
@@ -872,6 +921,12 @@ AST_NODE *Parser::parseLeftCurl()
             break;
         case TOKEN_KEYWORD_IF:
             statement = parseKeywordIf();
+            break;
+        case TOKEN_OPERATOR_DOESNT_EQUAL:
+            statement = parseDoesntEqual();
+            break;
+        case TOKEN_NL_SYMBOL:
+            statement = parseNewLineCharacter();
             break;
         default:
             std::cerr << "< Syntax Error > Unexpected token in block: "
@@ -1238,6 +1293,10 @@ AST_NODE *Parser::parseTerm()
     {
         return parseNewLine();
     }
+    else if (current->TYPE == TOKEN_NL_SYMBOL)
+    {
+        return parseNewLineCharacter();
+    }
 
     // If we get here, the token is not valid in an expression
     std::cerr << "Unexpected token in expression" << std::endl;
@@ -1265,7 +1324,10 @@ AST_NODE *Parser::parseExpression()
             current->TYPE == TOKEN_OPERATOR_MULT ||
             current->TYPE == TOKEN_OPERATOR_LESSTHAN ||
             current->TYPE == TOKEN_OPERATOR_GREATERTHAN ||
-            current->TYPE == TOKEN_OPERATOR_INCREMENT))
+            current->TYPE == TOKEN_OPERATOR_INCREMENT ||
+            current->TYPE == TOKEN_OPERATOR_DIV ||
+            current->TYPE == TOKEN_OPERATOR_MODULUS ||
+            current->TYPE == TOKEN_OPERATOR_DOESNT_EQUAL))
     {
         AST_NODE *opNode = nullptr;
 
@@ -1275,6 +1337,24 @@ AST_NODE *Parser::parseExpression()
             proceed(TOKEN_OPERATOR_ADD);
             opNode = new AST_NODE();
             opNode->TYPE = NODE_ADD;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_DIV)
+        {
+            proceed(TOKEN_OPERATOR_DIV);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_DIVISION;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_MODULUS)
+        {
+            proceed(TOKEN_OPERATOR_MODULUS);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_MODULUS;
+        }
+        else if (current->TYPE == TOKEN_NL_SYMBOL)
+        {
+            proceed(TOKEN_NL_SYMBOL);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_NEWLINE_SYMBOL;
         }
         else if (current->TYPE == TOKEN_OPERATOR_SUBT)
         {
@@ -1311,6 +1391,12 @@ AST_NODE *Parser::parseExpression()
             opNode->SUB_STATEMENTS.push_back(left);
             return opNode;
         }
+        else if (current->TYPE == TOKEN_OPERATOR_DOESNT_EQUAL)
+        {
+            proceed(TOKEN_OPERATOR_DOESNT_EQUAL);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_NOT_EQUAL;
+        }
 
         // For binary operators, parse the right operand
         AST_NODE *right = parseTerm();
@@ -1342,6 +1428,8 @@ AST_NODE *Parser::parse()
     root->TYPE = NODE_ROOT;
 
     bool foundBegin = false;
+
+    std::cout << "Current Token: " << getCurrentToken() << std::endl;
 
     // Process tokens until EOF
     while (cursor < size && tokens[cursor]->TYPE != TOKEN_EOF)
@@ -1455,6 +1543,22 @@ AST_NODE *Parser::parse()
 
         case TOKEN_OPERATOR_NEWLINE:
             statement = parseNewLine();
+            break;
+
+        case TOKEN_OPERATOR_DIV:
+            statement = parseDivi();
+            break;
+
+        case TOKEN_OPERATOR_MODULUS:
+            statement = parseModulus();
+            break;
+
+        case TOKEN_OPERATOR_DOESNT_EQUAL:
+            statement = parseDoesntEqual();
+            break;
+
+        case TOKEN_NL_SYMBOL:
+            statement = parseNewLineCharacter();
             break;
 
         case TOKEN_KEYWORD_BEGIN:
