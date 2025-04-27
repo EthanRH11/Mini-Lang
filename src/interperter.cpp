@@ -521,10 +521,67 @@ void Interperter::executeNode(AST_NODE *node)
     case NODE_EOF:
         break;
     case NODE_BEGIN_BLOCK:
+        for (auto &stmt : node->SUB_STATEMENTS)
+        {
+            executeNode(stmt);
+        }
+        break;
+    case NODE_FUNCTION_CALL:
+    {
+        std::string funcName = node->VALUE;
+
+        // Look up function definition
+        AST_NODE *funcDef = findFunctionByName(funcName);
+        if (!funcDef)
+        {
+            std::cerr << "Undefined function: " << funcName << std::endl;
+            exit(1);
+        }
+
+        // Create a new scope for function parameters
+        std::map<std::string, Value> localScope = variables; // Save current variables
+
+        // Bind arguments to parameters
+        AST_NODE *params = funcDef->SUB_STATEMENTS[0]; // First sub-statement is params
+
+        for (size_t i = 0; i < node->SUB_STATEMENTS.size() && i < params->SUB_STATEMENTS.size(); i++)
+        {
+            AST_NODE *paramNode = params->SUB_STATEMENTS[i];
+            AST_NODE *argNode = node->SUB_STATEMENTS[i];
+
+            // Evaluate argument
+            Value argValue = evaluateExpression(argNode);
+
+            // Bind to parameter name
+            variables[paramNode->VALUE] = argValue;
+        }
+
+        // Execute function body
+        executeNode(funcDef->CHILD);
+
+        // Restore scope
+        variables = localScope;
 
         break;
+    }
+    case NODE_FUNCTION_DECLERATION:
+        break;
+    case NODE_FUNCTION_BODY:
+        // NEEDS IMPLEMENTED
     default:
         std::cerr << "Interpretation Error: Unknown node type: " << getNodeTypeName(node->TYPE) << std::endl;
         exit(1);
     }
+}
+
+AST_NODE *Interperter::findFunctionByName(const std::string &name)
+{
+    for (auto &stmt : root->SUB_STATEMENTS)
+    {
+        if (stmt->TYPE == NODE_FUNCTION_DECLERATION && stmt->VALUE == name)
+        {
+            return stmt;
+        }
+    }
+    return nullptr;
 }

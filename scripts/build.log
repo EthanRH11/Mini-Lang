@@ -1,15 +1,6 @@
-Compilation started at Sun Apr 27 09:02:17 EDT 2025
+Compilation started at Sun Apr 27 09:56:26 EDT 2025
 ../src/interperter.cpp: In member function ‘void Interperter::executeNode(AST_NODE*)’:
 ../src/interperter.cpp:383:16: warning: unused variable ‘value’ [-Wunused-variable]
   383 |         Value &value = variables[varName];
       |                ^~~~~
-../src/parser.cpp: In member function ‘AST_NODE* Parser::parse()’:
-../src/parser.cpp:1139:23: warning: this statement may fall through [-Wimplicit-fallthrough=]
- 1139 |             statement = parseFunctionDecleration();
-      |             ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../src/parser.cpp:1140:9: note: here
- 1140 |         default:
-      |         ^~~~~~~
-/usr/bin/ld: /tmp/ccUi2Dp2.o: in function `Parser::parseFunctionDecleration()':
-/home/ehicks12/Projects/Current/Mini-Lang/scripts/../src/parser.cpp:772:(.text+0x2414): undefined reference to `Parser::parseFunctionBody()'
-collect2: error: ld returned 1 exit status
+Test Log Entry Sun Apr 27 09:56:27 EDT 2025

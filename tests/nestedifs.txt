@@ -1,0 +1,24 @@
+
+int a = 10;
+int b = 5;
+int c = 15;
+int d = 20;
+
+if(a > b) {
+    out_to_console("a is greater than b");
+    out_to_console('\n');
+
+    if(c > a){
+        out_to_console("c is greater than a");
+        out_to_console('\n');
+    }
+}
+
+if((a + b) > d){
+    out_to_console("a + b is greater than d");
+    out_to_console('\n');
+} else {
+    out_to_console("a + b is less than d");
+}
+
+end

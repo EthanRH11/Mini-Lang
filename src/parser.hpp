@@ -49,6 +49,7 @@ enum NODE_TYPE
     NODE_FUNCTION_SPACESHIP,   // 36
     NODE_BEGIN_BLOCK,          // 37
     NODE_FUNCTION,             // 38
+    NODE_FUNCTION_CALL,        // 39
 };
 
 struct AST_NODE

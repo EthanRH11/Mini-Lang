@@ -252,6 +252,33 @@ AST_NODE *Parser::parseID()
     std::string identifierName = current->value;
     proceed(TOKEN_IDENTIFIER);
 
+    // Handle function calls
+    if (current != nullptr && current->TYPE == TOKEN_LEFT_PAREN)
+    {
+        AST_NODE *functionCallNode = new AST_NODE();
+        functionCallNode->TYPE = NODE_FUNCTION_CALL;
+        functionCallNode->VALUE = identifierName;
+        proceed(TOKEN_LEFT_PAREN);
+
+        while (current != nullptr && current->TYPE != TOKEN_RIGHT_PAREN)
+        {
+            AST_NODE *argNode = parseExpression();
+            functionCallNode->SUB_STATEMENTS.push_back(argNode);
+
+            if (current->TYPE == TOKEN_COMMA)
+            {
+                proceed(TOKEN_COMMA);
+            }
+            else if (current->TYPE != TOKEN_RIGHT_PAREN)
+            {
+                std::cerr << "< Syntax Error > Expected ',' or ')'" << std::endl;
+                exit(1);
+            }
+        }
+        proceed(TOKEN_RIGHT_PAREN);
+        return functionCallNode;
+    }
+
     if (identifierName == "out_to_console")
     {
         AST_NODE *node = new AST_NODE();
@@ -391,14 +418,6 @@ AST_NODE *Parser::parseLeftCurl()
         switch (current->TYPE)
         {
         case TOKEN_IDENTIFIER:
-            // if (peakAhead() != nullptr && peakAhead()->TYPE == TOKEN_EQUALS)
-            // {
-            //     statement = parseExpression();
-            // }
-            // else
-            // {
-            //     statement = parseID();
-            // }
             statement = parseID();
             break;
         case TOKEN_KEYWORD_INT:
@@ -865,6 +884,13 @@ AST_NODE *Parser::parseParameter()
 }
 
 /*Parse Function Body*/
+AST_NODE *Parser::parseFunctionBody()
+{
+    AST_NODE *bodyNode = parseLeftCurl();
+
+    bodyNode->TYPE = NODE_FUNCTION_BODY;
+    return bodyNode;
+}
 
 AST_NODE *Parser::parseKeywordElse()
 {
@@ -1137,6 +1163,7 @@ AST_NODE *Parser::parse()
             break;
         case TOKEN_KEYWORD_FUNCTION:
             statement = parseFunctionDecleration();
+            break;
         default:
             std::cerr << "< Syntax Error > Unexpected token: "
                       << getTokenTypeName(current->TYPE) << std::endl;
@@ -1245,6 +1272,22 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_OPERATOR_INCREMENT";
     case NODE_NEWLINE:
         return "NODE_NEWLINE";
+    case NODE_FUNCTION_DECLERATION:
+        return "NODE_FUNCTION_DECLERATION";
+    case NODE_FUNCTION_PARAMS:
+        return "NODE_FUNCTION_PARAMS";
+    case NODE_FUNCTION_BODY:
+        return "NODE_FUNCTION_BODY";
+    case NODE_PARAM:
+        return "NODE_PARAM";
+    case NODE_FUNCTION_SPACESHIP:
+        return "NODE_FUNCTION_SPACESHIP";
+    case NODE_BEGIN_BLOCK:
+        return "NODE_BEGIN_BLOCK";
+    case NODE_FUNCTION:
+        return "NODE_FUNCTION";
+    case NODE_FUNCTION_CALL:
+        return "NODE_FUNCTION_CALL";
     default:
         return "Unknown node";
     }

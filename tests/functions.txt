@@ -1,0 +1,21 @@
+
+
+proc foo(int x) => {
+    out_to_console(x);
+}
+
+proc bar(int y) => {
+    int z = y + 5;
+    out_to_console(z);
+}
+
+begin:
+
+int y = 10;
+
+foo(5);
+
+bar(y);
+
+
+end

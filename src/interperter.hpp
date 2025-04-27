@@ -40,6 +40,9 @@ private:
     std::map<std::string, Value> variables;
     std::ofstream outputFile;
 
+    // find function declerations by name
+    AST_NODE *findFunctionByName(const std::string &name);
+
     void executeNode(AST_NODE *node);         // Main recursive function
     Value evaluateExpression(AST_NODE *node); // Evaluates expressions such as (10 + x)
     void executeStatement(AST_NODE *node);
