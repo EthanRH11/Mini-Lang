@@ -1,16 +1,10 @@
 Work Through This list to add new things
 
 1. Functions - This would be a major enhancement allowing code reuse and better organization:
-- Function declarations with parameters
 - Return values
-- Local variable scope
+- Need to implement return statements
 
-## When you encounter a TOKEN_KEYWORD_PROC, call parseFunctionDeclaration()
-This function would parse the function name (an identifier)
-Then call parseFunctionParams() to handle the parameter list
-Then expect and parse the => arrow token
-Then call parseFunctionBody() to parse the function body (usually a block) ##
-
+return statement => result{statement};
 
 2. Additional Operators:
 - Decrement operator (--)
@@ -18,24 +12,73 @@ Then call parseFunctionBody() to parse the function body (usually a block) ##
 - Modulus operator (%) for remainder operations
 
 3. While Loops - A simpler loop construct that would complement your for loops:
+   -Do-While Loops 
+   repeat{
+     loop body
+   } check (condition);
 
-while(condition) {
-  // statements
-}
+   -While Loops
+   check(condition){
+    do this until that condition is false
+   }
+
 
 4. Data Structures:
 - Arrays or lists
+  -Arrays
+  //Define a Array
+  elements<type> => identifier;
+
+  -Initialize an Array
+  numbers |= (1, 2, 3, 4, 5, 6)   //(If we create flexible sized arrays may be harder on the backend)
+
+  -Initialize with pattern
+  numbers|= repeat(0, 10);  //creates [0,0,0,0,0,0,0,0,0,0]
+
+  -Initialize with range
+  numbers |= range(1..10);  //creates [1,2,3,4,5,6,7,8,9,10]
+
+//Get a single element (at index);
+  int first = numbers@index;
+  int first = numbers@0;
+
+//Get last element 
+int last = numbers@$;
+
+//Add element 
++> numbers(6); //append 6 to the end
+//remove element
+-< numbers(2);  //remove element at index 2
+//Insert at position
++< numbers(0, 42); //insert 42 at position 0
+
+//get length
+int size = #numbers;
+
+//Sort 
+~> numbers; //sort in ascending order
+<~ numbers; //sort in descending order
+
 - Simple dictionaries/maps
 
 5. Input Handling:
 - A function like input_from_console() to get user input
 
+  input<type> "prompt" => variable  //variable gets type from <>
+  input<int> "How many donuts do you want?" => donuts;
+
+  input<type> => variable;
+  input<int> => funVar;
+
 6. File I/O:
 - Read from and write to files
 
+
+
 7. Comments:
-- Single-line comments (//)
-- Multi-line comments (/* */)
+
+>>$ Single Line Comments
+>>$ $<< Multi Line Comments
 
 
 8. Math Functions:
@@ -43,7 +86,12 @@ while(condition) {
 
 9. Logical Operators:
 - And (&&), or (||), not (!)
+
+  AND, OR, NOT 
+
 - Equality testing (==, !=)
+  ==         =/=
+
 
 10. Switch/Case Statements:
 - Alternative to if/else for multi-branch conditions
@@ -52,3 +100,37 @@ while(condition) {
 - Common functions for string manipulation
 - Math functions
 - Utility functions
+
+//Define a library in a seperate file (math.mlng)
+library math {
+  //Library Constants
+  const PI = 3.14159;
+  const E = 2.71828;
+
+  proc square(int x) => {
+    return x * x;
+  }
+
+  proc factorial(int n) => {
+    if(n <= 1){
+      return 1;
+    }
+    return n * factorial(n - 1);
+  }
+}
+
+// In main programFile
+import math => {PI, square};  //selective import
+OR
+import math => *; //Import everything
+
+
+OPERATORS STILL NEEDED: DO NEXT
+
+Division (/)
+Modulus(%)
+Decrement(--)
+Less Than Equal (<=)
+Greater than equal (>=)
+Equality (==)
+doesnt equal (=/=)

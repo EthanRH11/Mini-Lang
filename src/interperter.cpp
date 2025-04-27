@@ -58,7 +58,7 @@ Value Interperter::evaluateExpression(AST_NODE *node)
     if (!node)
         return Value(0);
 
-    std::cout << "Evaluation expression node: " << getNodeTypeName(node->TYPE) << std::endl;
+    // std::cout << "Evaluation expression node: " << getNodeTypeName(node->TYPE) << std::endl;
 
     switch (node->TYPE)
     {
@@ -261,7 +261,7 @@ void Interperter::executeNode(AST_NODE *node)
     if (!node)
         return;
 
-    std::cout << "Executing node: " << getNodeTypeName(node->TYPE) << std::endl;
+    // std::cout << "Executing node: " << getNodeTypeName(node->TYPE) << std::endl;
 
     switch (node->TYPE)
     {
@@ -567,7 +567,12 @@ void Interperter::executeNode(AST_NODE *node)
     case NODE_FUNCTION_DECLERATION:
         break;
     case NODE_FUNCTION_BODY:
-        // NEEDS IMPLEMENTED
+        // Execute all statements in the function body
+        for (auto &stmt : node->SUB_STATEMENTS)
+        {
+            executeNode(stmt);
+        }
+        break;
     default:
         std::cerr << "Interpretation Error: Unknown node type: " << getNodeTypeName(node->TYPE) << std::endl;
         exit(1);

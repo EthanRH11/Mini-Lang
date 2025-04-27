@@ -2,11 +2,13 @@
 
 proc foo(int x) => {
     out_to_console(x);
+    out_to_console('\n');
 }
 
-proc bar(int y) => {
+proc bar(int l) => {
     int z = y + 5;
     out_to_console(z);
+    out_to_console('\n');
 }
 
 begin:

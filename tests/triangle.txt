@@ -1,3 +1,4 @@
+begin:
 
 int height = 5;
 int spaces = height - 1;

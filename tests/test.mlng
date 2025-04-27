@@ -1,0 +1,21 @@
+
+proc helloWorld(str Ethan) => {
+    out_to_console(Ethan);
+    out_to_console('\n');
+}
+
+begin:
+
+    str hello = "Hello, World!";
+    int a = 20;
+    double b = 3.14;
+    char jazz = 'c';
+
+    if(a > 10){
+        helloWorld(hello);
+        for(int i = 0; i < a; ++i){
+            out_to_console(jazz);
+            out_to_console('\n');
+        }
+    }
+end
