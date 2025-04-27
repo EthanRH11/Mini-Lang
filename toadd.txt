@@ -125,12 +125,3 @@ OR
 import math => *; //Import everything
 
 
-OPERATORS STILL NEEDED: DO NEXT
-
-Division (/)
-Modulus(%)
-Decrement(--)
-Less Than Equal (<=)
-Greater than equal (>=)
-Equality (==)
-doesnt equal (=/=)

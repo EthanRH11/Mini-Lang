@@ -1,6 +1,6 @@
-Compilation started at Sun Apr 27 15:51:52 EDT 2025
+Compilation started at Sun Apr 27 18:27:12 EDT 2025
 ../src/interperter.cpp: In member function ‘void Interperter::executeNode(AST_NODE*)’:
 ../src/interperter.cpp:383:16: warning: unused variable ‘value’ [-Wunused-variable]
   383 |         Value &value = variables[varName];
       |                ^~~~~
-Test Log Entry Sun Apr 27 15:51:54 EDT 2025
+Test Log Entry Sun Apr 27 18:27:14 EDT 2025

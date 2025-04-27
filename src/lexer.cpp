@@ -227,6 +227,18 @@ Token *Lexer::processOperator()
         advanceCursor();
         return new Token{TOKEN_SPACESHIP, "=>"};
     }
+    else if (op == "=" && current == '/' && peakAhead(1) == '=')
+    {
+        advanceCursor();
+        advanceCursor();
+        return new Token{TOKEN_OPERATOR_DOESNT_EQUAL, "=/="};
+    }
+    else if (op == "." && current == '.' && peakAhead(1) == '.')
+    {
+        advanceCursor();
+        advanceCursor();
+        return new Token{TOKEN_NL_SYMBOL, "..."};
+    }
 
     // Single-character operators
     // Using a more structured approach with a lookup table could be cleaner,
@@ -255,10 +267,10 @@ Token *Lexer::processOperator()
         return new Token{TOKEN_LEFT_CURL, "{"};
     if (op == "}")
         return new Token{TOKEN_RIGHT_CURL, "}"};
-    if (op == ".")
-        return new Token{TOKEN_DOT, "."};
     if (op == ",")
         return new Token{TOKEN_COMMA, ","};
+    if (op == "%")
+        return new Token{TOKEN_OPERATOR_MODULUS, "%"};
 
     throw std::runtime_error("Error: Unknown operator: " + op);
 }
@@ -506,8 +518,6 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_OPERATOR_MULT";
     case TOKEN_OPERATOR_DIV:
         return "TOKEN_OPERATOR_DIV";
-    case TOKEN_DOT:
-        return "TOKEN_DOT";
     case TOKEN_SEMICOLON:
         return "TOKEN_SEMICOLON";
     case TOKEN_LEFT_PAREN:
@@ -564,6 +574,12 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_KEYWORD_FUNCTION";
     case TOKEN_COMMA:
         return "TOKEN_COMMA";
+    case TOKEN_OPERATOR_DOESNT_EQUAL:
+        return "TOKEN_OPERATOR_DOESNT_EQUAL";
+    case TOKEN_OPERATOR_MODULUS:
+        return "TOKEN_OPERATOR_MODULUS";
+    case TOKEN_NL_SYMBOL:
+        return "TOKEN_NL_SYMBOL";
     default:
         return "Error, unknown token identifier";
     }

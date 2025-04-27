@@ -1,0 +1,21 @@
+begin:
+
+    int a = 20;
+    int b = 15;
+    int c = 5;
+    int d = 2;
+
+    int A = (a / c);
+    int B = (b % d);
+    str errmsg = "Error: Does not equal didn't work";
+
+    if(a =/= b){
+        out_to_console(A);
+        ...
+        out_to_console(B);
+        ...
+    } else {
+        out_to_console(errmsg);
+    }
+
+end
