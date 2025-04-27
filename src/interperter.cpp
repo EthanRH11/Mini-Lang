@@ -32,6 +32,230 @@ void Interperter::setupOutputFile()
     }
 }
 
+void Interperter::execute()
+{
+    AST_NODE *beginBlock = nullptr;
+
+    for (auto &stmt : root->SUB_STATEMENTS)
+    {
+        if (stmt->TYPE == NODE_BEGIN_BLOCK)
+        {
+            beginBlock = stmt;
+            break;
+        }
+    }
+
+    if (!beginBlock)
+    {
+        std::cerr << "Error: No 'begin' block found in program." << std::endl;
+        exit(1);
+    }
+    executeNode(beginBlock);
+}
+
+Value Interperter::evaluateExpression(AST_NODE *node)
+{
+    if (!node)
+        return Value(0);
+
+    std::cout << "Evaluation expression node: " << getNodeTypeName(node->TYPE) << std::endl;
+
+    switch (node->TYPE)
+    {
+    case NODE_INT_LITERAL:
+        return Value(std::stoi(node->VALUE));
+    case NODE_DOUBLE_LITERAL:
+        return Value(std::stod(node->VALUE));
+    case NODE_CHAR_LITERAL:
+        if (node->VALUE.length() == 1)
+        {
+            return Value(node->VALUE);
+        }
+        else
+        {
+            return Value('\0');
+        }
+    case NODE_STRING_LITERAL:
+        return Value(node->VALUE);
+    case NODE_ADD:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return left + right;
+        }
+        return Value(0);
+    case NODE_SUBT:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            // Implement operator-
+            return Value(left.getInteger() - right.getInteger());
+        }
+        return Value(0);
+    case NODE_MULT:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            // Implement operator*
+            return Value(left.getInteger() * right.getInteger());
+        }
+        return Value(0);
+    case NODE_LESS_THAN:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() < right.getInteger());
+        }
+        return Value(false);
+    case NODE_GREATER_THAN:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() > right.getInteger());
+        }
+        return Value(false);
+    case NODE_IDENTIFIER:
+        if (variables.find(node->VALUE) != variables.end())
+        {
+            return variables[node->VALUE];
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
+            exit(1);
+        }
+    case NODE_OPERATOR_INCREMENT:
+    {
+        if (node->SUB_STATEMENTS.size() != 1)
+        {
+            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
+            exit(1);
+        }
+        AST_NODE *operand = node->SUB_STATEMENTS[0];
+        if (operand->TYPE != NODE_IDENTIFIER)
+        {
+            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
+            exit(1);
+        }
+
+        std::string varName = operand->VALUE;
+        if (variables.find(varName) == variables.end())
+        {
+            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            exit(1);
+        }
+
+        Value &value = variables[varName];
+        if (value.isInteger())
+        {
+            int newValue = value.getInteger() + 1;
+            value = Value(newValue);
+            return value;
+        }
+        else if (value.isDouble())
+        {
+            double newValue = value.getDouble() + 1.0;
+            value = Value(newValue);
+            return value;
+        }
+        else if (value.isChar())
+        {
+            char newValue = value.getChar() + 1;
+            value = Value(newValue);
+            return value;
+        }
+        else
+        {
+            std::cerr << "ERROR: Increment operator not supported for this type" << std::endl;
+            exit(1);
+        }
+    }
+    break;
+    case NODE_NEWLINE:
+        return Value('\n');
+    default:
+        std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
+        exit(1);
+    }
+}
+
+void Interperter::executeStatement(AST_NODE *node)
+{
+    /*Handle Statements such as:
+     * Variable Declerations
+     * Assignment Statements
+     * Print Statements
+     * Implement more in future*/
+
+    if (!node)
+        return;
+
+    std::cout << "Executing statement: " << getNodeTypeName(node->TYPE) << std::endl;
+
+    switch (node->TYPE)
+    {
+    case NODE_INT:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value(0);
+        }
+        break;
+    case NODE_DOUBLE:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value(0.0);
+        }
+        break;
+    case NODE_CHAR:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value("");
+        }
+        break;
+    case NODE_PRINT:
+        if (node->CHILD)
+        {
+            Value result = evaluateExpression(node->CHILD);
+            printToOutput(result);
+        }
+        else
+        {
+            std::cout << "EMPTY PRINT" << std::endl;
+        }
+        break;
+    case NODE_SEMICOLON:
+        break;
+    default:
+        std::cerr << "Unknown Statement Type: " << getNodeTypeName(node->TYPE) << std::endl;
+        exit(1);
+    }
+}
+
 void Interperter::executeNode(AST_NODE *node)
 {
     if (!node)
@@ -296,211 +520,11 @@ void Interperter::executeNode(AST_NODE *node)
         break;
     case NODE_EOF:
         break;
+    case NODE_BEGIN_BLOCK:
+
+        break;
     default:
         std::cerr << "Interpretation Error: Unknown node type: " << getNodeTypeName(node->TYPE) << std::endl;
-        exit(1);
-    }
-}
-
-Value Interperter::evaluateExpression(AST_NODE *node)
-{
-    if (!node)
-        return Value(0);
-
-    std::cout << "Evaluation expression node: " << getNodeTypeName(node->TYPE) << std::endl;
-
-    switch (node->TYPE)
-    {
-    case NODE_INT_LITERAL:
-        return Value(std::stoi(node->VALUE));
-    case NODE_DOUBLE_LITERAL:
-        return Value(std::stod(node->VALUE));
-    case NODE_CHAR_LITERAL:
-        if (node->VALUE.length() == 1)
-        {
-            return Value(node->VALUE);
-        }
-        else
-        {
-            return Value('\0');
-        }
-    case NODE_STRING_LITERAL:
-        return Value(node->VALUE);
-    case NODE_ADD:
-        if (node->SUB_STATEMENTS.size() >= 2)
-        {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
-
-            return left + right;
-        }
-        return Value(0);
-    case NODE_SUBT:
-        if (node->SUB_STATEMENTS.size() >= 2)
-        {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
-
-            // Implement operator-
-            return Value(left.getInteger() - right.getInteger());
-        }
-        return Value(0);
-    case NODE_MULT:
-        if (node->SUB_STATEMENTS.size() >= 2)
-        {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
-
-            // Implement operator*
-            return Value(left.getInteger() * right.getInteger());
-        }
-        return Value(0);
-    case NODE_LESS_THAN:
-        if (node->SUB_STATEMENTS.size() >= 2)
-        {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
-
-            return Value(left.getInteger() < right.getInteger());
-        }
-        return Value(false);
-    case NODE_GREATER_THAN:
-        if (node->SUB_STATEMENTS.size() >= 2)
-        {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
-
-            return Value(left.getInteger() > right.getInteger());
-        }
-        return Value(false);
-    case NODE_IDENTIFIER:
-        if (variables.find(node->VALUE) != variables.end())
-        {
-            return variables[node->VALUE];
-        }
-        else
-        {
-            std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
-            exit(1);
-        }
-    case NODE_OPERATOR_INCREMENT:
-    {
-        if (node->SUB_STATEMENTS.size() != 1)
-        {
-            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
-            exit(1);
-        }
-        AST_NODE *operand = node->SUB_STATEMENTS[0];
-        if (operand->TYPE != NODE_IDENTIFIER)
-        {
-            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
-            exit(1);
-        }
-
-        std::string varName = operand->VALUE;
-        if (variables.find(varName) == variables.end())
-        {
-            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
-            exit(1);
-        }
-
-        Value &value = variables[varName];
-        if (value.isInteger())
-        {
-            int newValue = value.getInteger() + 1;
-            value = Value(newValue);
-            return value;
-        }
-        else if (value.isDouble())
-        {
-            double newValue = value.getDouble() + 1.0;
-            value = Value(newValue);
-            return value;
-        }
-        else if (value.isChar())
-        {
-            char newValue = value.getChar() + 1;
-            value = Value(newValue);
-            return value;
-        }
-        else
-        {
-            std::cerr << "ERROR: Increment operator not supported for this type" << std::endl;
-            exit(1);
-        }
-    }
-    break;
-    case NODE_NEWLINE:
-        return Value('\n');
-    default:
-        std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
-        exit(1);
-    }
-}
-
-void Interperter::executeStatement(AST_NODE *node)
-{
-    /*Handle Statements such as:
-     * Variable Declerations
-     * Assignment Statements
-     * Print Statements
-     * Implement more in future*/
-
-    if (!node)
-        return;
-
-    std::cout << "Executing statement: " << getNodeTypeName(node->TYPE) << std::endl;
-
-    switch (node->TYPE)
-    {
-    case NODE_INT:
-        if (node->CHILD)
-        {
-            Value value = evaluateExpression(node->CHILD);
-            variables[node->VALUE] = value;
-        }
-        else
-        {
-            variables[node->VALUE] = Value(0);
-        }
-        break;
-    case NODE_DOUBLE:
-        if (node->CHILD)
-        {
-            Value value = evaluateExpression(node->CHILD);
-            variables[node->VALUE] = value;
-        }
-        else
-        {
-            variables[node->VALUE] = Value(0.0);
-        }
-        break;
-    case NODE_CHAR:
-        if (node->CHILD)
-        {
-            Value value = evaluateExpression(node->CHILD);
-            variables[node->VALUE] = value;
-        }
-        else
-        {
-            variables[node->VALUE] = Value("");
-        }
-        break;
-    case NODE_PRINT:
-        if (node->CHILD)
-        {
-            Value result = evaluateExpression(node->CHILD);
-            printToOutput(result);
-        }
-        else
-        {
-            std::cout << "EMPTY PRINT" << std::endl;
-        }
-        break;
-    case NODE_SEMICOLON:
-        break;
-    default:
-        std::cerr << "Unknown Statement Type: " << getNodeTypeName(node->TYPE) << std::endl;
         exit(1);
     }
 }

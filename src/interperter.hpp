@@ -28,11 +28,12 @@ public:
     }
 
     void setupOutputFile();
+    void execute();
 
-    void execute()
-    {
-        executeNode(root);
-    }
+    // void execute()
+    // {
+    //     executeNode(root);
+    // }
 
 private:
     AST_NODE *root;

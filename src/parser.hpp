@@ -47,6 +47,8 @@ enum NODE_TYPE
     NODE_FUNCTION_BODY,        // 34
     NODE_PARAM,                // 35
     NODE_FUNCTION_SPACESHIP,   // 36
+    NODE_BEGIN_BLOCK,          // 37
+    NODE_FUNCTION,             // 38
 };
 
 struct AST_NODE
@@ -126,6 +128,7 @@ private:
     AST_NODE *parseArgs();
 
     AST_NODE *parseStatement();
+    AST_NODE *parseBeginBlock();
 
     // Function handling
     // For parsing function decleration

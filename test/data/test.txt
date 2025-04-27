@@ -1,12 +1,18 @@
-int x = 10;
-int y = 11;
-out_to_console(x + y);
 
-double newVal = 3.5;
-char val = 'c';
-str myName = "Ethan Hicks"
+begin:
 
-out_to_console(val);
-out_to_console(newVal);
-out_to_console(myName);
+    int x = 10;
+    int y = 11;
+    out_to_console(x + y);
+
+    double newVal = 3.5;
+    char val = 'c';
+    str myName = "Ethan Hicks"
+
+    out_to_console(val);
+    out_to_console('\n');
+    out_to_console(newVal);
+    out_to_console('\n');
+    out_to_console(myName);
+
 end

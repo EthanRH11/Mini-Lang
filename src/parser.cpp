@@ -475,6 +475,32 @@ AST_NODE *Parser::greaterThan()
 
     return node;
 }
+
+AST_NODE *Parser::parseBeginBlock()
+{
+    proceed(TOKEN_KEYWORD_BEGIN);
+
+    // Create node for begin block
+    AST_NODE *beginNode = new AST_NODE();
+    beginNode->TYPE = NODE_BEGIN_BLOCK;
+
+    while (current != nullptr && current->TYPE != TOKEN_EOF)
+    {
+        AST_NODE *statement = parseStatement();
+        if (statement != nullptr)
+        {
+            beginNode->SUB_STATEMENTS.push_back(statement);
+        }
+
+        // Handle semicolons between statements
+        if (current != nullptr && current->TYPE == TOKEN_SEMICOLON)
+        {
+            proceed(TOKEN_SEMICOLON);
+        }
+    }
+    return beginNode;
+}
+
 AST_NODE *Parser::lessThan()
 {
     proceed(TOKEN_OPERATOR_LESSTHAN);
@@ -698,6 +724,70 @@ AST_NODE *Parser::parseKeywordIf()
     }
     return node;
 }
+
+AST_NODE *Parser::parseFunctionDecleration()
+{
+    proceed(TOKEN_KEYWORD_FUNCTION);
+    // get function name
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Functions must have a name." << std::endl;
+        exit(1);
+        return nullptr;
+    }
+    std::string functionName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // Create function node
+    AST_NODE *function = new AST_NODE();
+    function->TYPE = NODE_FUNCTION_DECLERATION;
+    function->VALUE = functionName;
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Function must have params within parenthesis" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    AST_NODE *params = parseFunctionParams();
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected closing parenthesis after functions params." << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    if (current->TYPE != TOKEN_SPACESHIP)
+    {
+        std::cerr << "< Syntax Error > Expected spaceship ( => ) following function decleration" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_SPACESHIP); // Consume arrow token
+
+    AST_NODE *functionBody = nullptr;
+
+    if (current->TYPE == TOKEN_LEFT_CURL)
+    {
+        functionBody = parseFunctionBody();
+    }
+    else
+    {
+        functionBody = new AST_NODE();
+        functionBody->TYPE = NODE_FUNCTION_BODY;
+        functionBody->SUB_STATEMENTS.push_back(parseStatement());
+    }
+
+    function->SUB_STATEMENTS.push_back(params);
+    function->CHILD = functionBody;
+
+    return function;
+}
+
+/*Parse Function Params*/
+
+/*Parse Function Body*/
+
 AST_NODE *Parser::parseKeywordElse()
 {
     std::cerr << "< Syntax Error > Unexpected 'else' without matching if" << std::endl;
@@ -776,6 +866,7 @@ AST_NODE *Parser::parseTerm()
     exit(1);
     return nullptr;
 }
+
 AST_NODE *Parser::parseExpression()
 {
     AST_NODE *left = parseTerm();
@@ -846,6 +937,8 @@ AST_NODE *Parser::parse()
 
     AST_NODE *root = new AST_NODE();
     root->TYPE = NODE_ROOT;
+
+    bool foundBegin = false;
 
     while (cursor < size && tokens[cursor]->TYPE != TOKEN_EOF)
     {
@@ -955,6 +1048,17 @@ AST_NODE *Parser::parse()
         case TOKEN_OPERATOR_NEWLINE:
             statement = parseNewLine();
             break;
+        case TOKEN_KEYWORD_BEGIN:
+            if (foundBegin)
+            {
+                std::cerr << "< Syntax Error > Multiple 'begin:' blocks found" << std::endl;
+                exit(1);
+            }
+            statement = parseBeginBlock();
+            foundBegin = true;
+            break;
+        case TOKEN_KEYWORD_FUNCTION:
+            statement = parseFunctionDecleration();
         default:
             std::cerr << "< Syntax Error > Unexpected token: "
                       << getTokenTypeName(current->TYPE) << std::endl;
