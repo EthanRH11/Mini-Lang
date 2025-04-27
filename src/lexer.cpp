@@ -181,6 +181,8 @@ Token *Lexer::processOperator()
         return new Token{TOKEN_RIGHT_CURL, "}"};
     if (op == ".")
         return new Token{TOKEN_DOT, "."};
+    if (op == ",")
+        return new Token{TOKEN_COMMA, ","};
 
     throw std::runtime_error("Error: Unknown operator: " + op);
 }
@@ -356,8 +358,6 @@ std::string getTokenTypeName(tokenType type)
 {
     switch (type)
     {
-    case TOKEN_ID:
-        return "TOKEN_ID";
     case TOKEN_INTEGER_VAL:
         return "TOKEN_INTEGER_VAL";
     case TOKEN_DOUBLE_VAL:
@@ -432,6 +432,8 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_SPACESHIP";
     case TOKEN_KEYWORD_FUNCTION:
         return "TOKEN_KEYWORD_FUNCTION";
+    case TOKEN_COMMA:
+        return "TOKEN_COMMA";
     default:
         return "Error, unknown token identifier";
     }

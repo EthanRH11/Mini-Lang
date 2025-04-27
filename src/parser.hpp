@@ -137,8 +137,6 @@ private:
     AST_NODE *parseFunctionParams();
     // parse individual params
     AST_NODE *parseParameter();
-    // Parsing => token
-    AST_NODE *parseFunctionArrow();
     // parsing function body {}
     AST_NODE *parseFunctionBody();
 };

@@ -68,7 +68,8 @@ enum tokenType
     TOKEN_OPERATOR_NEWLINE = 34, // Newline as a token (if needed)
     TOKEN_SPACESHIP = 36,        // '=>' (spaceship operator)
     TOKEN_KEYWORD_FUNCTION = 37, // 'function' keyword
-    TOKEN_FUNCTION_PARAMS = 38   // Special token for function parameters
+    TOKEN_FUNCTION_PARAMS = 38,  // Special token for function parameters
+    TOKEN_COMMA = 39             // PARAM seperator
 };
 
 //

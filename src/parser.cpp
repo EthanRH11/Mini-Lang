@@ -785,6 +785,84 @@ AST_NODE *Parser::parseFunctionDecleration()
 }
 
 /*Parse Function Params*/
+AST_NODE *Parser::parseFunctionParams()
+{
+    AST_NODE *paramsNode = new AST_NODE();
+    paramsNode->TYPE = NODE_FUNCTION_PARAMS;
+
+    if (current->TYPE == TOKEN_RIGHT_PAREN)
+    {
+        return paramsNode;
+    }
+    while (true)
+    {
+        AST_NODE *param = parseParameter();
+        if (param)
+        {
+            paramsNode->SUB_STATEMENTS.push_back(param);
+        }
+
+        if (current->TYPE == TOKEN_COMMA)
+        {
+            proceed(TOKEN_COMMA);
+        }
+        else
+        {
+            break;
+        }
+    }
+    return paramsNode;
+}
+
+AST_NODE *Parser::parseParameter()
+{
+    NODE_TYPE paramType;
+
+    if (current->TYPE == TOKEN_KEYWORD_INT)
+    {
+        paramType = NODE_INT;
+        proceed(TOKEN_KEYWORD_INT);
+    }
+    else if (current->TYPE == TOKEN_KEYWORD_DOUBLE)
+    {
+        paramType = NODE_DOUBLE;
+        proceed(TOKEN_KEYWORD_DOUBLE);
+    }
+    else if (current->TYPE == TOKEN_KEYWORD_CHAR)
+    {
+        paramType = NODE_CHAR;
+        proceed(TOKEN_KEYWORD_CHAR);
+    }
+    else if (current->TYPE == TOKEN_KEYWORD_STR)
+    {
+        paramType = NODE_STRING;
+        proceed(TOKEN_KEYWORD_STR);
+    }
+    else
+    {
+        std::cerr << "< Syntax Error > Expected parameter type" << std::endl;
+        exit(1);
+    }
+
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected parameter name" << std::endl;
+        exit(1);
+    }
+
+    std::string paramName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    AST_NODE *paramNode = new AST_NODE();
+    paramNode->TYPE = NODE_PARAM;
+    paramNode->VALUE = paramName;
+
+    AST_NODE *typeNode = new AST_NODE();
+    typeNode->TYPE = paramType;
+    paramNode->CHILD = typeNode;
+
+    return paramNode;
+}
 
 /*Parse Function Body*/
 

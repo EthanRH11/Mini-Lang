@@ -10,7 +10,7 @@ set -e
 PROJECT_NAME="parser"
 BUILD_DIR="../build"
 EXECUTABLE="${BUILD_DIR}/${PROJECT_NAME}"
-TEST_DATA_DIR="../test/data"
+TEST_DATA_DIR="../tests"
 INPUT_FILE="${TEST_DATA_DIR}/functions.txt"
 MODE="all"  # Default mode
 

@@ -1,7 +1,0 @@
-int result = (5 + 3) * 2 - 4;
-int newResult = (((4 + 8) * 2) - 13);
-double try = (4 * (4 + 2) - 4)
-out_to_console(result);
-out_to_console(newResult);
-out_to_console(try);
-end
