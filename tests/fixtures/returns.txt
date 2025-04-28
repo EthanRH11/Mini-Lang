@@ -1,0 +1,27 @@
+
+proc calculateArea(int width, int height) => {
+    int area = width * height;
+
+    result => {area};
+}
+
+proc myFunction(int x) => {
+
+    result => {x + 3};
+}
+
+proc ifFunction(int x) => {
+    if(x < 0){
+        result => {-1};
+    } else {
+        result => {x * 2};
+    }
+}
+
+begin:
+    out_to_console(calculateArea(5, 3)); ...
+    out_to_console(myFunction(7)); ...
+    out_to_console(ifFunction(-2)); ...
+    out_to_console(ifFunction(4)); 
+
+end

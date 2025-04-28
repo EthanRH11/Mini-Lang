@@ -40,6 +40,7 @@ enum tokenType
     TOKEN_KEYWORD_STR = 16,    // 'str' keyword
     TOKEN_KEYWORD_PRINT = 17,  // 'print' keyword
     TOKEN_KEYWORD_BOOL = 41,   //'bool' keyword
+    TOKEN_KEYWORD_RESULT = 43, //"result" keywords
 
     // newline operator
     TOKEN_NL_SYMBOL = 40, //'...' new line
