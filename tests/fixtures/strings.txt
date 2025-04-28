@@ -1,0 +1,10 @@
+begin:
+
+    str hello = "Hello, ";
+    str myProgram = "This is Mini Lang."
+
+    out_to_console(hello + "World!"); ...
+
+    out_to_console("I am Ethan. " + myProgram);
+
+end

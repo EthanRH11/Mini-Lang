@@ -1,4 +1,4 @@
-Compilation started at Sun Apr 27 20:02:46 EDT 2025
+Compilation started at Sun Apr 27 20:44:53 EDT 2025
 ../src/interperter.cpp: In member function ‘void Interperter::executeNode(AST_NODE*)’:
 ../src/interperter.cpp:410:16: warning: unused variable ‘value’ [-Wunused-variable]
   410 |         Value &value = variables[varName];
@@ -9,4 +9,4 @@ Compilation started at Sun Apr 27 20:02:46 EDT 2025
 ../src/interperter.cpp:611:5: note: here
   611 |     case NODE_NEWLINE_SYMBOL:
       |     ^~~~
-Test Log Entry Sun Apr 27 20:02:49 EDT 2025
+Test Log Entry Sun Apr 27 20:44:54 EDT 2025

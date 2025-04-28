@@ -1,0 +1,14 @@
+begin:
+
+    int x = 5;
+    int y = 7
+    
+    int z = x + y;
+
+    out_to_console(x);
+    ...
+    out_to_console(y);
+    ...
+    out_to_console(z);
+
+end

@@ -1,0 +1,12 @@
+begin:
+    double pi = 3.14;
+
+    double new = 7.87;
+
+    double add = pi + new;
+
+    out_to_console(pi); ...
+    out_to_console(new); ...
+    out_to_console(add); ...
+
+end

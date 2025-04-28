@@ -1,0 +1,26 @@
+begin:
+
+int height = 5;
+int spaces = height - 1;
+int stars = 1;
+
+
+for(int i = 0; i < height; ++i){
+    for(int j = 0; j < spaces; ++j){
+        out_to_console(" ");
+    }
+
+    for(int k = 0; k < stars; ++k){
+        out_to_console("*");
+    }
+
+    out_to_console('\n');
+
+    spaces = spaces - 1;
+    stars = stars + 2;
+
+}
+
+out_to_console("Triangle Completed!");
+
+end

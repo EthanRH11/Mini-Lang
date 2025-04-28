@@ -1,0 +1,9 @@
+begin:
+
+    char c = 'z';
+    char d = 'a';
+
+    out_to_console(d + " is the first letter of the alphabet."); ...
+    out_to_console(c + " is the last letter of the alphabet.");
+
+end
