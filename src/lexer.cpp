@@ -423,6 +423,10 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     {
         return new Token{TOKEN_EOF, keyword};
     }
+    else if (keyword == "bool")
+    {
+        return new Token{TOKEN_KEYWORD_BOOL, keyword};
+    }
     else
     {
         return new Token{TOKEN_IDENTIFIER, keyword};
@@ -580,6 +584,8 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_OPERATOR_MODULUS";
     case TOKEN_NL_SYMBOL:
         return "TOKEN_NL_SYMBOL";
+    case TOKEN_KEYWORD_BOOL:
+        return "TOKEN_KEYWORD_BOOL";
     default:
         return "Error, unknown token identifier";
     }

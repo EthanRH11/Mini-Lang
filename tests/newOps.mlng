@@ -5,10 +5,16 @@ begin:
     int c = 5;
     int d = 6;
 
+    bool statement = true;
+
     int A = (a / c);
     int B = (b % d);
     int C = (d * c);
     str errmsg = "Error: Does not equal didn't work";
+
+    if(statement){
+        out_to_console("Bool works"); ...
+    }
 
     if(a =/= b){
         out_to_console(A);

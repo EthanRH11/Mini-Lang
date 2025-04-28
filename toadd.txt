@@ -126,6 +126,6 @@ import math => *; //Import everything
 
 
 
-
+Fix Bools
 NEXT ADD return results for functions result -> {return};
 and commenting ability. >>$ Single Line <<$ $>> multiple line
