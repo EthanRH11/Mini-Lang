@@ -106,6 +106,33 @@ Value Interperter::evaluateExpression(AST_NODE *node)
             return Value(left.getInteger() * right.getInteger());
         }
         return Value(0);
+    case NODE_DIVISION:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() / right.getInteger());
+        }
+        return Value(0);
+    case NODE_MODULUS:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() % right.getInteger());
+        }
+        return Value(0);
+    case NODE_NOT_EQUAL:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() != right.getInteger());
+        }
+        return Value(false);
     case NODE_LESS_THAN:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
@@ -572,6 +599,23 @@ void Interperter::executeNode(AST_NODE *node)
         {
             executeNode(stmt);
         }
+        break;
+    case NODE_DIVISION:
+        evaluateExpression(node);
+        break;
+    case NODE_MODULUS:
+        evaluateExpression(node);
+        break;
+    case NODE_SUBT:
+        evaluateExpression(node);
+    case NODE_NEWLINE_SYMBOL:
+        if (outputFile.is_open())
+        {
+            outputFile << std::endl;
+        }
+        break;
+    case NODE_NOT_EQUAL:
+        evaluateExpression(node);
         break;
     default:
         std::cerr << "Interpretation Error: Unknown node type: " << getNodeTypeName(node->TYPE) << std::endl;

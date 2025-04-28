@@ -3,10 +3,11 @@ begin:
     int a = 20;
     int b = 15;
     int c = 5;
-    int d = 2;
+    int d = 6;
 
     int A = (a / c);
     int B = (b % d);
+    int C = (d * c);
     str errmsg = "Error: Does not equal didn't work";
 
     if(a =/= b){
@@ -17,5 +18,8 @@ begin:
     } else {
         out_to_console(errmsg);
     }
+
+    out_to_console(C);
+    ... 
 
 end

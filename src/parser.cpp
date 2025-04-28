@@ -490,6 +490,12 @@ AST_NODE *Parser::parseID()
 
 AST_NODE *Parser::parseNewLineCharacter()
 {
+    proceed(TOKEN_NL_SYMBOL);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_NEWLINE_SYMBOL;
+
+    return node;
 }
 
 //-------------------------------------------------------------------
@@ -1710,6 +1716,14 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_FUNCTION";
     case NODE_FUNCTION_CALL:
         return "NODE_FUNCTION_CALL";
+    case NODE_DIVISION:
+        return "NODE_DIVISION";
+    case NODE_MODULUS:
+        return "NODE_MODULUS";
+    case NODE_NEWLINE_SYMBOL:
+        return "NODE_NEWLINE_SYMBOL";
+    case NODE_NOT_EQUAL:
+        return "NODE_NOT_EQUAL";
     default:
         return "Unknown node";
     }
@@ -1815,6 +1829,22 @@ AST_NODE *Parser::parseStatement()
 
     case TOKEN_KEYWORD_IF:
         statement = parseKeywordIf();
+        break;
+
+    case TOKEN_OPERATOR_DIV:
+        statement = parseDivi();
+        break;
+
+    case TOKEN_OPERATOR_MODULUS:
+        statement = parseModulus();
+        break;
+
+    case TOKEN_OPERATOR_MULT:
+        statement = parseMult();
+        break;
+
+    case TOKEN_NL_SYMBOL:
+        statement = parseNewLineCharacter();
         break;
 
     default:
