@@ -38,6 +38,11 @@ enum NODE_TYPE
     NODE_STRING_LITERAL, // String literal value
     NODE_BOOL_LITERAL,   // Bool literal value
 
+    // NODES FOR RETURN STATEMENTS
+    NODE_RESULTSTATEMENT, // Top Level node of entire return statement
+    NODE_RESULT_LITERAL,  // Represent the result keyword
+    NODE_EXPRESSION,      // Represent the expression in curly brackets
+
     // Operator nodes
     NODE_EQUALS,             // Assignment operator
     NODE_ADD,                // Addition operator
@@ -187,6 +192,8 @@ private:
     AST_NODE *parseKeywordChar();
     AST_NODE *parseKeywordBool();
 
+    AST_NODE *parseKeywordResult();
+
     // Operators
     AST_NODE *parseIncrementOperator();
     AST_NODE *parseEquals();
@@ -216,6 +223,7 @@ private:
     AST_NODE *parseLeftParen();
     AST_NODE *parseRightParen();
     AST_NODE *parseExpression();
+    AST_NODE *parseResultExpression();
     AST_NODE *parseTerm();
     AST_NODE *parseLeftCurl();
     AST_NODE *parseRightCurl();
@@ -225,6 +233,9 @@ private:
     AST_NODE *parseKeywordElse();
     AST_NODE *parseKeywordFor();
     AST_NODE *parseArgs();
+
+    // Return statement
+    AST_NODE *parseResultStatement();
 
     // General statement parsing
     AST_NODE *parseStatement();

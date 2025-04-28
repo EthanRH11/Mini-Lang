@@ -407,6 +407,46 @@ AST_NODE *Parser::parseKeywordPrint()
 
     return node;
 }
+//======================================================
+//================  RETURN STATEMENTS  =================
+//======================================================
+
+/**
+ * @brief Parses a result/return statement
+ * @return AST node representing the return statement
+ * @throws Exits with error on syntax issues
+ *
+ * Handles return statements in the form: result => {expression}
+ * Creates a node that will later be used during execution to
+ * return a value from the function call.
+ */
+AST_NODE *Parser::parseResultStatement()
+{
+}
+
+/**
+ * @brief Parses the 'result' keyword
+ * @return AST node representing the result keyword
+ *
+ * Creates a NODE_RESULT node that indicates the start of a
+ * return statement in the language syntax.
+ */
+AST_NODE *Parser::parseKeywordResult()
+{
+}
+
+/**
+ * @brief Parses the expression inside a result statement's curly braces
+ * @return AST node representing the expression to be returned
+ * @throws Exits with error on syntax issues
+ *
+ * Processes the expression between the curly braces in a
+ * 'result => {expression}' syntax, which will be the value
+ * returned by the function.
+ */
+AST_NODE *Parser::parseResultExpression()
+{
+}
 
 /**
  * @brief Parses an equals sign (assignment operator)
