@@ -123,6 +123,34 @@ bool Lexer::eof() const
 }
 
 /**
+ * @brief Processes true or false statements
+ * @return Token pointer representing the true or false value
+ * @throws std::runtime error if true or false is invalid
+ */
+Token *Lexer::processBool()
+{
+    std::string boolStr = "";
+    while (isalpha(current) && current != ';')
+    {
+        boolStr += current;
+        advanceCursor();
+    }
+
+    if (boolStr == "true")
+    {
+        return new Token{TOKEN_BOOL_VALUE, boolStr};
+    }
+    else if (boolStr == "false")
+    {
+        return new Token{TOKEN_BOOL_VALUE, boolStr};
+    }
+    else
+    {
+        throw std::runtime_error("Invalid boolean literal: " + boolStr);
+    }
+}
+
+/**
  * @brief Processes numeric literals (integers and floating-point numbers)
  * @return Token pointer representing the numeric value
  * @throws std::runtime_error if the number format is invalid
@@ -453,9 +481,18 @@ std::vector<Token *> Lexer::tokenize()
         // Process different token types based on the current character
         if (std::isalpha(current))
         {
-            // Process keywords and identifiers
-            Token *token = processKeyword(tokens);
-            tokens.push_back(token);
+            if ((current == 't' && matchKeyword("true")) ||
+                (current == 'f' && matchKeyword("false")))
+            {
+                Token *token = processBool();
+                tokens.push_back(token);
+            }
+            else
+            {
+                // Process keywords and identifiers
+                Token *token = processKeyword(tokens);
+                tokens.push_back(token);
+            }
         }
         else if (std::isdigit(current))
         {
@@ -586,6 +623,8 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_NL_SYMBOL";
     case TOKEN_KEYWORD_BOOL:
         return "TOKEN_KEYWORD_BOOL";
+    case TOKEN_BOOL_VALUE:
+        return "TOKEN_BOOL_VALUE";
     default:
         return "Error, unknown token identifier";
     }

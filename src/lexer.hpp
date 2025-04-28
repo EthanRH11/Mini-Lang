@@ -18,6 +18,7 @@ enum tokenType
     TOKEN_DOUBLE_VAL = 2,  // Double (floating-point) literals
     TOKEN_CHAR_VAL = 3,    // Character literals
     TOKEN_STRING_VAL = 4,  // String literals
+    TOKEN_BOOL_VALUE = 42, // Bool literals
 
     // Basic Operators
     TOKEN_EQUALS = 5,            // Assignment '='
@@ -127,6 +128,9 @@ public:
 
     // Handles operators (+, -, *, /, etc.)
     Token *processOperator();
+
+    // Handles true/false statements
+    Token *processBool();
 
     // Handles numbers (integers and doubles)
     Token *processNumber();

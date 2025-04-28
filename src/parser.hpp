@@ -29,12 +29,14 @@ enum NODE_TYPE
     NODE_DOUBLE,     // Double type declaration
     NODE_CHAR,       // Character type declaration
     NODE_STRING,     // String type declaration
+    NODE_BOOL,       // bool type decleration
 
     // Literal value nodes
     NODE_INT_LITERAL,    // Integer literal value
     NODE_DOUBLE_LITERAL, // Double literal value
     NODE_CHAR_LITERAL,   // Character literal value
     NODE_STRING_LITERAL, // String literal value
+    NODE_BOOL_LITERAL,   // Bool literal value
 
     // Operator nodes
     NODE_EQUALS,             // Assignment operator
@@ -183,6 +185,7 @@ private:
     AST_NODE *parseKeywordINT();
     AST_NODE *parseKeywordDouble();
     AST_NODE *parseKeywordChar();
+    AST_NODE *parseKeywordBool();
 
     // Operators
     AST_NODE *parseIncrementOperator();
@@ -204,6 +207,7 @@ private:
     AST_NODE *parseStringValue();
     AST_NODE *parseCharValue();
     AST_NODE *parserIntegerValue(); // Note: possible typo in original
+    AST_NODE *parseBoolValue();
 
     // Identifiers
     AST_NODE *parseID();

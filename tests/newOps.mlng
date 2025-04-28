@@ -6,6 +6,7 @@ begin:
     int d = 6;
 
     bool statement = true;
+    bool lols = false;
 
     int A = (a / c);
     int B = (b % d);

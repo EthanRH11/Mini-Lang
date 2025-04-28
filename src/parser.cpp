@@ -237,6 +237,20 @@ AST_NODE *Parser::parseCharValue()
 }
 
 /**
+ * @brief Parses a bool literal value
+ * @return AST Node representing the integer value
+ */
+AST_NODE *Parser::parseBoolValue()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_BOOL_LITERAL;
+    node->VALUE = current->value;
+
+    proceed(TOKEN_BOOL_VALUE);
+    return node;
+}
+
+/**
  * @brief Parses an integer literal value
  * @return AST node representing the integer literal
  *
@@ -301,6 +315,35 @@ AST_NODE *Parser::parseNewLine()
 //-------------------------------------------------------------------
 // Keyword and special token parsing methods
 //-------------------------------------------------------------------
+/**
+ * @brief Parses bool decleration
+ * @return AST Node representing bool
+ * @throws exits with error if ...
+ */
+
+AST_NODE *Parser::parseKeywordBool()
+{
+    proceed(TOKEN_KEYWORD_BOOL);
+
+    std::string variableName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_BOOL;
+    node->VALUE = variableName;
+
+    // Check for initialization
+    if (current != nullptr && current->TYPE == TOKEN_EQUALS)
+    {
+        proceed(TOKEN_EQUALS);
+        node->CHILD = parseExpression();
+    }
+    else
+    {
+        node->CHILD = nullptr;
+    }
+    return node;
+}
 
 /**
  * @brief Parses the end-of-file marker
@@ -1272,6 +1315,10 @@ AST_NODE *Parser::parseTerm()
     {
         return parseDoubleValue();
     }
+    else if (current->TYPE == TOKEN_BOOL_VALUE)
+    {
+        return parseBoolValue();
+    }
     else if (current->TYPE == TOKEN_OPERATOR_INCREMENT)
     {
         proceed(TOKEN_OPERATOR_INCREMENT);
@@ -1724,6 +1771,10 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_NEWLINE_SYMBOL";
     case NODE_NOT_EQUAL:
         return "NODE_NOT_EQUAL";
+    case NODE_BOOL:
+        return "NODE_BOOL";
+    case NODE_BOOL_LITERAL:
+        return "NODE_BOOL_LITERAL";
     default:
         return "Unknown node";
     }
@@ -1846,7 +1897,12 @@ AST_NODE *Parser::parseStatement()
     case TOKEN_NL_SYMBOL:
         statement = parseNewLineCharacter();
         break;
-
+    case TOKEN_KEYWORD_BOOL:
+        statement = parseKeywordBool();
+        break;
+    case TOKEN_BOOL_VALUE:
+        statement = parseBoolValue();
+        break;
     default:
         std::cerr << "< Syntax Error > Unexpected token in statement: "
                   << getTokenTypeName(current->TYPE) << std::endl;
