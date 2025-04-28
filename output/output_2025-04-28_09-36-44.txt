@@ -1,2 +1,0 @@
-Hey, the true bool, is working in the if statement
-We should not be here

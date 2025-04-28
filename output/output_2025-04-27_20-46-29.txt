@@ -1,3 +1,0 @@
-a is greater than b
-c is greater than a
-a + b is less than d

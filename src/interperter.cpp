@@ -79,6 +79,7 @@ Value Interperter::evaluateExpression(AST_NODE *node)
         {
             return Value(false);
         }
+        break;
     case NODE_CHAR_LITERAL:
         if (node->VALUE.length() == 1)
         {
@@ -372,6 +373,7 @@ void Interperter::executeNode(AST_NODE *node)
         {
             variables[node->VALUE] = Value(false);
         }
+        break;
     case NODE_INT:
         if (node->CHILD)
         {
@@ -441,7 +443,7 @@ void Interperter::executeNode(AST_NODE *node)
         }
 
         // Increment the value based on its type
-        Value &value = variables[varName];
+        // Value &value = variables[varName];
         evaluateExpression(node); // This calls your existing increment logic in evaluateExpression
         break;
     }
@@ -642,6 +644,7 @@ void Interperter::executeNode(AST_NODE *node)
         break;
     case NODE_SUBT:
         evaluateExpression(node);
+        break;
     case NODE_NEWLINE_SYMBOL:
         if (outputFile.is_open())
         {
