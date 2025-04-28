@@ -1,21 +1,17 @@
 
-proc helloWorld(str Ethan) => {
-    out_to_console(Ethan);
-    out_to_console('\n');
+proc calculate_area(int width, int height) => {
+    int area = width * height;
+    out_to_console("Calculating area of rectange: ");
+    result -> {area};
 }
 
 begin:
+    out_to_console("Welcome to the area calculator!");
+    ...
 
-    str hello = "Hello, World!";
-    int a = 20;
-    double b = 3.14;
-    char jazz = 'c';
+    int result = calculate_area(5, 3);
 
-    if(a > 10){
-        helloWorld(hello);
-        for(int i = 0; i < a; ++i){
-            out_to_console(jazz);
-            out_to_console('\n');
-        }
-    }
+    out_to_console("The area of the rectangle is: " + result);
+    ...
+    out_to_console("Thank you for using the area calculator!");
 end

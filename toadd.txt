@@ -125,3 +125,7 @@ OR
 import math => *; //Import everything
 
 
+
+
+NEXT ADD return results for functions result -> {return};
+and commenting ability. >>$ Single Line <<$ $>> multiple line
