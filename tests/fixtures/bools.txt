@@ -1,0 +1,17 @@
+begin:
+
+    bool newStatement = false;
+    bool oldStatement = true;
+
+    if(oldStatement){
+        out_to_console("Hey, the true bool, is working in the if statement"); ...
+    } else {
+        out_to_console("We should not be here"); ...
+    }
+
+    if(newStatement){
+        out_to_console("We should not be here") ...
+    } else {
+        out_to_console("Hey, the false bool, is working in the if statement"); ...
+    }
+end

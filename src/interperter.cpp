@@ -66,6 +66,19 @@ Value Interperter::evaluateExpression(AST_NODE *node)
         return Value(std::stoi(node->VALUE));
     case NODE_DOUBLE_LITERAL:
         return Value(std::stod(node->VALUE));
+    case NODE_BOOL_LITERAL:
+        if (node->VALUE == "true")
+        {
+            return Value(true);
+        }
+        else if (node->VALUE == "false")
+        {
+            return Value(false);
+        }
+        else
+        {
+            return Value(false);
+        }
     case NODE_CHAR_LITERAL:
         if (node->VALUE.length() == 1)
         {
@@ -242,6 +255,17 @@ void Interperter::executeStatement(AST_NODE *node)
             variables[node->VALUE] = Value(0);
         }
         break;
+    case NODE_BOOL:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value(false);
+        }
+        break;
     case NODE_DOUBLE:
         if (node->CHILD)
         {
@@ -338,6 +362,16 @@ void Interperter::executeNode(AST_NODE *node)
         }
     }
     break;
+    case NODE_BOOL:
+        if (node->CHILD)
+        {
+            Value value = evaluateExpression(node->CHILD);
+            variables[node->VALUE] = value;
+        }
+        else
+        {
+            variables[node->VALUE] = Value(false);
+        }
     case NODE_INT:
         if (node->CHILD)
         {

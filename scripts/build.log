@@ -1,12 +1,18 @@
-Compilation started at Mon Apr 28 09:09:30 EDT 2025
+Compilation started at Mon Apr 28 09:50:20 EDT 2025
 ../src/interperter.cpp: In member function ‘void Interperter::executeNode(AST_NODE*)’:
-../src/interperter.cpp:410:16: warning: unused variable ‘value’ [-Wunused-variable]
-  410 |         Value &value = variables[varName];
+../src/interperter.cpp:444:16: warning: unused variable ‘value’ [-Wunused-variable]
+  444 |         Value &value = variables[varName];
       |                ^~~~~
-../src/interperter.cpp:610:27: warning: this statement may fall through [-Wimplicit-fallthrough=]
-  610 |         evaluateExpression(node);
-      |         ~~~~~~~~~~~~~~~~~~^~~~~~
-../src/interperter.cpp:611:5: note: here
-  611 |     case NODE_NEWLINE_SYMBOL:
+../src/interperter.cpp:374:9: warning: this statement may fall through [-Wimplicit-fallthrough=]
+  374 |         }
+      |         ^
+../src/interperter.cpp:375:5: note: here
+  375 |     case NODE_INT:
       |     ^~~~
-Test Log Entry Mon Apr 28 09:09:31 EDT 2025
+../src/interperter.cpp:644:27: warning: this statement may fall through [-Wimplicit-fallthrough=]
+  644 |         evaluateExpression(node);
+      |         ~~~~~~~~~~~~~~~~~~^~~~~~
+../src/interperter.cpp:645:5: note: here
+  645 |     case NODE_NEWLINE_SYMBOL:
+      |     ^~~~
+Test Log Entry Mon Apr 28 09:50:21 EDT 2025
