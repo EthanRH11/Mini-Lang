@@ -39,9 +39,9 @@ enum NODE_TYPE
     NODE_BOOL_LITERAL,   // Bool literal value
 
     // NODES FOR RETURN STATEMENTS
-    NODE_RESULTSTATEMENT, // Top Level node of entire return statement
-    NODE_RESULT_LITERAL,  // Represent the result keyword
-    NODE_EXPRESSION,      // Represent the expression in curly brackets
+    NODE_RESULTSTATEMENT,   // Top Level node of entire return statement
+    NODE_RESULT,            // Represent the result keyword
+    NODE_RESULT_EXPRESSION, // Represent the expression in curly brackets
 
     // Operator nodes
     NODE_EQUALS,             // Assignment operator

@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
             std::cout << "\n===== PROGRAM OUTPUT =====\n"
                       << std::endl;
 
-            Interperter interperter(root);
+            Interpreter interperter(root);
             interperter.execute();
         }
 

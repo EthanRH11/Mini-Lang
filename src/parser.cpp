@@ -416,12 +416,35 @@ AST_NODE *Parser::parseKeywordPrint()
  * @return AST node representing the return statement
  * @throws Exits with error on syntax issues
  *
+ * result => {statement};
+ *
  * Handles return statements in the form: result => {expression}
  * Creates a node that will later be used during execution to
  * return a value from the function call.
  */
 AST_NODE *Parser::parseResultStatement()
 {
+    AST_NODE *resultStatement = new AST_NODE();
+    resultStatement->TYPE = NODE_RESULTSTATEMENT;
+    proceed(TOKEN_KEYWORD_RESULT);
+
+    if (current->TYPE != TOKEN_SPACESHIP)
+    {
+        std::cerr << "< Syntax Error > Expected '=>' after result statement." << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_SPACESHIP);
+
+    if (current->TYPE != TOKEN_LEFT_CURL)
+    {
+        std::cerr << "< Syntax Error > Expected '{' following the spaceship pointer." << std::endl;
+        exit(1);
+    }
+
+    resultStatement->CHILD = parseResultStatement();
+
+    return resultStatement;
 }
 
 /**
@@ -433,6 +456,11 @@ AST_NODE *Parser::parseResultStatement()
  */
 AST_NODE *Parser::parseKeywordResult()
 {
+    AST_NODE *keywordResult = new AST_NODE();
+    keywordResult->TYPE = NODE_RESULT;
+    keywordResult->VALUE = current->value;
+
+    return keywordResult;
 }
 
 /**
@@ -446,8 +474,37 @@ AST_NODE *Parser::parseKeywordResult()
  */
 AST_NODE *Parser::parseResultExpression()
 {
-}
+    proceed(TOKEN_LEFT_CURL);
 
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_RESULT_EXPRESSION;
+
+    // Parse the content inside parentheses
+    if (current->TYPE == TOKEN_IDENTIFIER)
+    {
+        AST_NODE *childNode = new AST_NODE();
+        childNode->TYPE = NODE_IDENTIFIER;
+        childNode->VALUE = current->value;
+        node->CHILD = childNode;
+        proceed(TOKEN_IDENTIFIER);
+    }
+    else
+    {
+        // Handle functions in the future.
+        std::cerr << "< Syntax Error > Unexpeceted token inside parenthesis." << std::endl;
+        exit(1);
+    }
+
+    // Expect and Consume the closing parenthesis
+    if (current->TYPE != TOKEN_RIGHT_CURL)
+    {
+        std::cerr << "< Syntax Error > Expected closing curly brace" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_CURL);
+
+    return node;
+}
 /**
  * @brief Parses an equals sign (assignment operator)
  * @return AST node representing the equals sign
