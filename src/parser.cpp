@@ -424,25 +424,41 @@ AST_NODE *Parser::parseKeywordPrint()
  */
 AST_NODE *Parser::parseResultStatement()
 {
+    // Debug output to track parsing
+    std::cout << "Parsing result statement" << std::endl;
+
     AST_NODE *resultStatement = new AST_NODE();
     resultStatement->TYPE = NODE_RESULTSTATEMENT;
     proceed(TOKEN_KEYWORD_RESULT);
 
     if (current->TYPE != TOKEN_SPACESHIP)
     {
-        std::cerr << "< Syntax Error > Expected '=>' after result statement." << std::endl;
+        std::cerr << "< Syntax Error > Expected '=>' after result keyword." << std::endl;
         exit(1);
     }
-
     proceed(TOKEN_SPACESHIP);
 
     if (current->TYPE != TOKEN_LEFT_CURL)
     {
-        std::cerr << "< Syntax Error > Expected '{' following the spaceship pointer." << std::endl;
+        std::cerr << "< Syntax Error > Expected '{' following the '=>' in result statement." << std::endl;
         exit(1);
     }
+    proceed(TOKEN_LEFT_CURL);
 
-    resultStatement->CHILD = parseResultStatement();
+    // Use parseExpression to handle any valid expression inside the braces
+    // This works for simple values like "area" and complex expressions like "x + 3" or "-1"
+    resultStatement->CHILD = parseExpression();
+
+    // Debug output to see what token we're at after parsing the expression
+    std::cout << "After parsing result expression, current token: "
+              << getTokenTypeName(current->TYPE) << std::endl;
+
+    if (current->TYPE != TOKEN_RIGHT_CURL)
+    {
+        std::cerr << "< Syntax Error > Expected '}' to close result statement." << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_CURL);
 
     return resultStatement;
 }
@@ -479,21 +495,7 @@ AST_NODE *Parser::parseResultExpression()
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_RESULT_EXPRESSION;
 
-    // Parse the content inside parentheses
-    if (current->TYPE == TOKEN_IDENTIFIER)
-    {
-        AST_NODE *childNode = new AST_NODE();
-        childNode->TYPE = NODE_IDENTIFIER;
-        childNode->VALUE = current->value;
-        node->CHILD = childNode;
-        proceed(TOKEN_IDENTIFIER);
-    }
-    else
-    {
-        // Handle functions in the future.
-        std::cerr << "< Syntax Error > Unexpeceted token inside parenthesis." << std::endl;
-        exit(1);
-    }
+    node->CHILD = parseExpression();
 
     // Expect and Consume the closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_CURL)
@@ -656,29 +658,7 @@ AST_NODE *Parser::parseLeftParen()
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_PAREN_EXPR;
 
-    // Parse the content inside parentheses
-    if (current->TYPE == TOKEN_IDENTIFIER)
-    {
-        AST_NODE *childNode = new AST_NODE();
-        childNode->TYPE = NODE_IDENTIFIER;
-        childNode->VALUE = current->value;
-        node->CHILD = childNode;
-        proceed(TOKEN_IDENTIFIER);
-    }
-    else if (current->TYPE == TOKEN_INTEGER_VAL)
-    {
-        AST_NODE *childNode = new AST_NODE();
-        childNode->TYPE = NODE_INT_LITERAL;
-        childNode->VALUE = current->value;
-        node->CHILD = childNode;
-        proceed(TOKEN_INTEGER_VAL);
-    }
-    else
-    {
-        // Handle functions in the future.
-        std::cerr << "< Syntax Error > Unexpeceted token inside parenthesis." << std::endl;
-        exit(1);
-    }
+    node->CHILD = parseExpression();
 
     // Expect and Consume the closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_PAREN)
@@ -1037,6 +1017,7 @@ AST_NODE *Parser::parseLeftCurl()
     while (current != nullptr && current->TYPE != TOKEN_RIGHT_CURL)
     {
         AST_NODE *statement = nullptr;
+        std::cout << "Current Token: " << getTokenTypeName(current->TYPE) << std::endl;
 
         // Handle different statement types
         switch (current->TYPE)
@@ -1073,6 +1054,12 @@ AST_NODE *Parser::parseLeftCurl()
             break;
         case TOKEN_NL_SYMBOL:
             statement = parseNewLineCharacter();
+            break;
+        case TOKEN_KEYWORD_RESULT:
+            statement = parseResultStatement();
+            break;
+        case TOKEN_KEYWORD_BOOL:
+            statement = parseKeywordBool();
             break;
         default:
             std::cerr << "< Syntax Error > Unexpected token in block: "
@@ -1373,6 +1360,18 @@ AST_NODE *Parser::parseKeywordFor()
  */
 AST_NODE *Parser::parseTerm()
 {
+    if (current->TYPE == TOKEN_OPERATOR_SUBT)
+    {
+        proceed(TOKEN_OPERATOR_SUBT);
+
+        AST_NODE *unaryMinus = new AST_NODE();
+        unaryMinus->TYPE = NODE_SUBT;
+
+        AST_NODE *operand = parseTerm();
+        unaryMinus->SUB_STATEMENTS.push_back(operand);
+        return unaryMinus;
+    }
+
     if (current->TYPE == TOKEN_INTEGER_VAL)
     {
         return parseIntegerValue();
@@ -1382,6 +1381,43 @@ AST_NODE *Parser::parseTerm()
         std::string identifierName = current->value;
         proceed(TOKEN_IDENTIFIER);
 
+        // Check if this is a function call
+        if (current != nullptr && current->TYPE == TOKEN_LEFT_PAREN)
+        {
+            AST_NODE *functionCallNode = new AST_NODE();
+            functionCallNode->TYPE = NODE_FUNCTION_CALL;
+            functionCallNode->VALUE = identifierName;
+            proceed(TOKEN_LEFT_PAREN);
+
+            // Parse function arguments
+            while (current != nullptr && current->TYPE != TOKEN_RIGHT_PAREN)
+            {
+                AST_NODE *argNode = parseExpression(); // Parse full expressions as args
+                functionCallNode->SUB_STATEMENTS.push_back(argNode);
+
+                // Handle comma-separated arguments
+                if (current != nullptr && current->TYPE == TOKEN_COMMA)
+                {
+                    proceed(TOKEN_COMMA);
+                }
+                else if (current != nullptr && current->TYPE != TOKEN_RIGHT_PAREN)
+                {
+                    std::cerr << "< Syntax Error > Expected ',' or ')'" << std::endl;
+                    exit(1);
+                }
+            }
+
+            if (current == nullptr || current->TYPE != TOKEN_RIGHT_PAREN)
+            {
+                std::cerr << "< Syntax Error > Expected ')' to close function call" << std::endl;
+                exit(1);
+            }
+            proceed(TOKEN_RIGHT_PAREN);
+
+            return functionCallNode;
+        }
+
+        // Regular variable identifier
         AST_NODE *node = new AST_NODE();
         node->TYPE = NODE_IDENTIFIER;
         node->VALUE = identifierName;
@@ -1578,8 +1614,6 @@ AST_NODE *Parser::parse()
     root->TYPE = NODE_ROOT;
 
     bool foundBegin = false;
-
-    std::cout << "Current Token: " << getCurrentToken() << std::endl;
 
     // Process tokens until EOF
     while (cursor < size && tokens[cursor]->TYPE != TOKEN_EOF)
@@ -1872,6 +1906,10 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_BOOL";
     case NODE_BOOL_LITERAL:
         return "NODE_BOOL_LITERAL";
+    case NODE_RESULT_EXPRESSION:
+        return "NODE_RESULT_EXPRESSION";
+    case NODE_RESULTSTATEMENT:
+        return "NODE_RESULTSTATEMENT";
     default:
         return "Unknown node";
     }
@@ -1999,6 +2037,9 @@ AST_NODE *Parser::parseStatement()
         break;
     case TOKEN_BOOL_VALUE:
         statement = parseBoolValue();
+        break;
+    case TOKEN_KEYWORD_RESULT:
+        statement = parseResultStatement();
         break;
     default:
         std::cerr << "< Syntax Error > Unexpected token in statement: "

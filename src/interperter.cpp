@@ -14,7 +14,7 @@
 
 namespace fs = std::filesystem;
 
-void Interperter::setupOutputFile()
+void Interpreter::setupOutputFile()
 {
     fs::create_directories("output");
 
@@ -33,7 +33,7 @@ void Interperter::setupOutputFile()
     }
 }
 
-void Interperter::execute()
+void Interpreter::execute()
 {
     AST_NODE *beginBlock = nullptr;
 
@@ -54,7 +54,7 @@ void Interperter::execute()
     executeNode(beginBlock);
 }
 
-Value Interperter::evaluateExpression(AST_NODE *node)
+Value Interpreter::evaluateExpression(AST_NODE *node)
 {
     if (!node)
         return Value(0);
@@ -231,7 +231,7 @@ Value Interperter::evaluateExpression(AST_NODE *node)
     }
 }
 
-void Interperter::executeStatement(AST_NODE *node)
+void Interpreter::executeStatement(AST_NODE *node)
 {
     /*Handle Statements such as:
      * Variable Declerations
@@ -309,7 +309,7 @@ void Interperter::executeStatement(AST_NODE *node)
     }
 }
 
-void Interperter::executeNode(AST_NODE *node)
+void Interpreter::executeNode(AST_NODE *node)
 {
     if (!node)
         return;
@@ -661,7 +661,7 @@ void Interperter::executeNode(AST_NODE *node)
     }
 }
 
-AST_NODE *Interperter::findFunctionByName(const std::string &name)
+AST_NODE *Interpreter::findFunctionByName(const std::string &name)
 {
     for (auto &stmt : root->SUB_STATEMENTS)
     {
