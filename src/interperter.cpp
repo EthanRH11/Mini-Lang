@@ -176,6 +176,15 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
             exit(1);
         }
+    case NODE_LESS_EQUAL:
+        if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            return Value(left.getInteger() <= right.getInteger());
+        }
+        return Value(false);
     case NODE_OPERATOR_INCREMENT:
     {
         if (node->SUB_STATEMENTS.size() != 1)
@@ -225,6 +234,55 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     break;
     case NODE_NEWLINE:
         return Value('\n');
+    case NODE_FUNCTION_CALL:
+    {
+        static int recursionDepth = 0;
+        recursionDepth++;
+
+        std::string funcName = node->VALUE;
+        std::cout << "Entering Function: " << funcName << " depth: " << recursionDepth << std::endl;
+        std::string callID = generateCallID(funcName, recursionDepth);
+
+        // Look up function definition
+        AST_NODE *funcDef = findFunctionByName(funcName);
+        if (!funcDef)
+        {
+            std::cerr << "Undefined function: " << funcName << std::endl;
+            exit(1);
+        }
+
+        // Create a complete copy of the current variable scope
+        std::map<std::string, Value> localScope;
+        localScope.insert(variables.begin(), variables.end());
+
+        // Bind arguments to parameters
+        AST_NODE *params = funcDef->SUB_STATEMENTS[0];
+        for (size_t i = 0; i < node->SUB_STATEMENTS.size() && i < params->SUB_STATEMENTS.size(); i++)
+        {
+            AST_NODE *paramNode = params->SUB_STATEMENTS[i];
+            AST_NODE *argNode = node->SUB_STATEMENTS[i];
+
+            // Evaluate argument
+            Value argValue = evaluateExpression(argNode);
+
+            // Bind to parameter name in the local scope
+            variables[paramNode->VALUE] = argValue;
+        }
+        returnValue = Value(); // Clear the return value before executing
+        // Execute function body
+        executeNode(funcDef->CHILD);
+
+        // Get the function's return value
+        Value result = returnValue;
+        std::cout << "Return value from " << funcName << " depth " << recursionDepth << ": " << result.getInteger() << std::endl;
+
+        // Restore previous scope
+        variables = localScope;
+
+        recursionDepth--;
+        return result;
+    }
+    break;
     default:
         std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
         exit(1);
@@ -350,18 +408,30 @@ void Interpreter::executeNode(AST_NODE *node)
         {
             conditionResult = condition.getChar() != '\0';
         }
+        std::cout << "IF condition evaluated to: " << (conditionResult ? "true" : "false") << std::endl;
 
         if (conditionResult)
         {
             if (node->SUB_STATEMENTS.size() > 0)
             {
                 executeNode(node->SUB_STATEMENTS[0]);
+                // Important: If this was a result statement, we should stop execution
+                if (hasReturnValue())
+                {
+                    return; // Exit current function execution
+                }
             }
         }
         else if (node->SUB_STATEMENTS.size() > 1)
         {
             executeNode(node->SUB_STATEMENTS[1]);
+            // Important: If this was a result statement, we should stop execution
+            if (hasReturnValue())
+            {
+                return; // Exit current function execution
+            }
         }
+        break;
     }
     break;
     case NODE_BOOL:
@@ -608,6 +678,13 @@ void Interpreter::executeNode(AST_NODE *node)
         // Bind arguments to parameters
         AST_NODE *params = funcDef->SUB_STATEMENTS[0]; // First sub-statement is params
 
+        // Make sure params exists and is the right type
+        if (!params || params->TYPE != NODE_FUNCTION_PARAMS)
+        {
+            std::cerr << "Error: Function " << funcName << " has invalid parameter list" << std::endl;
+            exit(1);
+        }
+
         for (size_t i = 0; i < node->SUB_STATEMENTS.size() && i < params->SUB_STATEMENTS.size(); i++)
         {
             AST_NODE *paramNode = params->SUB_STATEMENTS[i];
@@ -620,14 +697,21 @@ void Interpreter::executeNode(AST_NODE *node)
             variables[paramNode->VALUE] = argValue;
         }
 
+        // Clear the return value before executing
+        returnValue = Value();
+
         // Execute function body
         executeNode(funcDef->CHILD);
+
+        // Note: We don't need to use the return value here since this is not in an expression context
+        // If in an expression context, evaluateExpression handles returning the value
 
         // Restore scope
         variables = localScope;
 
         break;
     }
+    break;
     case NODE_FUNCTION_DECLERATION:
         break;
     case NODE_FUNCTION_BODY:
@@ -635,6 +719,11 @@ void Interpreter::executeNode(AST_NODE *node)
         for (auto &stmt : node->SUB_STATEMENTS)
         {
             executeNode(stmt);
+
+            if (hasReturnValue())
+            {
+                return;
+            }
         }
         break;
     case NODE_DIVISION:
@@ -653,6 +742,21 @@ void Interpreter::executeNode(AST_NODE *node)
         }
         break;
     case NODE_NOT_EQUAL:
+        evaluateExpression(node);
+        break;
+    case NODE_RESULTSTATEMENT:
+        if (node->CHILD)
+        {
+            Value result = evaluateExpression(node->CHILD);
+            setReturnValue(result);
+        }
+        else
+        {
+            std::cout << "EMPTY RESULT STATEMENT" << std::endl;
+            setReturnValue(Value(0));
+        }
+        break;
+    case NODE_LESS_EQUAL:
         evaluateExpression(node);
         break;
     default:

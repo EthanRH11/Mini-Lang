@@ -2,31 +2,31 @@
 #include <stdexcept>
 #include <iomanip>
 
-Value::Value(int val) : type(Type::INTEGER)
+Value::Value(int val) : type(Type::INTEGER), initalized(true)
 {
     data.intValue = val;
 }
 
-Value::Value(const std::string &val) : type(Type::STRING), stringValue(val)
+Value::Value(const std::string &val) : type(Type::STRING), stringValue(val), initalized(true)
 {
 }
 
-Value::Value(double val) : type(Type::DOUBLE)
+Value::Value(double val) : type(Type::DOUBLE), initalized(true)
 {
     data.doubleValue = val;
 }
 
-Value::Value(float val) : type(Type::FLOAT)
+Value::Value(float val) : type(Type::FLOAT), initalized(true)
 {
     data.floatValue = val;
 }
 
-Value::Value(bool val) : type(Type::BOOL)
+Value::Value(bool val) : type(Type::BOOL), initalized(true)
 {
     data.boolValue = val;
 }
 
-Value::Value(char val) : type(Type::CHAR)
+Value::Value(char val) : type(Type::CHAR), initalized(true)
 {
     data.charValue = val;
 }

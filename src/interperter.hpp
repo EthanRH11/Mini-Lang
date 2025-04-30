@@ -8,6 +8,7 @@
 #include <ctime>
 #include <variant>
 #include <fstream>
+#include <stack>
 
 #include "parser.hpp"
 #include "Value.hpp"
@@ -165,6 +166,34 @@ private:
             std::cout << "NULL";
             outputFile << "NULL";
         }
+    }
+
+    Value returnValue;
+    std::map<std::string, std::stack<Value>> functionReturnValues;
+
+    // Update getReturnValue and setReturnValue methods
+    Value getReturnValue()
+    {
+        Value temp = returnValue;
+        // Create a new uninitialized value
+        returnValue = Value();
+        return temp;
+    }
+
+    void setReturnValue(const Value &value)
+    {
+        returnValue = value;
+    }
+
+    // Function to create a unique call ID for each recursive function call
+    std::string generateCallID(const std::string &funcName, int depth)
+    {
+        return funcName + "_" + std::to_string(depth);
+    }
+
+    bool hasReturnValue()
+    {
+        return returnValue.isInitialized();
     }
 };
 

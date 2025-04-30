@@ -1509,6 +1509,7 @@ AST_NODE *Parser::parseExpression()
             current->TYPE == TOKEN_OPERATOR_SUBT ||
             current->TYPE == TOKEN_OPERATOR_MULT ||
             current->TYPE == TOKEN_OPERATOR_LESSTHAN ||
+            current->TYPE == TOKEN_OPERATOR_LESS_EQUAL ||
             current->TYPE == TOKEN_OPERATOR_GREATERTHAN ||
             current->TYPE == TOKEN_OPERATOR_INCREMENT ||
             current->TYPE == TOKEN_OPERATOR_DIV ||
@@ -1523,6 +1524,12 @@ AST_NODE *Parser::parseExpression()
             proceed(TOKEN_OPERATOR_ADD);
             opNode = new AST_NODE();
             opNode->TYPE = NODE_ADD;
+        }
+        else if (current->TYPE == TOKEN_OPERATOR_LESS_EQUAL)
+        {
+            proceed(TOKEN_OPERATOR_LESS_EQUAL);
+            opNode = new AST_NODE();
+            opNode->TYPE = NODE_LESS_EQUAL;
         }
         else if (current->TYPE == TOKEN_OPERATOR_DIV)
         {
@@ -1910,6 +1917,8 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_RESULT_EXPRESSION";
     case NODE_RESULTSTATEMENT:
         return "NODE_RESULTSTATEMENT";
+    case NODE_LESS_EQUAL:
+        return "NODE_LESS_EQUAL";
     default:
         return "Unknown node";
     }

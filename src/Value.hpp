@@ -56,6 +56,11 @@ public:
 
     std::string toString() const;
 
+    bool isInitialized() const
+    {
+        return initalized;
+    }
+
 private:
     Type type;
 
@@ -69,6 +74,8 @@ private:
     } data;
 
     std::string stringValue;
+
+    bool initalized = false;
 };
 
 #endif // VALUE_HPP

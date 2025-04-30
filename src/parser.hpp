@@ -55,6 +55,7 @@ enum NODE_TYPE
     NODE_MODULUS,            // Modulus character
     NODE_DIVISION,           // Division character
     NODE_NOT_EQUAL,          // not equal character '=/='
+    NODE_LESS_EQUAL,         // Less than or equal to operator
 
     // Control structure nodes
     NODE_IF,       // If statement
