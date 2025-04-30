@@ -1,15 +1,9 @@
 Work Through This list to add new things
 
 1. Functions - This would be a major enhancement allowing code reuse and better organization:
-- Return values
-- Need to implement return statements
-
-return statement => result{statement};
 
 2. Additional Operators:
 - Decrement operator (--)
-- Compound assignment operators (+=, -=, *=, /=)
-- Modulus operator (%) for remainder operations
 
 3. While Loops - A simpler loop construct that would complement your for loops:
    -Do-While Loops 
@@ -28,6 +22,9 @@ return statement => result{statement};
   -Arrays
   //Define a Array
   elements<type> => identifier;
+
+  elements<int> => IntegerArray;
+  elements<bool> => BoolArray;
 
   -Initialize an Array
   numbers |= (1, 2, 3, 4, 5, 6)   //(If we create flexible sized arrays may be harder on the backend)
@@ -69,6 +66,13 @@ int size = #numbers;
 
   input<type> => variable;
   input<int> => funVar;
+
+  out_to_console("What number do you guess?");
+  input<int> => numberGuessed;
+
+  out_to_console(numberGuessed);
+
+//This would output a number to input, and then print the number that was guessed.
 
 6. File I/O:
 - Read from and write to files
@@ -125,6 +129,6 @@ OR
 import math => *; //Import everything
 
 
-
-NEXT ADD return results for functions result -> {return};
-and commenting ability. >>$ Single Line <<$ $>> multiple line
+//TO DO LIST (PRIORITY)
+add commenting ability. >>$ Single Line <<$ $>> multiple line
+ability to input into the program.
