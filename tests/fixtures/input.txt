@@ -1,0 +1,17 @@
+
+proc inputTest() => {
+    int age;
+    out_to_console("Enter your age: "); 
+    input<int> => age;
+
+    result => {age};
+}
+
+
+begin:
+    
+    out_to_console("Your age is: ");
+    out_to_console(inputTest());
+
+
+end

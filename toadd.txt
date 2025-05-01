@@ -61,9 +61,6 @@ int size = #numbers;
 5. Input Handling:
 - A function like input_from_console() to get user input
 
-  input<type> "prompt" => variable  //variable gets type from <>
-  input<int> "How many donuts do you want?" => donuts;
-
   input<type> => variable;
   input<int> => funVar;
 
@@ -130,5 +127,4 @@ import math => *; //Import everything
 
 
 //TO DO LIST (PRIORITY)
-add commenting ability. >>$ Single Line <<$ $>> multiple line
 ability to input into the program.
