@@ -130,5 +130,6 @@ import math => *; //Import everything
 
 
 //TO DO LIST (PRIORITY)
+Decrement operator
 add commenting ability. >>$ Single Line <<$ $>> multiple line
 ability to input into the program.

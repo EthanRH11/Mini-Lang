@@ -1,0 +1,9 @@
+
+begin:
+    for(int i = 10; i > 0; --i){
+        out_to_console(i);
+        ...
+    }
+
+    out_to_console("Decrement operator test");
+end
