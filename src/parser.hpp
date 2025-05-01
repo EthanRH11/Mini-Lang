@@ -51,6 +51,7 @@ enum NODE_TYPE
     NODE_LESS_THAN,          // Less than operator
     NODE_GREATER_THAN,       // Greater than operator
     NODE_OPERATOR_INCREMENT, // Increment operator (++)
+    NODE_OPERATOR_DECREMENT, // Decrement operator (--)
     NODE_NEWLINE,            // Newline character
     NODE_MODULUS,            // Modulus character
     NODE_DIVISION,           // Division character
@@ -197,6 +198,7 @@ private:
 
     // Operators
     AST_NODE *parseIncrementOperator();
+    AST_NODE *parseDecrementOperator();
     AST_NODE *parseEquals();
     AST_NODE *parseAdd();
     AST_NODE *parseMult();

@@ -729,7 +729,33 @@ AST_NODE *Parser::parseSubt()
 
     return node;
 }
+/**
+ * @brief Parses a decrement operator
+ * @return AST node representing the decrement operation
+ * @throws Exits with error if not followed by an identifier
+ *
+ * Handles the decrement operator (--).
+ */
+AST_NODE *Parser::parseDecrementOperator()
+{
+    proceed(TOKEN_OPERATOR_DECREMENT);
 
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_OPERATOR_DECREMENT;
+
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "ERROR: Expected identifier after decrement operator." << std::endl;
+        exit(1);
+    }
+
+    AST_NODE *identNode = new AST_NODE();
+    identNode->TYPE = NODE_IDENTIFIER;
+    identNode->VALUE = current->value;
+    node->SUB_STATEMENTS.push_back(identNode);
+    proceed(TOKEN_IDENTIFIER);
+    return node;
+}
 /**
  * @brief Parses an increment operator
  * @return AST node representing the increment operation
@@ -1030,6 +1056,9 @@ AST_NODE *Parser::parseLeftCurl()
             break;
         case TOKEN_OPERATOR_INCREMENT:
             statement = parseIncrementOperator();
+            break;
+        case TOKEN_OPERATOR_DECREMENT:
+            statement = parseDecrementOperator();
             break;
         case TOKEN_KEYWORD_PRINT:
             statement = parseKeywordPrint();
@@ -1452,6 +1481,29 @@ AST_NODE *Parser::parseTerm()
     {
         return parseBoolValue();
     }
+    else if (current->TYPE == TOKEN_OPERATOR_DECREMENT)
+    {
+        proceed(TOKEN_OPERATOR_DECREMENT);
+        if (current->TYPE != TOKEN_IDENTIFIER)
+        {
+            std::cerr << "Expected identifier after decrement operator" << std::endl;
+            exit(1);
+        }
+        std::string identifierName = current->value;
+        proceed(TOKEN_IDENTIFIER);
+
+        // Create identifier node
+        AST_NODE *idNode = new AST_NODE();
+        idNode->TYPE = NODE_IDENTIFIER;
+        idNode->VALUE = identifierName;
+
+        // Create decrement node with identifier as child
+        AST_NODE *decNode = new AST_NODE();
+        decNode->TYPE = NODE_OPERATOR_DECREMENT;
+        decNode->SUB_STATEMENTS.push_back(idNode);
+
+        return decNode;
+    }
     else if (current->TYPE == TOKEN_OPERATOR_INCREMENT)
     {
         proceed(TOKEN_OPERATOR_INCREMENT);
@@ -1651,7 +1703,9 @@ AST_NODE *Parser::parse()
         case TOKEN_OPERATOR_INCREMENT:
             statement = parseIncrementOperator();
             break;
-
+        case TOKEN_OPERATOR_DECREMENT:
+            statement = parseDecrementOperator();
+            break;
         case TOKEN_EOF:
             statement = parseKeywordEOF();
             break;
@@ -1919,6 +1973,8 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_RESULTSTATEMENT";
     case NODE_LESS_EQUAL:
         return "NODE_LESS_EQUAL";
+    case NODE_OPERATOR_DECREMENT:
+        return "NODE_OPERATOR_DECREMENT";
     default:
         return "Unknown node";
     }
