@@ -149,6 +149,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             return Value(left.getInteger() / right.getInteger());
         }
         return Value(0);
+    case NODE_KEYWORD_INPUT:
+        return executeInputStatement(node);
     case NODE_MODULUS:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
@@ -510,6 +512,9 @@ void Interpreter::executeNode(AST_NODE *node)
         {
             variables[node->VALUE] = Value(false);
         }
+        break;
+    case NODE_KEYWORD_INPUT:
+        executeInputStatement(node);
         break;
     case NODE_INT:
         if (node->CHILD)

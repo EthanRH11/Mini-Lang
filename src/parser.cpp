@@ -453,11 +453,7 @@ AST_NODE *Parser::parseKeywordInput()
     AST_NODE *inputType = new AST_NODE();
     inputType->TYPE = NODE_INPUT_TYPE;
 
-    // Extract the type from the token value (which would be like "<int>")
-    std::string typeWithBrackets = current->value;
-    // Remove brackets to get just the type name
-    std::string typeName = typeWithBrackets.substr(1, typeWithBrackets.length() - 2);
-    inputType->VALUE = typeName;
+        inputType->VALUE = current->value;
 
     proceed(TOKEN_INPUT_TYPE);
 

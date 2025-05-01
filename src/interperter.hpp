@@ -4,11 +4,13 @@
 #include <map>
 #include <iostream>
 #include <sstream>
+#include <streambuf>
 #include <chrono>
 #include <ctime>
 #include <variant>
 #include <fstream>
 #include <stack>
+#include <algorithm> // For std::transform
 
 #include "parser.hpp"
 #include "Value.hpp"
@@ -57,9 +59,11 @@ public:
     void execute();
 
 private:
-    AST_NODE *root;                         ///< Root of the abstract syntax tree
-    std::map<std::string, Value> variables; ///< Symbol table for variable storage
-    std::ofstream outputFile;               ///< File stream for logging output
+    AST_NODE *root;                                                ///< Root of the abstract syntax tree
+    std::map<std::string, Value> variables;                        ///< Symbol table for variable storage
+    std::ofstream outputFile;                                      ///< File stream for logging output
+    Value returnValue;                                             ///< Holds return values from functions
+    std::map<std::string, std::stack<Value>> functionReturnValues; ///< Tracks return values for recursive calls
 
     /**
      * @brief Finds a function declaration by name
@@ -168,10 +172,103 @@ private:
         }
     }
 
-    Value returnValue;
-    std::map<std::string, std::stack<Value>> functionReturnValues;
+    /**
+     * @brief Processes an input statement and stores the user input in a variable
+     * @param node the input statement node
+     * @return the value that was input
+     */
+    Value executeInputStatement(AST_NODE *node)
+    {
+        // Get the variable name from the sub-statement
+        if (node->SUB_STATEMENTS.empty())
+        {
+            std::cerr << "Runtime Error: No variable specified for input" << std::endl;
+            exit(1);
+        }
 
-    // Update getReturnValue and setReturnValue methods
+        AST_NODE *varNode = node->SUB_STATEMENTS[0];
+        std::string varName = varNode->VALUE;
+
+        // Get the input type from the child node
+        if (!node->CHILD)
+        {
+            std::cerr << "Runtime Error: No input type specified" << std::endl;
+            exit(1);
+        }
+
+        std::string inputType = node->CHILD->VALUE;
+        std::string userInput;
+
+        // Read input from the user
+        // std::cout << "Enter " << inputType << " value for " << varName << ": ";
+        std::getline(std::cin, userInput);
+
+        // Convert and store the input according to its type
+        Value result;
+        try
+        {
+            if (inputType == "int")
+            {
+                int value = std::stoi(userInput);
+                result = Value(value);
+            }
+            else if (inputType == "double")
+            {
+                double value = std::stod(userInput);
+                result = Value(value);
+            }
+            else if (inputType == "string" || inputType == "str")
+            {
+                result = Value(userInput);
+            }
+            else if (inputType == "char")
+            {
+                if (userInput.empty())
+                {
+                    result = Value('\0');
+                }
+                else
+                {
+                    result = Value(userInput[0]);
+                }
+            }
+            else if (inputType == "bool")
+            {
+                // Convert various forms of boolean input
+                std::transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower);
+                if (userInput == "true" || userInput == "1" || userInput == "yes" || userInput == "y")
+                {
+                    result = Value(true);
+                }
+                else
+                {
+                    result = Value(false);
+                }
+            }
+            else
+            {
+                std::cerr << "Runtime Error: Unsupported input type: " << inputType << std::endl;
+                exit(1);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Runtime Error: Invalid input format for type " << inputType << std::endl;
+            exit(1);
+        }
+
+        // Store the result in the symbol table
+        variables[varName] = result;
+
+        // Log the input operation
+        // outputFile << "Input processed: " << varName << " = ";
+        printToOutput(result);
+        outputFile << std::endl;
+
+        return result;
+    }
+
+    // Helper functions for function return values
     Value getReturnValue()
     {
         Value temp = returnValue;
