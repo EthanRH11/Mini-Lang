@@ -225,6 +225,24 @@ Token *Lexer::processOperator()
         advanceCursor();
         return new Token{TOKEN_OPERATOR_EQUALS, "=="};
     }
+    else if (op == ">" && current == '>' && peakAhead(1) == '$')
+    {
+        advanceCursor();
+        advanceCursor();
+        return new Token{TOKEN_SINGLELINE_COMMENT, ">>$"};
+    }
+    else if (op == "<" && current == '<' && peakAhead(1) == '$')
+    {
+        advanceCursor();
+        advanceCursor();
+        return new Token{TOKEN_MULTILINE_COMMENT_START, "<<$"};
+    }
+    else if (op == "$" && current == '>' && peakAhead(1) == '>')
+    {
+        advanceCursor();
+        advanceCursor();
+        return new Token{TOKEN_MULTILINE_COMMENT_END, "$>>"};
+    }
     else if (op == "+" && current == '=')
     {
         advanceCursor();
@@ -631,6 +649,12 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_BOOL_VALUE";
     case TOKEN_KEYWORD_RESULT:
         return "TOKEN_KEYWORD_RESULT";
+    case TOKEN_SINGLELINE_COMMENT:
+        return "TOKEN_SINGLELINE_COMMENT";
+    case TOKEN_MULTILINE_COMMENT_END:
+        return "TOKEN_MULTILINE_COMMENT_END";
+    case TOKEN_MULTILINE_COMMENT_START:
+        return "TOKEN_MULTILINE_COMMENT_START";
     default:
         return "Error, unknown token identifier";
     }

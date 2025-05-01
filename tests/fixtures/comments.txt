@@ -1,0 +1,19 @@
+
+proc myFoo(int x) => {
+>>$print the number
+    for(int i = 0; i < x; ++i){
+         out_to_console(i);
+         out_to_console(" ");
+    }
+}
+<<$ This is a multi line 
+    comment $>>
+begin:
+
+    int x = 20;
+    out_to_console(myFoo(x));
+    ...
+    x = 10;
+    out_to_console(myFoo(x));
+    ...
+end
