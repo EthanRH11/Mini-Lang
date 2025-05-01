@@ -14,6 +14,12 @@
 
 namespace fs = std::filesystem;
 
+/**
+ * @brief Sets up the output file for the interpreter
+ *
+ * Creates a directory for output files if it doesn't exist and
+ * opens a new file with a timestamp in the filename.
+ */
 void Interpreter::setupOutputFile()
 {
     fs::create_directories("output");
@@ -28,11 +34,16 @@ void Interpreter::setupOutputFile()
     outputFile.open(filename);
     if (!outputFile.is_open())
     {
-        std::cerr << "failed to create output file: " << filename << std::endl;
+        std::cerr << "Failed to create output file: " << filename << std::endl;
         std::exit(1);
     }
 }
 
+/**
+ * @brief Executes the program starting from the 'begin' block
+ *
+ * Searches for the 'begin' block in the AST and starts execution from there.
+ */
 void Interpreter::execute()
 {
     AST_NODE *beginBlock = nullptr;
@@ -54,12 +65,23 @@ void Interpreter::execute()
     executeNode(beginBlock);
 }
 
+/**
+ * @brief Evaluates an expression AST node and returns its value
+ *
+ * @param node The AST node representing the expression
+ * @return Value The result of the expression evaluation
+ */
 Value Interpreter::evaluateExpression(AST_NODE *node)
 {
     if (!node)
         return Value(0);
 
-    // std::cout << "Evaluation expression node: " << getNodeTypeName(node->TYPE) << std::endl;
+    // Initialize variables that could be referenced in switch cases at the beginning
+    Value left;
+    Value right;
+    std::string varName;
+    AST_NODE *operand = nullptr;
+    Value *valuePtr = nullptr;
 
     switch (node->TYPE)
     {
@@ -80,7 +102,6 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         {
             return Value(false);
         }
-        break;
     case NODE_CHAR_LITERAL:
         if (node->VALUE.length() == 1)
         {
@@ -95,8 +116,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_ADD:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
             return left + right;
         }
@@ -104,28 +125,26 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_SUBT:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            // Implement operator-
             return Value(left.getInteger() - right.getInteger());
         }
         return Value(0);
     case NODE_MULT:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            // Implement operator*
             return Value(left.getInteger() * right.getInteger());
         }
         return Value(0);
     case NODE_DIVISION:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
             return Value(left.getInteger() / right.getInteger());
         }
@@ -133,8 +152,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_MODULUS:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
             return Value(left.getInteger() % right.getInteger());
         }
@@ -142,8 +161,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_NOT_EQUAL:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
             return Value(left.getInteger() != right.getInteger());
         }
@@ -151,8 +170,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_LESS_THAN:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
             return Value(left.getInteger() < right.getInteger());
         }
@@ -160,8 +179,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_GREATER_THAN:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
             return Value(left.getInteger() > right.getInteger());
         }
@@ -173,65 +192,110 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         else
         {
-            std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
+            std::cerr << "ERROR: Undefined variable: '" << node->VALUE << "'" << std::endl;
             exit(1);
         }
     case NODE_LESS_EQUAL:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
-            Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+            left = evaluateExpression(node->SUB_STATEMENTS[0]);
+            right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
             return Value(left.getInteger() <= right.getInteger());
         }
         return Value(false);
-    case NODE_OPERATOR_INCREMENT:
-    {
+    case NODE_OPERATOR_DECREMENT:
         if (node->SUB_STATEMENTS.size() != 1)
         {
-            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
-            exit(1);
-        }
-        AST_NODE *operand = node->SUB_STATEMENTS[0];
-        if (operand->TYPE != NODE_IDENTIFIER)
-        {
-            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
+            std::cerr << "ERROR: Decrement operator requires exactly one operand" << std::endl;
             exit(1);
         }
 
-        std::string varName = operand->VALUE;
+        operand = node->SUB_STATEMENTS[0];
+        if (operand->TYPE != NODE_IDENTIFIER)
+        {
+            std::cerr << "ERROR: Decrement operator can only be applied to variables" << std::endl;
+            exit(1);
+        }
+
+        varName = operand->VALUE;
         if (variables.find(varName) == variables.end())
         {
             std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
             exit(1);
         }
 
-        Value &value = variables[varName];
-        if (value.isInteger())
+        valuePtr = &variables[varName];
+        if (valuePtr->isInteger())
         {
-            int newValue = value.getInteger() + 1;
-            value = Value(newValue);
-            return value;
+            int newValue = valuePtr->getInteger() - 1;
+            *valuePtr = Value(newValue);
+            return *valuePtr;
         }
-        else if (value.isDouble())
+        else if (valuePtr->isDouble())
         {
-            double newValue = value.getDouble() + 1.0;
-            value = Value(newValue);
-            return value;
+            double newValue = valuePtr->getDouble() - 1.0;
+            *valuePtr = Value(newValue);
+            return *valuePtr;
         }
-        else if (value.isChar())
+        else if (valuePtr->isChar())
         {
-            char newValue = value.getChar() + 1;
-            value = Value(newValue);
-            return value;
+            char newValue = valuePtr->getChar() - 1;
+            *valuePtr = Value(newValue);
+            return *valuePtr;
+        }
+        else
+        {
+            std::cerr << "ERROR: Decrement operator not supported for this type" << std::endl;
+            exit(1);
+        }
+        break;
+    case NODE_OPERATOR_INCREMENT:
+        if (node->SUB_STATEMENTS.size() != 1)
+        {
+            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
+            exit(1);
+        }
+
+        operand = node->SUB_STATEMENTS[0];
+        if (operand->TYPE != NODE_IDENTIFIER)
+        {
+            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
+            exit(1);
+        }
+
+        varName = operand->VALUE;
+        if (variables.find(varName) == variables.end())
+        {
+            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            exit(1);
+        }
+
+        valuePtr = &variables[varName];
+        if (valuePtr->isInteger())
+        {
+            int newValue = valuePtr->getInteger() + 1;
+            *valuePtr = Value(newValue);
+            return *valuePtr;
+        }
+        else if (valuePtr->isDouble())
+        {
+            double newValue = valuePtr->getDouble() + 1.0;
+            *valuePtr = Value(newValue);
+            return *valuePtr;
+        }
+        else if (valuePtr->isChar())
+        {
+            char newValue = valuePtr->getChar() + 1;
+            *valuePtr = Value(newValue);
+            return *valuePtr;
         }
         else
         {
             std::cerr << "ERROR: Increment operator not supported for this type" << std::endl;
             exit(1);
         }
-    }
-    break;
+        break;
     case NODE_NEWLINE:
         return Value('\n');
     case NODE_FUNCTION_CALL:
@@ -282,21 +346,22 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         recursionDepth--;
         return result;
     }
-    break;
     default:
         std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
         exit(1);
     }
+
+    // Default return to avoid compiler warning - this code should never be reached
+    return Value(0);
 }
 
+/**
+ * @brief Executes a single statement AST node
+ *
+ * @param node The AST node representing the statement to execute
+ */
 void Interpreter::executeStatement(AST_NODE *node)
 {
-    /*Handle Statements such as:
-     * Variable Declerations
-     * Assignment Statements
-     * Print Statements
-     * Implement more in future*/
-
     if (!node)
         return;
 
@@ -367,12 +432,15 @@ void Interpreter::executeStatement(AST_NODE *node)
     }
 }
 
+/**
+ * @brief Recursively executes an AST node
+ *
+ * @param node The AST node to execute
+ */
 void Interpreter::executeNode(AST_NODE *node)
 {
     if (!node)
         return;
-
-    // std::cout << "Executing node: " << getNodeTypeName(node->TYPE) << std::endl;
 
     switch (node->TYPE)
     {
@@ -385,7 +453,6 @@ void Interpreter::executeNode(AST_NODE *node)
     case NODE_IF:
     {
         Value condition = evaluateExpression(node->CHILD);
-
         bool conditionResult = false;
 
         if (condition.isInteger())
@@ -433,7 +500,6 @@ void Interpreter::executeNode(AST_NODE *node)
         }
         break;
     }
-    break;
     case NODE_BOOL:
         if (node->CHILD)
         {
@@ -489,6 +555,34 @@ void Interpreter::executeNode(AST_NODE *node)
             variables[node->VALUE] = Value("");
         }
         break;
+    case NODE_OPERATOR_DECREMENT:
+    {
+        if (node->SUB_STATEMENTS.size() != 1)
+        {
+            std::cerr << "ERROR: decrement operator requires exactly one operand" << std::endl;
+            exit(1);
+        }
+
+        // Get the operand (should be an identifier)
+        AST_NODE *operand = node->SUB_STATEMENTS[0];
+        if (operand->TYPE != NODE_IDENTIFIER)
+        {
+            std::cerr << "ERROR: decrement operator can only be applied to variables" << std::endl;
+            exit(1);
+        }
+
+        // Get the variable name
+        std::string varName = operand->VALUE;
+        if (variables.find(varName) == variables.end())
+        {
+            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            exit(1);
+        }
+
+        // Increment the value based on its type
+        evaluateExpression(node); // This calls your existing increment logic in evaluateExpression
+        break;
+    }
     case NODE_OPERATOR_INCREMENT:
     {
         if (node->SUB_STATEMENTS.size() != 1)
@@ -514,13 +608,11 @@ void Interpreter::executeNode(AST_NODE *node)
         }
 
         // Increment the value based on its type
-        // Value &value = variables[varName];
         evaluateExpression(node); // This calls your existing increment logic in evaluateExpression
         break;
     }
     case NODE_IDENTIFIER:
     {
-
         std::string varName = node->VALUE;
 
         if (node->CHILD != nullptr)
@@ -646,7 +738,6 @@ void Interpreter::executeNode(AST_NODE *node)
         }
     }
     break;
-
     case NODE_ADD:
         evaluateExpression(node);
         break;
@@ -711,7 +802,6 @@ void Interpreter::executeNode(AST_NODE *node)
 
         break;
     }
-    break;
     case NODE_FUNCTION_DECLERATION:
         break;
     case NODE_FUNCTION_BODY:
@@ -765,6 +855,12 @@ void Interpreter::executeNode(AST_NODE *node)
     }
 }
 
+/**
+ * @brief Finds a function by name in the AST
+ *
+ * @param name The name of the function to find
+ * @return AST_NODE* Pointer to the function node, or nullptr if not found
+ */
 AST_NODE *Interpreter::findFunctionByName(const std::string &name)
 {
     for (auto &stmt : root->SUB_STATEMENTS)
