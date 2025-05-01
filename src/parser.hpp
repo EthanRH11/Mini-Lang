@@ -31,6 +31,10 @@ enum NODE_TYPE
     NODE_STRING,     // String type declaration
     NODE_BOOL,       // bool type decleration
 
+    // Input nodes
+    NODE_KEYWORD_INPUT,
+    NODE_INPUT_TYPE,
+
     // Literal value nodes
     NODE_INT_LITERAL,    // Integer literal value
     NODE_DOUBLE_LITERAL, // Double literal value
@@ -195,6 +199,10 @@ private:
     AST_NODE *parseKeywordBool();
 
     AST_NODE *parseKeywordResult();
+
+    // Input
+    AST_NODE *parseKeywordInput();
+    AST_NODE *parseInputType();
 
     // Operators
     AST_NODE *parseIncrementOperator();

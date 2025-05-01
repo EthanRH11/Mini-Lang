@@ -427,6 +427,110 @@ AST_NODE *Parser::parseKeywordPrint()
     return node;
 }
 //======================================================
+//================  PRINT STATEMENTS  =================
+//======================================================
+/**
+ * @brief Parses the input keyword
+ * @return AST node representing the input statement
+ */
+AST_NODE *Parser::parseKeywordInput()
+{
+    // Create a node for input keyword
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_KEYWORD_INPUT;
+    node->VALUE = "input";
+
+    proceed(TOKEN_KEYWORD_INPUT);
+
+    // Your lexer gives us TOKEN_INPUT_TYPE directly
+    if (current->TYPE != TOKEN_INPUT_TYPE)
+    {
+        std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
+        exit(1);
+    }
+
+    // Parse the input type (already parsed by lexer as TOKEN_INPUT_TYPE)
+    AST_NODE *inputType = new AST_NODE();
+    inputType->TYPE = NODE_INPUT_TYPE;
+
+    // Extract the type from the token value (which would be like "<int>")
+    std::string typeWithBrackets = current->value;
+    // Remove brackets to get just the type name
+    std::string typeName = typeWithBrackets.substr(1, typeWithBrackets.length() - 2);
+    inputType->VALUE = typeName;
+
+    proceed(TOKEN_INPUT_TYPE);
+
+    // Attach the input type as a child of the input node
+    node->CHILD = inputType;
+
+    // Expect spaceship operator (=>)
+    if (current->TYPE != TOKEN_SPACESHIP)
+    {
+        std::cerr << "< Syntax Error > Expected '=>' after input type" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_SPACESHIP);
+
+    // Expect variable name
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected variable name after '=>'" << std::endl;
+        exit(1);
+    }
+
+    // Create a variable node and add it to sub-statements
+    AST_NODE *varNode = new AST_NODE();
+    varNode->TYPE = NODE_IDENTIFIER;
+    varNode->VALUE = current->value;
+    node->SUB_STATEMENTS.push_back(varNode);
+
+    proceed(TOKEN_IDENTIFIER);
+
+    return node;
+}
+
+/**
+ * @brief parses the input type specification
+ * @return AST node representing input type
+ * @throws exit with error on invalid input type
+ */
+
+AST_NODE *Parser::parseInputType()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_INPUT_TYPE;
+
+    // Extract type from token value (which would be like "<int>")
+    std::string typeWithBrackets = current->value;
+
+    // Remove brackets to get just the type name
+    std::string typeName = typeWithBrackets.substr(1, typeWithBrackets.length() - 2);
+
+    // Validate the extracted type
+    if (typeName == "int" ||
+        typeName == "double" ||
+        typeName == "string" || typeName == "str" ||
+        typeName == "bool" ||
+        typeName == "char" ||
+        typeName == "blockchain" ||
+        typeName == "blockflip" ||
+        typeName == "blockhash")
+    {
+
+        node->VALUE = typeName;
+    }
+    else
+    {
+        std::cerr << "< Syntax Error > Invalid input type: " << typeName << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_INPUT_TYPE);
+
+    return node;
+}
+//======================================================
 //================  RETURN STATEMENTS  =================
 //======================================================
 
@@ -1114,6 +1218,9 @@ AST_NODE *Parser::parseLeftCurl()
             break;
         case TOKEN_MULTILINE_COMMENT:
             advanceCursor();
+            break;
+        case TOKEN_KEYWORD_INPUT:
+            statement = parseKeywordInput();
             break;
         default:
             std::cerr << "< Syntax Error > Unexpected token in block: "
@@ -2005,6 +2112,10 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_LESS_EQUAL";
     case NODE_OPERATOR_DECREMENT:
         return "NODE_OPERATOR_DECREMENT";
+    case NODE_KEYWORD_INPUT:
+        return "NODE_KEYWORD_INPUT";
+    case NODE_INPUT_TYPE:
+        return "NODE_INPUT_TYPE";
     default:
         return "Unknown node";
     }
@@ -2043,7 +2154,9 @@ AST_NODE *Parser::parseStatement()
     case TOKEN_KEYWORD_FOR:
         statement = parseKeywordFor();
         break;
-
+    case TOKEN_KEYWORD_INPUT:
+        statement = parseKeywordInput();
+        break;
     case TOKEN_KEYWORD_PRINT:
         statement = parseKeywordPrint();
         break;
