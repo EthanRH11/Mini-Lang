@@ -11,9 +11,9 @@ proc myFoo(int x) => {
 begin:
 
     int x = 20;
-    out_to_console(myFoo(x));
+    myFoo(x);
     ...
     x = 10;
-    out_to_console(myFoo(x));
+    myFoo(x);
     ...
 end

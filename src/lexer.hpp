@@ -79,9 +79,8 @@ enum tokenType
     TOKEN_COMMA = 37,            // PARAM seperator
 
     // Commenting
-    TOKEN_SINGLELINE_COMMENT = 44,      // Single line comment
-    TOKEN_MULTILINE_COMMENT_START = 45, // Multi-line comment
-    TOKEN_MULTILINE_COMMENT_END = 46,   // Multi-line comment end
+    TOKEN_SINGLELINE_COMMENT = 44, // Single line comment
+    TOKEN_MULTILINE_COMMENT = 45,  // Multiline comments
 };
 
 //
@@ -119,6 +118,9 @@ public:
     void consumeKeyword(const std::string &);
 
     // Processors for different token types:
+
+    Token *processSingleLineComment();
+    Token *processMultiLineComment();
 
     // Handles string literals ("example")
     Token *processStringLiteral();

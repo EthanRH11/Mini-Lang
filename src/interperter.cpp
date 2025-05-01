@@ -338,7 +338,7 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
 
         // Get the function's return value
         Value result = returnValue;
-        std::cout << "Return value from " << funcName << " depth " << recursionDepth << ": " << result.getInteger() << std::endl;
+        // std::cout << "Return value from " << funcName << " depth " << recursionDepth << ": " << result.getInteger() << std::endl;
 
         // Restore previous scope
         variables = localScope;

@@ -122,6 +122,45 @@ bool Lexer::eof() const
     return cursor >= size;
 }
 
+Token *Lexer::processSingleLineComment()
+{
+    std::string commentText = ">>$";
+
+    while (!eof() && current != '\n' && current != '\r')
+    {
+        commentText += current;
+        advanceCursor();
+    }
+    return new Token{TOKEN_SINGLELINE_COMMENT, commentText};
+}
+
+Token *Lexer::processMultiLineComment()
+{
+    std::string commentText = "<<$";
+
+    bool foundEndMarker = false;
+
+    while (!eof())
+    {
+        if (current == '$' && peakAhead(1) == '>' && peakAhead(2) == '>')
+        {
+            commentText += "$>>";
+            advanceCursor();
+            advanceCursor();
+            advanceCursor();
+            foundEndMarker = true;
+            break;
+        }
+        commentText += current;
+        advanceCursor();
+    }
+    if (!foundEndMarker)
+    {
+        throw std::runtime_error("Error: Unterminated multiLine comment");
+    }
+    return new Token{TOKEN_MULTILINE_COMMENT, commentText};
+}
+
 /**
  * @brief Processes true or false statements
  * @return Token pointer representing the true or false value
@@ -227,21 +266,11 @@ Token *Lexer::processOperator()
     }
     else if (op == ">" && current == '>' && peakAhead(1) == '$')
     {
-        advanceCursor();
-        advanceCursor();
-        return new Token{TOKEN_SINGLELINE_COMMENT, ">>$"};
+        return processSingleLineComment();
     }
     else if (op == "<" && current == '<' && peakAhead(1) == '$')
     {
-        advanceCursor();
-        advanceCursor();
-        return new Token{TOKEN_MULTILINE_COMMENT_START, "<<$"};
-    }
-    else if (op == "$" && current == '>' && peakAhead(1) == '>')
-    {
-        advanceCursor();
-        advanceCursor();
-        return new Token{TOKEN_MULTILINE_COMMENT_END, "$>>"};
+        return processMultiLineComment();
     }
     else if (op == "+" && current == '=')
     {
@@ -651,10 +680,8 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_KEYWORD_RESULT";
     case TOKEN_SINGLELINE_COMMENT:
         return "TOKEN_SINGLELINE_COMMENT";
-    case TOKEN_MULTILINE_COMMENT_END:
-        return "TOKEN_MULTILINE_COMMENT_END";
-    case TOKEN_MULTILINE_COMMENT_START:
-        return "TOKEN_MULTILINE_COMMENT_START";
+    case TOKEN_MULTILINE_COMMENT:
+        return "TOKEN_MULTILINECOMMENT";
     default:
         return "Error, unknown token identifier";
     }

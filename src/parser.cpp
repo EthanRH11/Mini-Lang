@@ -68,6 +68,25 @@ void Parser::advanceCursor()
     {
         cursor++;
         current = tokens[cursor];
+
+        while (current && (current->TYPE == TOKEN_SINGLELINE_COMMENT ||
+                           current->TYPE == TOKEN_MULTILINE_COMMENT))
+        {
+            if (cursor < size)
+            {
+                cursor++;
+                current = tokens[cursor];
+            }
+            else
+            {
+                current = nullptr;
+                break;
+            }
+        }
+    }
+    else
+    {
+        current = nullptr;
     }
 }
 
@@ -1090,6 +1109,12 @@ AST_NODE *Parser::parseLeftCurl()
         case TOKEN_KEYWORD_BOOL:
             statement = parseKeywordBool();
             break;
+        case TOKEN_SINGLELINE_COMMENT:
+            advanceCursor();
+            break;
+        case TOKEN_MULTILINE_COMMENT:
+            advanceCursor();
+            break;
         default:
             std::cerr << "< Syntax Error > Unexpected token in block: "
                       << getTokenTypeName(current->TYPE) << std::endl;
@@ -1820,7 +1845,12 @@ AST_NODE *Parser::parse()
         case TOKEN_KEYWORD_FUNCTION:
             statement = parseFunctionDecleration();
             break;
-
+        case TOKEN_MULTILINE_COMMENT:
+            advanceCursor();
+            break;
+        case TOKEN_SINGLELINE_COMMENT:
+            advanceCursor();
+            break;
         default:
             std::cerr << "< Syntax Error > Unexpected token: "
                       << getTokenTypeName(current->TYPE) << std::endl;
