@@ -39,6 +39,8 @@ enum tokenType
     TOKEN_KEYWORD_CHAR = 15,   // 'char' keyword
     TOKEN_KEYWORD_STR = 16,    // 'str' keyword
     TOKEN_KEYWORD_PRINT = 17,  // 'print' keyword
+    TOKEN_KEYWORD_INPUT = 46,  //'input' keyword
+    TOKEN_INPUT_TYPE = 47,     //<type>
     TOKEN_KEYWORD_BOOL = 41,   //'bool' keyword
     TOKEN_KEYWORD_RESULT = 43, //"result" keywords
 
@@ -121,6 +123,8 @@ public:
 
     Token *processSingleLineComment();
     Token *processMultiLineComment();
+
+    Token *processInputType();
 
     // Handles string literals ("example")
     Token *processStringLiteral();

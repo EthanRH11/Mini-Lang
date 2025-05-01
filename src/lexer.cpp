@@ -430,6 +430,51 @@ Token *Lexer::processCharLiteral()
 }
 
 /**
+ * @brief Processes input type specification like <int>, <double>, etc.
+ * @return Token pointer representing the input type
+ * @throws std::runtime_error if the input type format is invalid
+ *
+ * Handles input type specifications enclosed in angle brackets.
+ */
+Token *Lexer::processInputType()
+{
+    if (current == '<')
+    {
+        advanceCursor();
+        std::string typeName;
+
+        while (current != '>' && !eof())
+        {
+            typeName += current;
+            advanceCursor();
+        }
+
+        if (current != '>')
+        {
+            throw std::runtime_error("Error: Unterminated input type specification.");
+        }
+        advanceCursor();
+
+        if (typeName == "int" ||
+            typeName == "double" ||
+            typeName == "char" ||
+            typeName == "str" ||
+            typeName == "bool")
+        {
+            return new Token{TOKEN_INPUT_TYPE, typeName};
+        }
+        else
+        {
+            throw std::runtime_error("Error: Invalid input type: " + typeName);
+        }
+    }
+    else
+    {
+        throw std::runtime_error("Error: Expected '<' for input type specification.");
+    }
+}
+
+/**
  * @brief Processes keywords and identifiers
  * @param tokens Vector of tokens processed so far (unused)
  * @return Token pointer representing the keyword or identifier
@@ -461,6 +506,10 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     if (keyword == "proc")
     {
         return new Token{TOKEN_KEYWORD_FUNCTION, keyword};
+    }
+    else if (keyword == "input")
+    {
+        return new Token{TOKEN_KEYWORD_INPUT, keyword};
     }
     else if (keyword == "int")
     {
@@ -543,6 +592,12 @@ std::vector<Token *> Lexer::tokenize()
                 // Process keywords and identifiers
                 Token *token = processKeyword(tokens);
                 tokens.push_back(token);
+
+                if (token->TYPE == TOKEN_KEYWORD_INPUT && current == '<')
+                {
+                    Token *typeToken = processInputType();
+                    tokens.push_back(typeToken);
+                }
             }
         }
         else if (std::isdigit(current))
@@ -682,6 +737,10 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_SINGLELINE_COMMENT";
     case TOKEN_MULTILINE_COMMENT:
         return "TOKEN_MULTILINECOMMENT";
+    case TOKEN_KEYWORD_INPUT:
+        return "TOKEN_KEYWORD_INPUT";
+    case TOKEN_INPUT_TYPE:
+        return "TOKEN_INPUT_TYPE";
     default:
         return "Error, unknown token identifier";
     }
