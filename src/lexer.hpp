@@ -83,6 +83,10 @@ enum tokenType
     // Commenting
     TOKEN_SINGLELINE_COMMENT = 44, // Single line comment
     TOKEN_MULTILINE_COMMENT = 45,  // Multiline comments
+
+    // While Loops
+    TOKEN_KEYWORD_CHECK = 48, // Keyword 'repeat'
+
 };
 
 //

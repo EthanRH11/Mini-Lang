@@ -61,13 +61,7 @@ int size = #numbers;
 5. Input Handling:
 - A function like input_from_console() to get user input
 
-  input<type> => variable;
-  input<int> => funVar;
-
-  out_to_console("What number do you guess?");
-  input<int> => numberGuessed;
-
-  out_to_console(numberGuessed);
+input<type>("Prompt: ") => identifier;
 
 //This would output a number to input, and then print the number that was guessed.
 
@@ -121,10 +115,8 @@ library math {
 }
 
 // In main programFile
-import math => {PI, square};  //selective import
-OR
-import math => *; //Import everything
+add math*
 
 
 //TO DO LIST (PRIORITY)
-ability to input into the program.
+

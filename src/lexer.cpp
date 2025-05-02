@@ -523,6 +523,10 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     {
         return new Token{TOKEN_KEYWORD_STR, keyword};
     }
+    else if (keyword == "check")
+    {
+        return new Token{TOKEN_KEYWORD_CHECK, keyword};
+    }
     else if (keyword == "char")
     {
         return new Token{TOKEN_KEYWORD_CHAR, keyword};
@@ -741,6 +745,8 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_KEYWORD_INPUT";
     case TOKEN_INPUT_TYPE:
         return "TOKEN_INPUT_TYPE";
+    case TOKEN_KEYWORD_CHECK:
+        return "TOKEN_KEYWORD_CHECK";
     default:
         return "Error, unknown token identifier";
     }

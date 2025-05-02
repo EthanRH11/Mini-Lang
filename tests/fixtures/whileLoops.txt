@@ -1,0 +1,12 @@
+
+begin:
+    
+    int count = 0;
+
+    check (count < 10) {
+        out_to_console("Count: " + count);
+        ...
+
+        ++count;
+    }
+end
