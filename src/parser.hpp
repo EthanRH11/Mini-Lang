@@ -34,6 +34,7 @@ enum NODE_TYPE
     // Input nodes
     NODE_KEYWORD_INPUT,
     NODE_INPUT_TYPE,
+    NODE_INPUT_PROMPT,
 
     // Literal value nodes
     NODE_INT_LITERAL,    // Integer literal value

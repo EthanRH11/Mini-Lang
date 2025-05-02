@@ -179,92 +179,135 @@ private:
      */
     Value executeInputStatement(AST_NODE *node)
     {
-        // Get the variable name from the sub-statement
-        if (node->SUB_STATEMENTS.empty())
+        // std::cerr << "DEBUG: Entering executeInputStatement" << std::endl;
+
+        // Validate the node itself
+        if (!node)
         {
-            std::cerr << "Runtime Error: No variable specified for input" << std::endl;
-            exit(1);
+            std::cerr << "ERROR: Null node in executeInputStatement" << std::endl;
+            return Value();
         }
 
-        AST_NODE *varNode = node->SUB_STATEMENTS[0];
-        std::string varName = varNode->VALUE;
+        // std::cerr << "DEBUG: Node type: " << node->TYPE << std::endl;
 
-        // Get the input type from the child node
-        if (!node->CHILD)
+        // Get input type from node->CHILD
+        std::string inputType = "string"; // Default to string if type not specified
+        if (node->CHILD)
         {
-            std::cerr << "Runtime Error: No input type specified" << std::endl;
-            exit(1);
+            inputType = node->CHILD->VALUE;
+            std::cerr << "DEBUG: Input type: " << inputType << std::endl;
+        }
+        else
+        {
+            std::cerr << "WARNING: No input type specified, defaulting to string" << std::endl;
         }
 
-        std::string inputType = node->CHILD->VALUE;
+        // Get prompt node safely
+        AST_NODE *promptNode = node->SUB_STATEMENTS[0];
+        if (!promptNode)
+        {
+            std::cerr << "ERROR: Null prompt node" << std::endl;
+            return Value();
+        }
+
+        // std::cerr << "DEBUG: Prompt node type: " << promptNode->TYPE << std::endl;
+
+        // Get prompt string value
+        std::string promptString = "";
+        if (promptNode->CHILD)
+        {
+            promptString = promptNode->CHILD->VALUE;
+            // std::cerr << "DEBUG: Prompt string: " << promptString << std::endl;
+        }
+        else
+        {
+            std::cerr << "WARNING: Empty prompt" << std::endl;
+        }
+
+        // Print prompt to console
+        std::cout << promptString << std::flush;
+
+        // Get variable name safely
+        std::string varName = "";
+        // std::cerr << "DEBUG: Prompt sub-statements count: " << promptNode->SUB_STATEMENTS.size() << std::endl;
+        if (promptNode->SUB_STATEMENTS.size() > 0 && promptNode->SUB_STATEMENTS[0])
+        {
+            varName = promptNode->SUB_STATEMENTS[0]->VALUE;
+            // std::cerr << "DEBUG: Variable name: " << varName << std::endl;
+        }
+        else
+        {
+            std::cerr << "ERROR: No target variable for input" << std::endl;
+            return Value();
+        }
+
+        // Read user input
+        // std::cerr << "DEBUG: Reading user input..." << std::endl;
         std::string userInput;
-
-        // Read input from the user
-        // std::cout << "Enter " << inputType << " value for " << varName << ": ";
         std::getline(std::cin, userInput);
+        // std::cerr << "DEBUG: User input received: " << userInput << std::endl;
 
-        // Convert and store the input according to its type
+        // Convert input to appropriate type
         Value result;
+        // std::cerr << "DEBUG: Converting input to type: " << inputType << std::endl;
+
         try
         {
             if (inputType == "int")
             {
-                int value = std::stoi(userInput);
-                result = Value(value);
+                result = Value(std::stoi(userInput));
             }
-            else if (inputType == "double")
+            else if (inputType == "float" || inputType == "double")
             {
-                double value = std::stod(userInput);
-                result = Value(value);
-            }
-            else if (inputType == "string" || inputType == "str")
-            {
-                result = Value(userInput);
-            }
-            else if (inputType == "char")
-            {
-                if (userInput.empty())
-                {
-                    result = Value('\0');
-                }
-                else
-                {
-                    result = Value(userInput[0]);
-                }
+                result = Value(std::stod(userInput));
             }
             else if (inputType == "bool")
             {
-                // Convert various forms of boolean input
-                std::transform(userInput.begin(), userInput.end(), userInput.begin(), ::tolower);
-                if (userInput == "true" || userInput == "1" || userInput == "yes" || userInput == "y")
-                {
-                    result = Value(true);
-                }
-                else
-                {
-                    result = Value(false);
-                }
+                std::string lowerInput = userInput;
+                std::transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
+                bool boolValue = (lowerInput == "true" || lowerInput == "1" ||
+                                  lowerInput == "yes" || lowerInput == "y");
+                result = Value(boolValue);
             }
             else
             {
-                std::cerr << "Runtime Error: Unsupported input type: " << inputType << std::endl;
-                exit(1);
+                result = Value(userInput);
             }
         }
         catch (const std::exception &e)
         {
-            std::cerr << "Runtime Error: Invalid input format for type " << inputType << std::endl;
-            exit(1);
+            std::cerr << "ERROR: Exception converting input: " << e.what() << std::endl;
+
+            if (inputType == "int")
+            {
+                result = Value(0);
+            }
+            else if (inputType == "float" || inputType == "double")
+            {
+                result = Value(0.0);
+            }
+            else if (inputType == "bool")
+            {
+                result = Value(false);
+            }
+            else
+            {
+                result = Value("");
+            }
         }
 
-        // Store the result in the symbol table
-        variables[varName] = result;
+        // Store variable safely
+        // std::cerr << "DEBUG: Storing variable '" << varName << "'" << std::endl;
+        try
+        {
+            variables[varName] = result;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "ERROR: Exception storing variable: " << e.what() << std::endl;
+        }
 
-        // Log the input operation
-        // outputFile << "Input processed: " << varName << " = ";
-        printToOutput(result);
-        outputFile << std::endl;
-
+        // std::cerr << "DEBUG: Exiting executeInputStatement" << std::endl;
         return result;
     }
 

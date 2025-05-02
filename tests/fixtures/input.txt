@@ -1,8 +1,7 @@
 
 proc inputTest() => {
     int age;
-    out_to_console("Enter your age: "); 
-    input<int> => age;
+    input<int>("Enter your age: ") => age;
 
     result => {age};
 }

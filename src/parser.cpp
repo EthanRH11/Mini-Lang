@@ -452,18 +452,34 @@ AST_NODE *Parser::parseKeywordInput()
     // Parse the input type (already parsed by lexer as TOKEN_INPUT_TYPE)
     AST_NODE *inputType = new AST_NODE();
     inputType->TYPE = NODE_INPUT_TYPE;
-
-        inputType->VALUE = current->value;
+    inputType->VALUE = current->value;
+    node->CHILD = inputType;
 
     proceed(TOKEN_INPUT_TYPE);
 
-    // Attach the input type as a child of the input node
-    node->CHILD = inputType;
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' following input." << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
 
+    AST_NODE *promptNode = new AST_NODE();
+    promptNode->TYPE = NODE_INPUT_PROMPT;
+    promptNode->CHILD = parseExpression();
+
+    node->SUB_STATEMENTS.push_back(promptNode);
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected ')' follwing the prompt" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
     // Expect spaceship operator (=>)
     if (current->TYPE != TOKEN_SPACESHIP)
     {
-        std::cerr << "< Syntax Error > Expected '=>' after input type" << std::endl;
+        std::cerr << "< Syntax Error > Expected '=>' after input prompt" << std::endl;
         exit(1);
     }
     proceed(TOKEN_SPACESHIP);
@@ -479,7 +495,8 @@ AST_NODE *Parser::parseKeywordInput()
     AST_NODE *varNode = new AST_NODE();
     varNode->TYPE = NODE_IDENTIFIER;
     varNode->VALUE = current->value;
-    node->SUB_STATEMENTS.push_back(varNode);
+
+    promptNode->SUB_STATEMENTS.push_back(varNode);
 
     proceed(TOKEN_IDENTIFIER);
 
@@ -508,10 +525,7 @@ AST_NODE *Parser::parseInputType()
         typeName == "double" ||
         typeName == "string" || typeName == "str" ||
         typeName == "bool" ||
-        typeName == "char" ||
-        typeName == "blockchain" ||
-        typeName == "blockflip" ||
-        typeName == "blockhash")
+        typeName == "char")
     {
 
         node->VALUE = typeName;
@@ -2112,6 +2126,8 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_KEYWORD_INPUT";
     case NODE_INPUT_TYPE:
         return "NODE_INPUT_TYPE";
+    case NODE_INPUT_PROMPT:
+        return "NODE_INPUT_PROMPT";
     default:
         return "Unknown node";
     }
