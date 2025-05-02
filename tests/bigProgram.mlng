@@ -1,0 +1,24 @@
+
+proc factorial(int n) => {
+    int final;
+
+    if(n <= 1){
+        final = 1;
+    } else {
+        final = n * factorial(n - 1);
+    }
+
+    result => {final};
+}
+
+
+begin:
+    int num;
+    input<int>("Enter a number to calculate factorial: ") => num;
+    out_to_console("The factorial of " + num + " is: ");
+    ...
+
+    out_to_console(factorial(num));
+    ...
+    
+end

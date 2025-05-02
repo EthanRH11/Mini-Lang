@@ -132,14 +132,31 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         return Value(0);
     case NODE_MULT:
-        if (node->SUB_STATEMENTS.size() >= 2)
-        {
-            left = evaluateExpression(node->SUB_STATEMENTS[0]);
-            right = evaluateExpression(node->SUB_STATEMENTS[1]);
+        // if (node->SUB_STATEMENTS.size() >= 2)
+        // {
+        //     left = evaluateExpression(node->SUB_STATEMENTS[0]);
+        //     right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() * right.getInteger());
+        //     return Value(left.getInteger() * right.getInteger());
+        // }
+        // return Value(0);
+        {
+            Value leftValue = evaluateExpression(node->SUB_STATEMENTS[0]);
+            Value rightValue = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+            // Debug output to see actual values during multiplication
+            std::cout << "Multiplying: " << leftValue.toString() << " * " << rightValue.toString() << std::endl;
+
+            if (leftValue.isInteger() && rightValue.isInteger())
+            {
+                return Value(leftValue.getInteger() * rightValue.getInteger());
+            }
+            else
+            {
+                std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
+                return Value(0);
+            }
         }
-        return Value(0);
     case NODE_DIVISION:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
@@ -300,6 +317,54 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         break;
     case NODE_NEWLINE:
         return Value('\n');
+    // case NODE_FUNCTION_CALL:
+    // {
+    //     static int recursionDepth = 0;
+    //     recursionDepth++;
+
+    //     std::string funcName = node->VALUE;
+    //     std::cout << "Entering Function: " << funcName << " depth: " << recursionDepth << std::endl;
+    //     std::string callID = generateCallID(funcName, recursionDepth);
+
+    //     // Look up function definition
+    //     AST_NODE *funcDef = findFunctionByName(funcName);
+    //     if (!funcDef)
+    //     {
+    //         std::cerr << "Undefined function: " << funcName << std::endl;
+    //         exit(1);
+    //     }
+
+    //     // Create a complete copy of the current variable scope
+    //     std::map<std::string, Value> localScope;
+    //     localScope.insert(variables.begin(), variables.end());
+
+    //     // Bind arguments to parameters
+    //     AST_NODE *params = funcDef->SUB_STATEMENTS[0];
+    //     for (size_t i = 0; i < node->SUB_STATEMENTS.size() && i < params->SUB_STATEMENTS.size(); i++)
+    //     {
+    //         AST_NODE *paramNode = params->SUB_STATEMENTS[i];
+    //         AST_NODE *argNode = node->SUB_STATEMENTS[i];
+
+    //         // Evaluate argument
+    //         Value argValue = evaluateExpression(argNode);
+
+    //         // Bind to parameter name in the local scope
+    //         variables[paramNode->VALUE] = argValue;
+    //     }
+    //     returnValue = Value(); // Clear the return value before executing
+    //     // Execute function body
+    //     executeNode(funcDef->CHILD);
+
+    //     // Get the function's return value
+    //     Value result = returnValue;
+    //     // std::cout << "Return value from " << funcName << " depth " << recursionDepth << ": " << result.getInteger() << std::endl;
+
+    //     // Restore previous scope
+    //     variables = localScope;
+
+    //     recursionDepth--;
+    //     return result;
+    // }
     case NODE_FUNCTION_CALL:
     {
         static int recursionDepth = 0;
@@ -317,9 +382,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             exit(1);
         }
 
-        // Create a complete copy of the current variable scope
-        std::map<std::string, Value> localScope;
-        localScope.insert(variables.begin(), variables.end());
+        // Save the current state of all variables
+        std::map<std::string, Value> oldVariables = variables;
 
         // Bind arguments to parameters
         AST_NODE *params = funcDef->SUB_STATEMENTS[0];
@@ -328,26 +392,36 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             AST_NODE *paramNode = params->SUB_STATEMENTS[i];
             AST_NODE *argNode = node->SUB_STATEMENTS[i];
 
-            // Evaluate argument
+            // Evaluate argument and bind to parameter
             Value argValue = evaluateExpression(argNode);
-
-            // Bind to parameter name in the local scope
             variables[paramNode->VALUE] = argValue;
         }
-        returnValue = Value(); // Clear the return value before executing
+
+        // Save the current return value
+        Value oldReturnValue = returnValue;
+        // Clear for this function call
+        returnValue = Value();
+
         // Execute function body
         executeNode(funcDef->CHILD);
 
-        // Get the function's return value
+        // Get this function's return value
         Value result = returnValue;
-        // std::cout << "Return value from " << funcName << " depth " << recursionDepth << ": " << result.getInteger() << std::endl;
 
-        // Restore previous scope
-        variables = localScope;
+        // IMPORTANT: Print debug info to see what each recursive call is returning
+        std::cout << "Function " << funcName << " at depth " << recursionDepth
+                  << " returning: " << result.toString() << std::endl;
+
+        // Restore the previous state
+        variables = oldVariables;
+        returnValue = oldReturnValue;
 
         recursionDepth--;
+
+        // Return this function's result
         return result;
     }
+
     default:
         std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
         exit(1);

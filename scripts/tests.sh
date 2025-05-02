@@ -44,6 +44,9 @@ run_test() {
     echo -n "Testing ${filename}... "
     TOTAL=$((TOTAL + 1))
     
+    # Clear any previous output files or set a specific output file for this test
+    rm -f ${OUTPUT_DIR}/output_* 2>/dev/null
+    
     # Run the test - debug output goes to terminal
     "${PARSER}" "${test_file}" interpret
     local run_status=$?
