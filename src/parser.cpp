@@ -1211,6 +1211,9 @@ AST_NODE *Parser::parseLeftCurl()
         case TOKEN_KEYWORD_IF:
             statement = parseKeywordIf();
             break;
+        case TOKEN_KEYWORD_CHECK:
+            statement = parseKeywordCheck();
+            break;
         case TOKEN_OPERATOR_DOESNT_EQUAL:
             statement = parseDoesntEqual();
             break;
@@ -1310,6 +1313,56 @@ AST_NODE *Parser::parseBeginBlock()
         }
     }
     return beginNode;
+}
+
+/**
+ * @brief Parses a check statement
+ * @returns AST node representing the check statement
+ * @throws exits with error on syntax issues
+ */
+
+AST_NODE *Parser::parseKeywordCheck()
+{
+    proceed(TOKEN_KEYWORD_CHECK);
+
+    // Parse the condition
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "Expected '(' after if keyword" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    AST_NODE *conditionNode = parseExpression();
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "Expected ')' after if condition" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    // Parse the loop block
+    AST_NODE *loop = nullptr;
+
+    if (current->TYPE == TOKEN_LEFT_CURL)
+    {
+        loop = parseLeftCurl();
+    }
+    else
+    {
+        loop = new AST_NODE();
+        loop->TYPE = NODE_BLOCK;
+        loop->SUB_STATEMENTS.push_back(parseStatement());
+    }
+
+    // Create if statement node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_CHECK;
+    node->CHILD = conditionNode;
+    node->SUB_STATEMENTS.push_back(loop);
+
+    return node;
 }
 
 /**
@@ -1904,6 +1957,10 @@ AST_NODE *Parser::parse()
             statement = parseKeywordIf();
             break;
 
+        case TOKEN_KEYWORD_CHECK:
+            statement = parseKeywordCheck();
+            break;
+
         case TOKEN_OPERATOR_GREATERTHAN:
             statement = greaterThan();
             break;
@@ -2128,6 +2185,8 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_INPUT_TYPE";
     case NODE_INPUT_PROMPT:
         return "NODE_INPUT_PROMPT";
+    case NODE_CHECK:
+        return "NODE_CHECK";
     default:
         return "Unknown node";
     }
@@ -2236,7 +2295,9 @@ AST_NODE *Parser::parseStatement()
     case TOKEN_KEYWORD_IF:
         statement = parseKeywordIf();
         break;
-
+    case TOKEN_KEYWORD_CHECK:
+        statement = parseKeywordCheck();
+        break;
     case TOKEN_OPERATOR_DIV:
         statement = parseDivi();
         break;

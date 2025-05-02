@@ -576,6 +576,42 @@ void Interpreter::executeNode(AST_NODE *node)
         }
         break;
     }
+    case NODE_CHECK:
+    {
+        while (true)
+        {
+            Value condition = evaluateExpression(node->CHILD);
+
+            bool continueLoop = false;
+            if (condition.isInteger())
+            {
+                continueLoop = condition.getInteger() != 0;
+            }
+            else if (condition.isDouble())
+            {
+                continueLoop = condition.getDouble() != 0.0;
+            }
+            else if (condition.isBool())
+            {
+                continueLoop = condition.getBool();
+            }
+
+            if (!continueLoop)
+            {
+                break;
+            }
+            if (!node->SUB_STATEMENTS.empty())
+            {
+                executeNode(node->SUB_STATEMENTS[0]);
+
+                // Here we would implement breaking
+                // if(hasBreakValue()){
+                // return;
+                // }
+            }
+        }
+    }
+    break;
     case NODE_BOOL:
         if (node->CHILD)
         {

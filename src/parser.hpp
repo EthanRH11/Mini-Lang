@@ -89,7 +89,9 @@ enum NODE_TYPE
     NODE_PARAM,                // Individual function parameter
     NODE_FUNCTION_SPACESHIP,   // Function return type separator (=>)
     NODE_FUNCTION_CALL,        // Function call
-    NODE_RETURN                // Return statement
+    NODE_RETURN,               // Return statement
+
+    NODE_CHECK // Check loop
 };
 
 /**
@@ -241,6 +243,7 @@ private:
     AST_NODE *parseRightCurl();
 
     // Control structures
+    AST_NODE *parseKeywordCheck();
     AST_NODE *parseKeywordIf();
     AST_NODE *parseKeywordElse();
     AST_NODE *parseKeywordFor();

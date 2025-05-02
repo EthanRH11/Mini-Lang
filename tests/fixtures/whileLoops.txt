@@ -1,9 +1,9 @@
 
 begin:
-    
+    int limiter = 10;
     int count = 0;
 
-    check (count < 10) {
+    check (count < limiter) {
         out_to_console("Count: " + count);
         ...
 
