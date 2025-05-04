@@ -1,5 +1,5 @@
 #include "strategy_lexer.hpp"
-
+#include "ErrorHandler/ErrorHandler.hpp"
 CharacterStream::CharacterStream(const std::string &source) : source(source), cursor(0), size(source.length())
 {
 }
@@ -84,4 +84,20 @@ void CharacterStream::consumeKeyword(const std::string &keyword)
 size_t CharacterStream::getPosition() const
 {
     return cursor;
+}
+
+void CharacterStream::rewindTo(size_t position)
+{
+    if (position <= source.length())
+    {
+        cursor = position;
+    }
+    else
+    {
+        ErrorHandler::getInstance().reportLexicalError(
+            ErrorLevel::ERROR,
+            "Attempted to rewind stream beyond valid bounds",
+            "",
+            cursor);
+    }
 }

@@ -26,6 +26,7 @@ public:
     bool eof() const;
     bool matchKeyword(const std::string &keyword) const;
     void consumeKeyword(const std::string &keyword);
+    void rewindTo(size_t);
     size_t getPosition() const;
 
 private:
