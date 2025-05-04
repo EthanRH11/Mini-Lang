@@ -8,6 +8,8 @@
 
 #include "lexer.hpp"
 
+bool isArrayType;
+
 /**
  * @brief Constructor for Lexer class
  * @param sourceCode The source code to be tokenized
@@ -461,7 +463,7 @@ Token *Lexer::processInputType()
             typeName == "str" ||
             typeName == "bool")
         {
-            return new Token{TOKEN_INPUT_TYPE, typeName};
+            return new Token{isArrayType ? TOKEN_INPUT_TYPE : TOKEN_ELEMENT_TYPE, typeName};
         }
         else
         {
@@ -559,6 +561,10 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
     {
         return new Token{TOKEN_KEYWORD_RESULT, keyword};
     }
+    else if (keyword == "elements")
+    {
+        return new Token{TOKEN_KEYWORD_ELEMENT, keyword};
+    }
     else
     {
         return new Token{TOKEN_IDENTIFIER, keyword};
@@ -597,9 +603,19 @@ std::vector<Token *> Lexer::tokenize()
                 Token *token = processKeyword(tokens);
                 tokens.push_back(token);
 
-                if (token->TYPE == TOKEN_KEYWORD_INPUT && current == '<')
+                if (token->TYPE == TOKEN_KEYWORD_ELEMENT)
+                {
+                    isArrayType = true;
+                }
+
+                if (token->TYPE == TOKEN_KEYWORD_INPUT || token->TYPE == TOKEN_KEYWORD_ELEMENT && current == '<')
                 {
                     Token *typeToken = processInputType();
+                    if (isArrayType)
+                    {
+                        typeToken->TYPE = TOKEN_ELEMENT_TYPE;
+                        isArrayType = false; // reset flag
+                    }
                     tokens.push_back(typeToken);
                 }
             }
@@ -747,6 +763,10 @@ std::string getTokenTypeName(tokenType type)
         return "TOKEN_INPUT_TYPE";
     case TOKEN_KEYWORD_CHECK:
         return "TOKEN_KEYWORD_CHECK";
+    case TOKEN_KEYWORD_ELEMENT:
+        return "TOKEN_KEYWORD_ELEMENT";
+    case TOKEN_ELEMENT_TYPE:
+        return "TOKEN_ELEMENT_TYPE";
     default:
         return "Error, unknown token identifier";
     }

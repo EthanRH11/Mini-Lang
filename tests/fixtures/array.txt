@@ -1,0 +1,7 @@
+
+begin:
+
+    elements<int> IntegerArray;
+    elements<bool> booleanArray;
+
+end

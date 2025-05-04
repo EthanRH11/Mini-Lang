@@ -87,6 +87,9 @@ enum tokenType
     // While Loops
     TOKEN_KEYWORD_CHECK = 48, // Keyword 'repeat'
 
+    TOKEN_KEYWORD_ELEMENT = 49,
+    TOKEN_ELEMENT_TYPE = 50,
+
 };
 
 //
