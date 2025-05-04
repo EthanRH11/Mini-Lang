@@ -91,7 +91,11 @@ enum NODE_TYPE
     NODE_FUNCTION_CALL,        // Function call
     NODE_RETURN,               // Return statement
 
-    NODE_CHECK // Check loop
+    NODE_CHECK, // Check loop
+
+    NODE_ELEMENT,     // Keyword 'element'
+    NODE_ELEMENTTYPE, //'elements' type
+
 };
 
 /**
@@ -254,6 +258,10 @@ private:
 
     // General statement parsing
     AST_NODE *parseStatement();
+
+    /**
+     * @brief parses an array decleration
+     */
 
     //---------------------------------------------------------------------
     // Function-related parsing methods
