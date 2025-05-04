@@ -88,8 +88,6 @@ class Token
 private:
     TokenType type;
     std::string value;
-    int line;
-    int column;
 
 public:
     Token(TokenType type, const std::string &value, int line = 0, int column = 0);

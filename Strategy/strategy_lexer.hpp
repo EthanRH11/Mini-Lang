@@ -205,6 +205,14 @@ private:
      * @brief Initialize default strategies
      */
     void initializeDefaultStrategies();
+
+    /**
+     * @brief Creates an EOF token
+     */
+    Token *createEOFToken() const;
 };
+
+// Helper Function: Returns the name of a token type (debugging)
+std::string getTokenTypeName(TokenType);
 
 #endif // STRATEGY_LEXER_HPP
