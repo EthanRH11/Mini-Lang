@@ -998,10 +998,9 @@ AST_NODE *Parser::parseKeywordInput()
     node->TYPE = NODE_ELEMENT;
     node->VALUE = "elements";
 
-    proceed(TOKEN_KEYWORD_INPUT);
+    proceed(TOKEN_KEYWORD_ELEMENT);
 
-    // Your lexer gives us TOKEN_INPUT_TYPE directly
-    if (current->TYPE != TOKEN_INPUT_TYPE)
+    if (current->TYPE != TOKEN_ELEMENT_TYPE)
     {
         std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
         exit(1);

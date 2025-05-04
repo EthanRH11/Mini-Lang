@@ -28,4 +28,10 @@ begin:
 
 int size = #integerArray;
 
+>>$Sort the array
+~> integerArray; //sort in ascending order
+<~ integerArray; //sort in descending order
+
+
+
 end

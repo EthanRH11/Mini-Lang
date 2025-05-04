@@ -1,5 +1,5 @@
 #include "strategy_lexer.hpp"
-#include "token_type.hpp"
+#include "TokenType/token_type.hpp"
 
 #include <iostream>
 

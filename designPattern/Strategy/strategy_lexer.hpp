@@ -94,6 +94,16 @@ public:
 };
 
 /**
+ *@brief strategy for processing newline characters
+ */
+class NewlineProcessingStrategy : public TokenProcessingStrategy
+{
+public:
+    bool canProcess(const CharacterStream &stream) const override;
+    Token *process(CharacterStream &stream) const override;
+};
+
+/**
  * @brief strategy for processing boolean literals
  */
 class BoolProcessingStrategy : public TokenProcessingStrategy
