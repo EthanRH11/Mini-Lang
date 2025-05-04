@@ -40,9 +40,9 @@ std::string tokenTypeToString(TokenType type)
         return "MULTILINE_COMMENT";
     case TokenType::NL_SYMBOL:
         return "NL_SYMBOL";
-    case TokenType::IF:
+    case TokenType::KEYWORD_IF:
         return "IF";
-    case TokenType::ELSE:
+    case TokenType::KEYWORD_ELSE:
         return "ELSE";
     // Add other token types here
     default:
@@ -67,14 +67,6 @@ int main(int argc, char *argv[])
 
     // Create the lexer and initialize all strategies
     StrategyLexer lexer(stream);
-
-    // Register all the token processing strategies
-    lexer.registerStrategy(new NewlineProcessingStrategy());
-    lexer.registerStrategy(new OperatorProcessingStrategy());
-    lexer.registerStrategy(new SingleLineCommentProcessingStrategy());
-    lexer.registerStrategy(new MultiLineCommentProcessingStrategy());
-    lexer.registerStrategy(new KeywordProcessingStrategy());
-    // Register additional strategies as needed
 
     // Perform the tokenization
     std::vector<Token> tokens = lexer.tokenize();
