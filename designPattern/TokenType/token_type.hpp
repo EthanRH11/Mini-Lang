@@ -31,15 +31,19 @@ enum class TokenType
     RIGHT_PAREN, // Right parenthesis ')'
 
     // Keywords
-    KEYWORD_INT,    // 'int' keyword
-    KEYWORD_DOUBLE, // 'double' keyword
-    KEYWORD_CHAR,   // 'char' keyword
-    KEYWORD_STR,    // 'str' keyword
-    KEYWORD_PRINT,  // 'print' keyword
-    KEYWORD_INPUT,  // 'input' keyword
-    INPUT_TYPE,     // <type>
-    KEYWORD_BOOL,   // 'bool' keyword
-    KEYWORD_RESULT, // "result" keywords
+    KEYWORD_INT,     // 'int' keyword
+    KEYWORD_DOUBLE,  // 'double' keyword
+    KEYWORD_CHAR,    // 'char' keyword
+    KEYWORD_STR,     // 'str' keyword
+    KEYWORD_PRINT,   // 'print' keyword
+    KEYWORD_INPUT,   // 'input' keyword
+    INPUT_TYPE,      // <type>
+    KEYWORD_BOOL,    // 'bool' keyword
+    KEYWORD_RESULT,  // "result" keywords
+    KEYWORD_CHECK,   //'check' keywords
+    KEYWORD_ELEMENT, //'elements' keywords
+
+    ELEMENT_TYPE,
 
     // Newline operator
     NL_SYMBOL, // '...' new line
@@ -73,7 +77,7 @@ enum class TokenType
     // Miscellaneous
     OPERATOR_NEWLINE, // Newline as a token
     SPACESHIP,        // '=>' (spaceship operator)
-    KEYWORD_FUNCTION, // 'function' keyword
+    KEYWORD_PROC,     // 'function' keyword
     FUNCTION_PARAMS,  // Special token for function parameters
     COMMA,            // PARAM separator
 
