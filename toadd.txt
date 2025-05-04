@@ -81,7 +81,11 @@ input<type>("Prompt: ") => identifier;
 9. Logical Operators:
 - And (&&), or (||), not (!)
 
-  AND, OR, NOT 
+  if(a = 12 && b = 33){}
+
+  if (a =/= 12){}
+
+  if(~a)   
 
 - Equality testing (==, !=)
   ==         =/=

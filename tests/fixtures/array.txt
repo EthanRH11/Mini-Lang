@@ -1,7 +1,31 @@
 
 begin:
 
-    elements<int> IntegerArray;
-    elements<bool> booleanArray;
+    elements<int> integerArray;
+
+>>$ Initialize an array
+    integerArray |= (1, 2, 3, 4, 5, 6);
+
+>>$ Initialize an array within a range
+>>$    integerArray |= repeat(0, 10);  >>$Creates  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]
+
+>>$ Initialize within a range
+>>$    integerArray |= range(1..10);   >>$ Creates [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+>>$ Get a single element at specific index
+    int first = integerArray@(3)
+
+>>$ Get the last element
+    int last = integerArray@($);
+
+>>$ Append 42 to the array at index 4
++> integerArray(4, 42);
+
+>>$ Remove number at index
+-< integerArray(4);
+
+>>$ Get the length of the array
+
+int size = #integerArray;
 
 end

@@ -211,6 +211,9 @@ private:
     AST_NODE *parseKeywordInput();
     AST_NODE *parseInputType();
 
+    AST_NODE *parseKeywordElement();
+    AST_NODE *parseElementType();
+
     // Operators
     AST_NODE *parseIncrementOperator();
     AST_NODE *parseDecrementOperator();

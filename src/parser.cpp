@@ -988,6 +988,80 @@ AST_NODE *Parser::parseDoesntEqual()
 }
 
 //-------------------------------------------------------------------
+// Data Structure Handling Methods
+//-------------------------------------------------------------------
+
+AST_NODE *Parser::parseKeywordInput()
+{
+    // Create a node for input keyword
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ELEMENT;
+    node->VALUE = "elements";
+
+    proceed(TOKEN_KEYWORD_INPUT);
+
+    // Your lexer gives us TOKEN_INPUT_TYPE directly
+    if (current->TYPE != TOKEN_INPUT_TYPE)
+    {
+        std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
+        exit(1);
+    }
+
+    // Parse the input type (already parsed by lexer as TOKEN_INPUT_TYPE)
+    AST_NODE *inputType = new AST_NODE();
+    inputType->TYPE = NODE_INPUT_TYPE;
+    inputType->VALUE = current->value;
+    node->CHILD = inputType;
+
+    proceed(TOKEN_INPUT_TYPE);
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' following input." << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    AST_NODE *promptNode = new AST_NODE();
+    promptNode->TYPE = NODE_INPUT_PROMPT;
+    promptNode->CHILD = parseExpression();
+
+    node->SUB_STATEMENTS.push_back(promptNode);
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected ')' follwing the prompt" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+    // Expect spaceship operator (=>)
+    if (current->TYPE != TOKEN_SPACESHIP)
+    {
+        std::cerr << "< Syntax Error > Expected '=>' after input prompt" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_SPACESHIP);
+
+    // Expect variable name
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected variable name after '=>'" << std::endl;
+        exit(1);
+    }
+
+    // Create a variable node and add it to sub-statements
+    AST_NODE *varNode = new AST_NODE();
+    varNode->TYPE = NODE_IDENTIFIER;
+    varNode->VALUE = current->value;
+
+    promptNode->SUB_STATEMENTS.push_back(varNode);
+
+    proceed(TOKEN_IDENTIFIER);
+
+    return node;
+}
+
+//-------------------------------------------------------------------
 // Function Handling methods
 //-------------------------------------------------------------------
 /**
@@ -2187,6 +2261,10 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_INPUT_PROMPT";
     case NODE_CHECK:
         return "NODE_CHECK";
+    case NODE_ELEMENT:
+        return "NODE_ELEMENT";
+    case NODE_ELEMENTTYPE:
+        return "NODE_ELEMENTTYPE";
     default:
         return "Unknown node";
     }
