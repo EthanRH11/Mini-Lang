@@ -177,16 +177,6 @@ public:
 };
 
 /**
- * @brief Strategy for processing Arrays
- */
-class ArrayTypeProcessingStrategy : public TokenProcessingStrategy
-{
-public:
-    bool canProcess(const CharacterStream &stream) const override;
-    Token *process(CharacterStream &stream) const override;
-};
-
-/**
  * @brief Strategy for processing multi-line comments
  */
 class MultiLineCommentProcessingStrategy : public TokenProcessingStrategy
@@ -195,6 +185,19 @@ public:
     bool canProcess(const CharacterStream &stream) const override;
     Token *process(CharacterStream &stream) const override;
 };
+
+// /**
+//  * @brief Strategy for processing Arrays
+//  */
+// class ArrayTypeProcessingStrategy : public TokenProcessingStrategy
+// {
+// public:
+//     bool canProcess(const CharacterStream &stream) const override;
+//     Token *process(CharacterStream &stream) const override;
+
+// private:
+//     Token *processArrayType(CharacterStream &stream, size_t startPos) const;
+// };
 
 /***********************************************/
 /******** Lexer Class Using Strategy ********/

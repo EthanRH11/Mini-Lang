@@ -94,6 +94,15 @@ Token *OperatorProcessingStrategy::process(CharacterStream &stream) const
         stream.advanceCursor(); // move past char
         return new Token{it->second, std::string(1, currentChar), startPos, 1};
     }
+
+    // This should technically never happen
+    ErrorHandler::getInstance().reportLexicalError(
+        ErrorLevel::ERROR,
+        "Unexpected character in operator context: " + std::string(1, currentChar),
+        "Expected a valid operator character",
+        startPos);
+
+    stream.advanceCursor();
     // no op found
     return nullptr;
 }
