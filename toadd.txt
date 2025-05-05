@@ -123,3 +123,6 @@ add math*
 
 //TO DO LIST (PRIORITY)
 
+
+
+ERROR HANDLER

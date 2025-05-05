@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <unordered_map>
 
 //
 // Enum listing all possible token types recognized by the lexer.
@@ -168,6 +169,10 @@ private:
     int cursor;         // Current position in the source
     char current;       // Current character
     int size;           // Total size of the input
+
+    std::unordered_map<char, tokenType> singleCharMap;
+    std::unordered_map<std::string, tokenType> MultiCharMap;
+    std::unordered_map<std::string, tokenType> KeywordMap;
 };
 
 // Helper function: Returns the name of a token type (for debugging or output)
