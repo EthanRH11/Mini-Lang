@@ -3,12 +3,12 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <memory>
 
-#include "Strategy/SourceHandling/strategy_sourcestream.cpp"
-#include "Strategy/strategy_lexer.hpp"
-#include "TokenType/token_type.hpp"
-#include "ErrorHandler/ErrorHandler.hpp"
-
+// Include the main headers
+#include "../designPattern/Strategy/strategy_lexer.hpp"
+#include "../designPattern/TokenType/token_type.hpp"
+#include "../designPattern/ErrorHandler/ErrorHandler.hpp"
 // Function to read a file into a string
 std::string readFileToString(const std::string &filename)
 {
@@ -24,32 +24,6 @@ std::string readFileToString(const std::string &filename)
     return buffer.str();
 }
 
-// Function to convert token type to string for display
-std::string tokenTypeToString(TokenType type)
-{
-    // Implement a switch statement to convert TokenType enum to string
-    switch (type)
-    {
-    case TokenType::OPERATOR_ADD:
-        return "OPERATOR_ADD";
-    case TokenType::OPERATOR_EQUALS:
-        return "OPERATOR_EQUALS";
-    case TokenType::SINGLELINE_COMMENT:
-        return "SINGLELINE_COMMENT";
-    case TokenType::MULTILINE_COMMENT:
-        return "MULTILINE_COMMENT";
-    case TokenType::NL_SYMBOL:
-        return "NL_SYMBOL";
-    case TokenType::KEYWORD_IF:
-        return "IF";
-    case TokenType::KEYWORD_ELSE:
-        return "ELSE";
-    // Add other token types here
-    default:
-        return "UNKNOWN";
-    }
-}
-
 int main(int argc, char *argv[])
 {
     // Check if filename was provided
@@ -62,26 +36,20 @@ int main(int argc, char *argv[])
     std::string filename = argv[1];
     std::string sourceCode = readFileToString(filename);
 
-    // Create a character stream from the source code
-    CharacterStream stream(sourceCode);
+    // Register the source with the error handler
+    ErrorHandler::getInstance().registerSource(filename, sourceCode);
 
-    // Create the lexer and initialize all strategies
-    StrategyLexer lexer(stream);
+    // Create the lexer - this will automatically initialize default strategies
+    StrategyLexer lexer(sourceCode);
 
     // Perform the tokenization
-    std::vector<Token> tokens = lexer.tokenize();
+    std::vector<Token *> tokens = lexer.tokenize();
 
     // Check if there were any errors
     if (ErrorHandler::getInstance().hasErrors())
     {
-        std::cerr << "Lexical analysis failed with "
-                  << ErrorHandler::getInstance().getErrorCount()
-                  << " errors." << std::endl;
-        // Optionally, print out all errors
-        for (const auto &error : ErrorHandler::getInstance().getErrors())
-        {
-            // Print error details
-        }
+        std::cerr << "Lexical analysis failed with errors." << std::endl;
+        // Errors have already been printed by the ErrorHandler
         return 1;
     }
 
@@ -89,10 +57,26 @@ int main(int argc, char *argv[])
     std::cout << "Tokenization successful. Found " << tokens.size() << " tokens:" << std::endl;
     for (const auto &token : tokens)
     {
-        std::cout << "Position: " << token.position
-                  << ", Length: " << token.length
-                  << ", Type: " << tokenTypeToString(token.type)
-                  << ", Value: '" << token.value << "'" << std::endl;
+        std::cout << "Type: " << getTokenTypeName(token->getType())
+                  << ", Value: \"" << token->getValue() << "\"";
+
+        // If your Token class has line and column info
+        if (token->getLine() > 0)
+        {
+            std::cout << ", Line: " << token->getLine();
+        }
+        if (token->getColumn() > 0)
+        {
+            std::cout << ", Column: " << token->getColumn();
+        }
+
+        std::cout << std::endl;
+    }
+
+    // Clean up tokens (since they're raw pointers)
+    for (auto token : tokens)
+    {
+        delete token;
     }
 
     return 0;
