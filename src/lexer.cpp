@@ -8,8 +8,6 @@
 
 #include "lexer.hpp"
 
-bool isArrayType;
-
 /**
  * @brief Constructor for Lexer class
  * @param sourceCode The source code to be tokenized
@@ -23,6 +21,65 @@ Lexer::Lexer(std::string sourceCode)
     cursor = 0;
     current = sourceCode.at(cursor);
     size = sourceCode.length();
+}
+
+/**
+ * @brief Initializes maps to make operator and keyword access quicker
+ * @param unordered_map The maps of the different types of operators & keywords
+ *
+ * Creates necessary maps of operators and keywords
+ */
+void initializeLexerMaps(
+    std::unordered_map<char, tokenType> &singleCharMap,
+    std::unordered_map<std::string, tokenType> &multiCharMap,
+    std::unordered_map<std::string, tokenType> &keywordMap)
+{
+    singleCharMap = {
+        {'+', TOKEN_OPERATOR_ADD},
+        {'-', TOKEN_OPERATOR_SUBT},
+        {'*', TOKEN_OPERATOR_MULT},
+        {'/', TOKEN_OPERATOR_DIV},
+        {'=', TOKEN_OPERATOR_EQUALS},
+        {';', TOKEN_SEMICOLON},
+        {'(', TOKEN_LEFT_PAREN},
+        {')', TOKEN_RIGHT_PAREN},
+        {'<', TOKEN_OPERATOR_LESSTHAN},
+        {'>', TOKEN_OPERATOR_GREATERTHAN},
+        {'{', TOKEN_LEFT_CURL},
+        {'}', TOKEN_RIGHT_CURL},
+        {',', TOKEN_COMMA},
+        {'%', TOKEN_OPERATOR_MODULUS}};
+
+    multiCharMap = {
+        {"...", TOKEN_NL_SYMBOL},
+        {"==", TOKEN_EQUALS},
+        {">>$", TOKEN_SINGLELINE_COMMENT},
+        {"<<$", TOKEN_MULTILINE_COMMENT},
+        {"+=", TOKEN_OPERATOR_ADD_ASSIGN},
+        {"++", TOKEN_OPERATOR_INCREMENT},
+        {"--", TOKEN_OPERATOR_DECREMENT},
+        {"<=", TOKEN_OPERATOR_LESS_EQUAL},
+        {">=", TOKEN_OPERATOR_GREATER_EQUAL},
+        {"=>", TOKEN_SPACESHIP},
+        {"=/=", TOKEN_OPERATOR_DOESNT_EQUAL}};
+
+    keywordMap = {
+        {"begin:", TOKEN_KEYWORD_BEGIN},
+        {"proc", TOKEN_KEYWORD_FUNCTION},
+        {"input", TOKEN_KEYWORD_INPUT},
+        {"int", TOKEN_KEYWORD_INT},
+        {"double", TOKEN_KEYWORD_DOUBLE},
+        {"str", TOKEN_KEYWORD_STR},
+        {"check", TOKEN_KEYWORD_CHECK},
+        {"char", TOKEN_KEYWORD_CHAR},
+        {"out_to_console", TOKEN_KEYWORD_PRINT},
+        {"if", TOKEN_KEYWORD_IF},
+        {"else", TOKEN_KEYWORD_ELSE},
+        {"for", TOKEN_KEYWORD_FOR},
+        {"end", TOKEN_EOF},
+        {"bool", TOKEN_KEYWORD_BOOL},
+        {"result", TOKEN_KEYWORD_RESULT},
+        {"elements", TOKEN_KEYWORD_ELEMENT}};
 }
 
 /**
