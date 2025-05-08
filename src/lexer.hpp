@@ -112,12 +112,6 @@ public:
     // Constructor: Takes the input source string to be tokenized
     Lexer(std::string);
 
-    // Initalizer: initializes the maps that contain operators and keywords
-    void initializeLexerMaps(
-        std::unordered_map<char, tokenType> &singleCharMap,
-        std::unordered_map<std::string, tokenType> &multiCharMap,
-        std::unordered_map<std::string, tokenType> &keywordMap);
-
     // Skips any whitespace and updates the current character
     void checkAndSkip();
 
@@ -179,6 +173,8 @@ private:
     std::unordered_map<char, tokenType> singleCharMap;
     std::unordered_map<std::string, tokenType> MultiCharMap;
     std::unordered_map<std::string, tokenType> KeywordMap;
+
+    void initializeLexerMaps();
 
     bool isArrayType;
 };

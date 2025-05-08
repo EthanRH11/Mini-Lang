@@ -23,6 +23,7 @@ Lexer::Lexer(std::string sourceCode)
     size = sourceCode.length();
 
     isArrayType = false;
+    initializeLexerMaps();
 }
 
 /**
@@ -31,17 +32,14 @@ Lexer::Lexer(std::string sourceCode)
  *
  * Creates necessary maps of operators and keywords
  */
-void initializeLexerMaps(
-    std::unordered_map<char, tokenType> &singleCharMap,
-    std::unordered_map<std::string, tokenType> &multiCharMap,
-    std::unordered_map<std::string, tokenType> &keywordMap)
+void Lexer::initializeLexerMaps()
 {
     singleCharMap = {
         {'+', TOKEN_OPERATOR_ADD},
         {'-', TOKEN_OPERATOR_SUBT},
         {'*', TOKEN_OPERATOR_MULT},
         {'/', TOKEN_OPERATOR_DIV},
-        {'=', TOKEN_OPERATOR_EQUALS},
+        {'=', TOKEN_EQUALS},
         {';', TOKEN_SEMICOLON},
         {'(', TOKEN_LEFT_PAREN},
         {')', TOKEN_RIGHT_PAREN},
@@ -52,9 +50,9 @@ void initializeLexerMaps(
         {',', TOKEN_COMMA},
         {'%', TOKEN_OPERATOR_MODULUS}};
 
-    multiCharMap = {
+    MultiCharMap = {
         {"...", TOKEN_NL_SYMBOL},
-        {"==", TOKEN_EQUALS},
+        {"==", TOKEN_OPERATOR_EQUALS},
         {">>$", TOKEN_SINGLELINE_COMMENT},
         {"<<$", TOKEN_MULTILINE_COMMENT},
         {"+=", TOKEN_OPERATOR_ADD_ASSIGN},
@@ -65,7 +63,7 @@ void initializeLexerMaps(
         {"=>", TOKEN_SPACESHIP},
         {"=/=", TOKEN_OPERATOR_DOESNT_EQUAL}};
 
-    keywordMap = {
+    KeywordMap = {
         {"begin:", TOKEN_KEYWORD_BEGIN},
         {"proc", TOKEN_KEYWORD_FUNCTION},
         {"input", TOKEN_KEYWORD_INPUT},
@@ -313,100 +311,160 @@ Token *Lexer::processPrint()
  *
  * Handles both single-character operators (like +, -, *, /) and
  * multi-character operators (like ==, +=, ++, --).
- */
+//  */
+// Token *Lexer::processOperator()
+// {
+//     std::string op(1, current);
+//     advanceCursor();
+
+//     // Handle two-character operators
+//     if (op == "=" && current == '=')
+//     {
+//         advanceCursor();
+//         return new Token{TOKEN_OPERATOR_EQUALS, "=="};
+//     }
+//     else if (op == ">" && current == '>' && peakAhead(1) == '$')
+//     {
+//         return processSingleLineComment();
+//     }
+//     else if (op == "<" && current == '<' && peakAhead(1) == '$')
+//     {
+//         return processMultiLineComment();
+//     }
+//     else if (op == "+" && current == '=')
+//     {
+//         advanceCursor();
+//         return new Token{TOKEN_OPERATOR_ADD_ASSIGN, "+="};
+//     }
+//     else if (op == "+" && current == '+')
+//     {
+//         advanceCursor();
+//         return new Token{TOKEN_OPERATOR_INCREMENT, "++"};
+//     }
+//     else if (op == "-" && current == '-')
+//     {
+//         advanceCursor();
+//         return new Token{TOKEN_OPERATOR_DECREMENT, "--"};
+//     }
+//     else if (op == "<" && current == '=')
+//     {
+//         advanceCursor();
+//         return new Token{TOKEN_OPERATOR_LESS_EQUAL, "<="};
+//     }
+//     else if (op == ">" && current == '=')
+//     {
+//         advanceCursor();
+//         return new Token{TOKEN_OPERATOR_GREATER_EQUAL, ">="};
+//     }
+//     else if (op == "=" && current == '>')
+//     {
+//         advanceCursor();
+//         return new Token{TOKEN_SPACESHIP, "=>"};
+//     }
+//     else if (op == "=" && current == '/' && peakAhead(1) == '=')
+//     {
+//         advanceCursor();
+//         advanceCursor();
+//         return new Token{TOKEN_OPERATOR_DOESNT_EQUAL, "=/="};
+//     }
+//     else if (op == "." && current == '.' && peakAhead(1) == '.')
+//     {
+//         advanceCursor();
+//         advanceCursor();
+//         return new Token{TOKEN_NL_SYMBOL, "..."};
+//     }
+
+//     // Single-character operators
+//     // Using a more structured approach with a lookup table could be cleaner,
+//     // but this switch-like approach works well for clarity
+//     if (op == "+")
+//         return new Token{TOKEN_OPERATOR_ADD, "+"};
+//     if (op == "-")
+//         return new Token{TOKEN_OPERATOR_SUBT, "-"};
+//     if (op == "*")
+//         return new Token{TOKEN_OPERATOR_MULT, "*"};
+//     if (op == "/")
+//         return new Token{TOKEN_OPERATOR_DIV, "/"};
+//     if (op == "=")
+//         return new Token{TOKEN_EQUALS, "="};
+//     if (op == ";")
+//         return new Token{TOKEN_SEMICOLON, ";"};
+//     if (op == "(")
+//         return new Token{TOKEN_LEFT_PAREN, "("};
+//     if (op == ")")
+//         return new Token{TOKEN_RIGHT_PAREN, ")"};
+//     if (op == "<")
+//         return new Token{TOKEN_OPERATOR_LESSTHAN, "<"};
+//     if (op == ">")
+//         return new Token{TOKEN_OPERATOR_GREATERTHAN, ">"};
+//     if (op == "{")
+//         return new Token{TOKEN_LEFT_CURL, "{"};
+//     if (op == "}")
+//         return new Token{TOKEN_RIGHT_CURL, "}"};
+//     if (op == ",")
+//         return new Token{TOKEN_COMMA, ","};
+//     if (op == "%")
+//         return new Token{TOKEN_OPERATOR_MODULUS, "%"};
+
+//     throw std::runtime_error("Error: Unknown operator: " + op);
+// }
 Token *Lexer::processOperator()
 {
     std::string op(1, current);
-    advanceCursor();
 
-    // Handle two-character operators
-    if (op == "=" && current == '=')
-    {
-        advanceCursor();
-        return new Token{TOKEN_OPERATOR_EQUALS, "=="};
-    }
-    else if (op == ">" && current == '>' && peakAhead(1) == '$')
+    // Check for multi-character operators first
+    if (op == ">" && peakAhead(1) == '>' && peakAhead(2) == '$')
     {
         return processSingleLineComment();
     }
-    else if (op == "<" && current == '<' && peakAhead(1) == '$')
+    else if (op == "<" && peakAhead(1) == '<' && peakAhead(2) == '$')
     {
         return processMultiLineComment();
     }
-    else if (op == "+" && current == '=')
+
+    // Check for other potential multi-character operators
+    std::string potentialMultiChar = "";
+
+    // Check for 2-character operators
+    if (peakAhead(1) != '\0')
     {
-        advanceCursor();
-        return new Token{TOKEN_OPERATOR_ADD_ASSIGN, "+="};
-    }
-    else if (op == "+" && current == '+')
-    {
-        advanceCursor();
-        return new Token{TOKEN_OPERATOR_INCREMENT, "++"};
-    }
-    else if (op == "-" && current == '-')
-    {
-        advanceCursor();
-        return new Token{TOKEN_OPERATOR_DECREMENT, "--"};
-    }
-    else if (op == "<" && current == '=')
-    {
-        advanceCursor();
-        return new Token{TOKEN_OPERATOR_LESS_EQUAL, "<="};
-    }
-    else if (op == ">" && current == '=')
-    {
-        advanceCursor();
-        return new Token{TOKEN_OPERATOR_GREATER_EQUAL, ">="};
-    }
-    else if (op == "=" && current == '>')
-    {
-        advanceCursor();
-        return new Token{TOKEN_SPACESHIP, "=>"};
-    }
-    else if (op == "=" && current == '/' && peakAhead(1) == '=')
-    {
-        advanceCursor();
-        advanceCursor();
-        return new Token{TOKEN_OPERATOR_DOESNT_EQUAL, "=/="};
-    }
-    else if (op == "." && current == '.' && peakAhead(1) == '.')
-    {
-        advanceCursor();
-        advanceCursor();
-        return new Token{TOKEN_NL_SYMBOL, "..."};
+        potentialMultiChar = op + peakAhead(1);
+
+        // Check for 3-character operators
+        if (peakAhead(2) != '\0')
+        {
+            std::string threeCharOp = potentialMultiChar + peakAhead(2);
+
+            // Try to match 3-character operators
+            auto it3 = MultiCharMap.find(threeCharOp);
+            if (it3 != MultiCharMap.end())
+            {
+                advanceCursor(); // Skip first char
+                advanceCursor(); // Skip second char
+                advanceCursor(); // Skip third char
+                return new Token{it3->second, threeCharOp};
+            }
+        }
+
+        // Try to match 2-character operators
+        auto it2 = MultiCharMap.find(potentialMultiChar);
+        if (it2 != MultiCharMap.end())
+        {
+            advanceCursor(); // Skip first char
+            advanceCursor(); // Skip second char
+            return new Token{it2->second, potentialMultiChar};
+        }
     }
 
-    // Single-character operators
-    // Using a more structured approach with a lookup table could be cleaner,
-    // but this switch-like approach works well for clarity
-    if (op == "+")
-        return new Token{TOKEN_OPERATOR_ADD, "+"};
-    if (op == "-")
-        return new Token{TOKEN_OPERATOR_SUBT, "-"};
-    if (op == "*")
-        return new Token{TOKEN_OPERATOR_MULT, "*"};
-    if (op == "/")
-        return new Token{TOKEN_OPERATOR_DIV, "/"};
-    if (op == "=")
-        return new Token{TOKEN_EQUALS, "="};
-    if (op == ";")
-        return new Token{TOKEN_SEMICOLON, ";"};
-    if (op == "(")
-        return new Token{TOKEN_LEFT_PAREN, "("};
-    if (op == ")")
-        return new Token{TOKEN_RIGHT_PAREN, ")"};
-    if (op == "<")
-        return new Token{TOKEN_OPERATOR_LESSTHAN, "<"};
-    if (op == ">")
-        return new Token{TOKEN_OPERATOR_GREATERTHAN, ">"};
-    if (op == "{")
-        return new Token{TOKEN_LEFT_CURL, "{"};
-    if (op == "}")
-        return new Token{TOKEN_RIGHT_CURL, "}"};
-    if (op == ",")
-        return new Token{TOKEN_COMMA, ","};
-    if (op == "%")
-        return new Token{TOKEN_OPERATOR_MODULUS, "%"};
+    // It's a single character operator
+    advanceCursor(); // Consume the single character
+
+    // Try to match single character operators
+    auto it1 = singleCharMap.find(op[0]);
+    if (it1 != singleCharMap.end())
+    {
+        return new Token{it1->second, op};
+    }
 
     throw std::runtime_error("Error: Unknown operator: " + op);
 }
@@ -543,6 +601,92 @@ Token *Lexer::processInputType()
  * Identifies language keywords and user-defined identifiers.
  * Special handling for "begin:" with the colon as part of the token.
  */
+// Token *Lexer::processKeyword(std::vector<Token *> &tokens)
+// {
+//     (void)tokens; // Suppress unused parameter warning
+//     std::string keyword;
+
+//     // Collect identifier characters
+//     while (std::isalpha(current) || current == '_')
+//     {
+//         keyword += current;
+//         advanceCursor();
+//     }
+
+//     // Handle special case for "begin:"
+//     if (keyword == "begin" && current == ':')
+//     {
+//         advanceCursor(); // consume colon
+//         return new Token{TOKEN_KEYWORD_BEGIN, "begin"};
+//     }
+
+//     // Match against known keywords
+//     // Could be refactored to use a map or switch for better maintainability
+//     if (keyword == "proc")
+//     {
+//         return new Token{TOKEN_KEYWORD_FUNCTION, keyword};
+//     }
+//     else if (keyword == "input")
+//     {
+//         return new Token{TOKEN_KEYWORD_INPUT, keyword};
+//     }
+//     else if (keyword == "int")
+//     {
+//         return new Token{TOKEN_KEYWORD_INT, keyword};
+//     }
+//     else if (keyword == "double")
+//     {
+//         return new Token{TOKEN_KEYWORD_DOUBLE, keyword};
+//     }
+//     else if (keyword == "str")
+//     {
+//         return new Token{TOKEN_KEYWORD_STR, keyword};
+//     }
+//     else if (keyword == "check")
+//     {
+//         return new Token{TOKEN_KEYWORD_CHECK, keyword};
+//     }
+//     else if (keyword == "char")
+//     {
+//         return new Token{TOKEN_KEYWORD_CHAR, keyword};
+//     }
+//     else if (keyword == "out_to_console")
+//     {
+//         return new Token{TOKEN_KEYWORD_PRINT, keyword};
+//     }
+//     else if (keyword == "if")
+//     {
+//         return new Token{TOKEN_KEYWORD_IF, keyword};
+//     }
+//     else if (keyword == "else")
+//     {
+//         return new Token{TOKEN_KEYWORD_ELSE, keyword};
+//     }
+//     else if (keyword == "for")
+//     {
+//         return new Token{TOKEN_KEYWORD_FOR, keyword};
+//     }
+//     else if (keyword == "end")
+//     {
+//         return new Token{TOKEN_EOF, keyword};
+//     }
+//     else if (keyword == "bool")
+//     {
+//         return new Token{TOKEN_KEYWORD_BOOL, keyword};
+//     }
+//     else if (keyword == "result")
+//     {
+//         return new Token{TOKEN_KEYWORD_RESULT, keyword};
+//     }
+//     else if (keyword == "elements")
+//     {
+//         return new Token{TOKEN_KEYWORD_ELEMENT, keyword};
+//     }
+//     else
+//     {
+//         return new Token{TOKEN_IDENTIFIER, keyword};
+//     }
+// }
 Token *Lexer::processKeyword(std::vector<Token *> &tokens)
 {
     (void)tokens; // Suppress unused parameter warning
@@ -562,72 +706,26 @@ Token *Lexer::processKeyword(std::vector<Token *> &tokens)
         return new Token{TOKEN_KEYWORD_BEGIN, "begin"};
     }
 
-    // Match against known keywords
-    // Could be refactored to use a map or switch for better maintainability
-    if (keyword == "proc")
+    // Look up in keyword map
+    auto it = KeywordMap.find(keyword);
+    if (it != KeywordMap.end())
     {
-        return new Token{TOKEN_KEYWORD_FUNCTION, keyword};
+        Token *token = new Token{it->second, keyword};
+
+        // Special handling for input and element keywords
+        if ((token->TYPE == TOKEN_KEYWORD_INPUT || token->TYPE == TOKEN_KEYWORD_ELEMENT) && (current == '<'))
+        {
+            if (token->TYPE == TOKEN_KEYWORD_ELEMENT)
+            {
+                isArrayType = true;
+            }
+        }
+
+        return token;
     }
-    else if (keyword == "input")
-    {
-        return new Token{TOKEN_KEYWORD_INPUT, keyword};
-    }
-    else if (keyword == "int")
-    {
-        return new Token{TOKEN_KEYWORD_INT, keyword};
-    }
-    else if (keyword == "double")
-    {
-        return new Token{TOKEN_KEYWORD_DOUBLE, keyword};
-    }
-    else if (keyword == "str")
-    {
-        return new Token{TOKEN_KEYWORD_STR, keyword};
-    }
-    else if (keyword == "check")
-    {
-        return new Token{TOKEN_KEYWORD_CHECK, keyword};
-    }
-    else if (keyword == "char")
-    {
-        return new Token{TOKEN_KEYWORD_CHAR, keyword};
-    }
-    else if (keyword == "out_to_console")
-    {
-        return new Token{TOKEN_KEYWORD_PRINT, keyword};
-    }
-    else if (keyword == "if")
-    {
-        return new Token{TOKEN_KEYWORD_IF, keyword};
-    }
-    else if (keyword == "else")
-    {
-        return new Token{TOKEN_KEYWORD_ELSE, keyword};
-    }
-    else if (keyword == "for")
-    {
-        return new Token{TOKEN_KEYWORD_FOR, keyword};
-    }
-    else if (keyword == "end")
-    {
-        return new Token{TOKEN_EOF, keyword};
-    }
-    else if (keyword == "bool")
-    {
-        return new Token{TOKEN_KEYWORD_BOOL, keyword};
-    }
-    else if (keyword == "result")
-    {
-        return new Token{TOKEN_KEYWORD_RESULT, keyword};
-    }
-    else if (keyword == "elements")
-    {
-        return new Token{TOKEN_KEYWORD_ELEMENT, keyword};
-    }
-    else
-    {
-        return new Token{TOKEN_IDENTIFIER, keyword};
-    }
+
+    // If not found in keyword map, it's an identifier
+    return new Token{TOKEN_IDENTIFIER, keyword};
 }
 
 /**
