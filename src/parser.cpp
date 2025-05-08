@@ -991,74 +991,74 @@ AST_NODE *Parser::parseDoesntEqual()
 // Data Structure Handling Methods
 //-------------------------------------------------------------------
 
-AST_NODE *Parser::parseKeywordInput()
-{
-    // Create a node for input keyword
-    AST_NODE *node = new AST_NODE();
-    node->TYPE = NODE_ELEMENT;
-    node->VALUE = "elements";
+// AST_NODE *Parser::parseKeywordInput()
+// {
+//     // Create a node for input keyword
+//     AST_NODE *node = new AST_NODE();
+//     node->TYPE = NODE_ELEMENT;
+//     node->VALUE = "elements";
 
-    proceed(TOKEN_KEYWORD_ELEMENT);
+//     proceed(TOKEN_KEYWORD_ELEMENT);
 
-    if (current->TYPE != TOKEN_ELEMENT_TYPE)
-    {
-        std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
-        exit(1);
-    }
+//     if (current->TYPE != TOKEN_ELEMENT_TYPE)
+//     {
+//         std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
+//         exit(1);
+//     }
 
-    // Parse the input type (already parsed by lexer as TOKEN_INPUT_TYPE)
-    AST_NODE *inputType = new AST_NODE();
-    inputType->TYPE = NODE_INPUT_TYPE;
-    inputType->VALUE = current->value;
-    node->CHILD = inputType;
+//     // Parse the input type (already parsed by lexer as TOKEN_INPUT_TYPE)
+//     AST_NODE *inputType = new AST_NODE();
+//     inputType->TYPE = NODE_INPUT_TYPE;
+//     inputType->VALUE = current->value;
+//     node->CHILD = inputType;
 
-    proceed(TOKEN_INPUT_TYPE);
+//     proceed(TOKEN_INPUT_TYPE);
 
-    if (current->TYPE != TOKEN_LEFT_PAREN)
-    {
-        std::cerr << "< Syntax Error > Expected '(' following input." << std::endl;
-        exit(1);
-    }
-    proceed(TOKEN_LEFT_PAREN);
+//     if (current->TYPE != TOKEN_LEFT_PAREN)
+//     {
+//         std::cerr << "< Syntax Error > Expected '(' following input." << std::endl;
+//         exit(1);
+//     }
+//     proceed(TOKEN_LEFT_PAREN);
 
-    AST_NODE *promptNode = new AST_NODE();
-    promptNode->TYPE = NODE_INPUT_PROMPT;
-    promptNode->CHILD = parseExpression();
+//     AST_NODE *promptNode = new AST_NODE();
+//     promptNode->TYPE = NODE_INPUT_PROMPT;
+//     promptNode->CHILD = parseExpression();
 
-    node->SUB_STATEMENTS.push_back(promptNode);
+//     node->SUB_STATEMENTS.push_back(promptNode);
 
-    if (current->TYPE != TOKEN_RIGHT_PAREN)
-    {
-        std::cerr << "< Syntax Error > Expected ')' follwing the prompt" << std::endl;
-        exit(1);
-    }
-    proceed(TOKEN_RIGHT_PAREN);
-    // Expect spaceship operator (=>)
-    if (current->TYPE != TOKEN_SPACESHIP)
-    {
-        std::cerr << "< Syntax Error > Expected '=>' after input prompt" << std::endl;
-        exit(1);
-    }
-    proceed(TOKEN_SPACESHIP);
+//     if (current->TYPE != TOKEN_RIGHT_PAREN)
+//     {
+//         std::cerr << "< Syntax Error > Expected ')' follwing the prompt" << std::endl;
+//         exit(1);
+//     }
+//     proceed(TOKEN_RIGHT_PAREN);
+//     // Expect spaceship operator (=>)
+//     if (current->TYPE != TOKEN_SPACESHIP)
+//     {
+//         std::cerr << "< Syntax Error > Expected '=>' after input prompt" << std::endl;
+//         exit(1);
+//     }
+//     proceed(TOKEN_SPACESHIP);
 
-    // Expect variable name
-    if (current->TYPE != TOKEN_IDENTIFIER)
-    {
-        std::cerr << "< Syntax Error > Expected variable name after '=>'" << std::endl;
-        exit(1);
-    }
+//     // Expect variable name
+//     if (current->TYPE != TOKEN_IDENTIFIER)
+//     {
+//         std::cerr << "< Syntax Error > Expected variable name after '=>'" << std::endl;
+//         exit(1);
+//     }
 
-    // Create a variable node and add it to sub-statements
-    AST_NODE *varNode = new AST_NODE();
-    varNode->TYPE = NODE_IDENTIFIER;
-    varNode->VALUE = current->value;
+//     // Create a variable node and add it to sub-statements
+//     AST_NODE *varNode = new AST_NODE();
+//     varNode->TYPE = NODE_IDENTIFIER;
+//     varNode->VALUE = current->value;
 
-    promptNode->SUB_STATEMENTS.push_back(varNode);
+//     promptNode->SUB_STATEMENTS.push_back(varNode);
 
-    proceed(TOKEN_IDENTIFIER);
+//     proceed(TOKEN_IDENTIFIER);
 
-    return node;
-}
+//     return node;
+// }
 
 //-------------------------------------------------------------------
 // Function Handling methods

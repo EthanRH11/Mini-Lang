@@ -1,6 +1,2 @@
-Compilation started at Sat May  3 21:11:44 EDT 2025
-../src/lexer.cpp: In member function ‘std::vector<Token*> Lexer::tokenize()’:
-../src/lexer.cpp:611:96: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
-  611 |                 if (token->TYPE == TOKEN_KEYWORD_INPUT || token->TYPE == TOKEN_KEYWORD_ELEMENT && current == '<')
-      |                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~
-Test Log Entry Sat May  3 21:11:46 EDT 2025
+Compilation started at Wed May  7 21:20:44 EDT 2025
+Test Log Entry Wed May  7 21:20:49 EDT 2025

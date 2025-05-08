@@ -21,6 +21,8 @@ Lexer::Lexer(std::string sourceCode)
     cursor = 0;
     current = sourceCode.at(cursor);
     size = sourceCode.length();
+
+    isArrayType = false;
 }
 
 /**
@@ -520,7 +522,7 @@ Token *Lexer::processInputType()
             typeName == "str" ||
             typeName == "bool")
         {
-            return new Token{isArrayType ? TOKEN_INPUT_TYPE : TOKEN_ELEMENT_TYPE, typeName};
+            return new Token{isArrayType ? TOKEN_ELEMENT_TYPE : TOKEN_INPUT_TYPE, typeName};
         }
         else
         {
@@ -665,7 +667,7 @@ std::vector<Token *> Lexer::tokenize()
                     isArrayType = true;
                 }
 
-                if (token->TYPE == TOKEN_KEYWORD_INPUT || token->TYPE == TOKEN_KEYWORD_ELEMENT && current == '<')
+                if ((token->TYPE == TOKEN_KEYWORD_INPUT || token->TYPE == TOKEN_KEYWORD_ELEMENT) && (current == '<'))
                 {
                     Token *typeToken = processInputType();
                     if (isArrayType)
