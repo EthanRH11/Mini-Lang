@@ -156,7 +156,7 @@ public:
     Token *processNumber();
 
     // Handles keywords and identifiers
-    Token *processKeyword(std::vector<Token *> &);
+    Token *processKeyword();
 
     // Checks if the end of the input has been reached
     bool eof() const;
@@ -173,6 +173,7 @@ private:
     std::unordered_map<char, tokenType> singleCharMap;
     std::unordered_map<std::string, tokenType> MultiCharMap;
     std::unordered_map<std::string, tokenType> KeywordMap;
+    std::unordered_map<std::string, tokenType> TokenMap;
 
     void initializeLexerMaps();
 
