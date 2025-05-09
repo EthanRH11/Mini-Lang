@@ -48,6 +48,10 @@ void Lexer::initializeLexerMaps()
         {'{', TOKEN_LEFT_CURL},
         {'}', TOKEN_RIGHT_CURL},
         {',', TOKEN_COMMA},
+        {'#', TOKEN_ARRAY_LENGTH},
+        {'@', TOKEN_ARRAY_ACCESS},
+        {'$', TOKEN_ARRAY_LAST_INDEX},
+        {'.', TOKEN_DOT},
         {'%', TOKEN_OPERATOR_MODULUS}};
 
     MultiCharMap = {
@@ -61,6 +65,12 @@ void Lexer::initializeLexerMaps()
         {"<=", TOKEN_OPERATOR_LESS_EQUAL},
         {">=", TOKEN_OPERATOR_GREATER_EQUAL},
         {"=>", TOKEN_SPACESHIP},
+        {"|=", TOKEN_ARRAY_INITIALIZER},
+        {"..", TOKEN_OPERATOR_ARRAYRANGE},
+        {"+>", TOKEN_ARRAY_INSERT},
+        {"-<", TOKEN_ARRAY_REMOVE},
+        {"~>", TOKEN_ARRAY_SORT_ASC},
+        {"<~", TOKEN_ARRAY_SORT_DESC},
         {"=/=", TOKEN_OPERATOR_DOESNT_EQUAL}};
 
     KeywordMap = {
@@ -79,60 +89,9 @@ void Lexer::initializeLexerMaps()
         {"end", TOKEN_EOF},
         {"bool", TOKEN_KEYWORD_BOOL},
         {"result", TOKEN_KEYWORD_RESULT},
-        {"elements", TOKEN_KEYWORD_ELEMENT}};
-
-    // TokenMap = {
-    //     {"TOKEN_INTEGER_VAL", TOKEN_INTEGER_VAL},
-    //     {"TOKEN_DOUBLE_VAL", TOKEN_DOUBLE_VAL},
-    //     {"TOKEN_CHAR_VAL", TOKEN_CHAR_VAL},
-    //     {"TOKEN_STRING_VAL", TOKEN_STRING_VAL},
-    //     {"TOKEN_EQUALS", TOKEN_EQUALS},
-    //     {"TOKEN_OPERATOR_ADD", TOKEN_OPERATOR_ADD},
-    //     {"TOKEN_OPERATOR_SUBT", TOKEN_OPERATOR_SUBT},
-    //     {"TOKEN_OPERATOR_MULT", TOKEN_OPERATOR_MULT},
-    //     {"TOKEN_OPERATOR_DIV", TOKEN_OPERATOR_DIV},
-    //     {"TOKEN_SEMICOLON", TOKEN_SEMICOLON},
-    //     {"TOKEN_LEFT_PAREN", TOKEN_LEFT_PAREN},
-    //     {"TOKEN_RIGHT_PAREN", TOKEN_RIGHT_PAREN},
-    //     {"TOKEN_KEYWORD_INT", TOKEN_KEYWORD_INT},
-    //     {"TOKEN_KEYWORD_DOUBLE", TOKEN_KEYWORD_DOUBLE},
-    //     {"TOKEN_KEYWORD_CHAR", TOKEN_KEYWORD_CHAR},
-    //     {"TOKEN_KEYWORD_STR", TOKEN_KEYWORD_STR},
-    //     {"TOKEN_KEYWORD_PRINT", TOKEN_KEYWORD_PRINT},
-    //     {"TOKEN_IDENTIFIER", TOKEN_IDENTIFIER},
-    //     {"TOKEN_EOF", TOKEN_EOF},
-    //     {"TOKEN_OPERATOR_LESSTHAN", TOKEN_OPERATOR_LESSTHAN},
-    //     {"TOKEN_OPERATOR_GREATERTHAN", TOKEN_OPERATOR_GREATERTHAN},
-    //     {"TOKEN_RIGHT_CURL", TOKEN_RIGHT_CURL},
-    //     {"TOKEN_LEFT_CURL", TOKEN_LEFT_CURL},
-    //     {"TOKEN_KEYWORD_IF", TOKEN_KEYWORD_IF},
-    //     {"TOKEN_KEYWORD_ELSE", TOKEN_KEYWORD_ELSE},
-    //     {"TOKEN_OPERATOR_LESS_EQUAL", TOKEN_OPERATOR_LESS_EQUAL},
-    //     {"TOKEN_OPERATOR_GREATER_EQUAL", TOKEN_OPERATOR_GREATER_EQUAL},
-    //     {"TOKEN_OPERATOR_EQUALS", TOKEN_OPERATOR_EQUALS},
-    //     {"TOKEN_OPERATOR_ADD_ASSIGN", TOKEN_OPERATOR_ADD_ASSIGN},
-    //     {"TOKEN_KEYWORD_FOR", TOKEN_KEYWORD_FOR},
-    //     {"TOKEN_OPERATOR_INCREMENT", TOKEN_OPERATOR_INCREMENT},
-    //     {"TOKEN_OPERATOR_DECREMENT", TOKEN_OPERATOR_DECREMENT},
-    //     {"TOKEN_OPERATOR_NEWLINE", TOKEN_OPERATOR_NEWLINE},
-    //     {"TOKEN_KEYWORD_BEGIN", TOKEN_KEYWORD_BEGIN},
-    //     {"TOKEN_SPACESHIP", TOKEN_SPACESHIP},
-    //     {"TOKEN_KEYWORD_PROC", TOKEN_KEYWORD_FUNCTION},
-    //     {"TOKEN_COMMA", TOKEN_COMMA},
-    //     {"TOKEN_OPERATOR_DOESNT_EQUAL", TOKEN_OPERATOR_DOESNT_EQUAL},
-    //     {"TOKEN_OPERATOR_MODULUS", TOKEN_OPERATOR_MODULUS},
-    //     {"TOKEN_NL_SYMBOL", TOKEN_NL_SYMBOL},
-    //     {"TOKEN_KEYWORD_BOOL", TOKEN_KEYWORD_BOOL},
-    //     {"TOKEN_BOOL_VALUE", TOKEN_BOOL_VALUE},
-    //     {"TOKEN_KEYWORD_RESULT", TOKEN_KEYWORD_RESULT},
-    //     {"TOKEN_SINGLELINE_COMMENT", TOKEN_SINGLELINE_COMMENT},
-    //     {"TOKEN_MULTILINE_COMMENT", TOKEN_MULTILINE_COMMENT},
-    //     {"TOKEN_KEYWORD_INPUT", TOKEN_KEYWORD_INPUT},
-    //     {"TOKEN_INPUT_TYPE", TOKEN_INPUT_TYPE},
-    //     {"TOKEN_KEYWORD_CHECK", TOKEN_KEYWORD_CHECK},
-    //     {"TOKEN_KEYWORD_ELEMENT", TOKEN_KEYWORD_ELEMENT},
-    //     {"TOKEN_ELEMENT_TYPE", TOKEN_ELEMENT_TYPE},
-    // };
+        {"elements", TOKEN_KEYWORD_ELEMENT},
+        {"repeat", TOKEN_KEYWORD_REPEAT},
+        {"range", TOKEN_KEYWORD_RANGE}};
 }
 
 /**
@@ -315,18 +274,27 @@ Token *Lexer::processNumber()
     bool isDouble = false;
 
     // Collect digits and at most one decimal point
-    while (std::isdigit(current) || current == '.')
+    while (std::isdigit(current))
     {
-        if (current == '.')
+        number += current;
+        advanceCursor();
+    }
+
+    if (current == '.')
+    {
+        if (peakAhead(1) == '.')
         {
-            if (isDouble)
-            {
-                throw std::runtime_error("Error: Invalid number format with multiple decimals.");
-            }
-            isDouble = true;
+            return new Token{TOKEN_INTEGER_VAL, number};
         }
         number += current;
         advanceCursor();
+        isDouble = true;
+
+        while (std::isdigit(current))
+        {
+            number += current;
+            advanceCursor();
+        }
     }
 
     // Create appropriate token based on whether a decimal point was found
@@ -576,10 +544,19 @@ Token *Lexer::processKeyword()
         return new Token{TOKEN_KEYWORD_BEGIN, "begin"};
     }
 
+    // Debug print for "range" and "repeat"
+    if (keyword == "range" || keyword == "repeat")
+    {
+        std::cerr << "DEBUG: Found keyword '" << keyword << "'" << std::endl;
+    }
+
     // Look up in keyword map
     auto it = KeywordMap.find(keyword);
     if (it != KeywordMap.end())
     {
+        std::cerr << "DEBUG: Found in KeywordMap: " << keyword << " -> "
+                  << getTokenTypeName(it->second) << std::endl;
+
         Token *token = new Token{it->second, keyword};
 
         // Special handling for input and element keywords
@@ -594,9 +571,54 @@ Token *Lexer::processKeyword()
         return token;
     }
 
+    // If "range" or "repeat" wasn't found in the map, log that too
+    if (keyword == "range" || keyword == "repeat")
+    {
+        std::cerr << "DEBUG: '" << keyword << "' NOT found in KeywordMap" << std::endl;
+    }
+
     // If not found in keyword map, it's an identifier
     return new Token{TOKEN_IDENTIFIER, keyword};
 }
+// Token *Lexer::processKeyword()
+// {
+//     std::string keyword;
+
+//     // Collect identifier characters
+//     while (std::isalpha(current) || current == '_')
+//     {
+//         keyword += current;
+//         advanceCursor();
+//     }
+
+//     // Handle special case for "begin:"
+//     if (keyword == "begin" && current == ':')
+//     {
+//         advanceCursor(); // consume colon
+//         return new Token{TOKEN_KEYWORD_BEGIN, "begin"};
+//     }
+
+//     // Look up in keyword map
+//     auto it = KeywordMap.find(keyword);
+//     if (it != KeywordMap.end())
+//     {
+//         Token *token = new Token{it->second, keyword};
+
+//         // Special handling for input and element keywords
+//         if ((token->TYPE == TOKEN_KEYWORD_INPUT || token->TYPE == TOKEN_KEYWORD_ELEMENT) && (current == '<'))
+//         {
+//             if (token->TYPE == TOKEN_KEYWORD_ELEMENT)
+//             {
+//                 isArrayType = true;
+//             }
+//         }
+
+//         return token;
+//     }
+
+//     // If not found in keyword map, it's an identifier
+//     return new Token{TOKEN_IDENTIFIER, keyword};
+// }
 
 /**
  * @brief Main tokenization method that processes the entire source code
@@ -743,7 +765,19 @@ std::string getTokenTypeName(tokenType type)
         {TOKEN_INPUT_TYPE, "TOKEN_INPUT_TYPE"},
         {TOKEN_KEYWORD_CHECK, "TOKEN_KEYWORD_CHECK"},
         {TOKEN_KEYWORD_ELEMENT, "TOKEN_KEYWORD_ELEMENT"},
-        {TOKEN_ELEMENT_TYPE, "TOKEN_ELEMENT_TYPE"}};
+        {TOKEN_ARRAY_INITIALIZER, "TOKEN_ARRAY_INITIALIZER"},
+        {TOKEN_OPERATOR_ARRAYRANGE, "TOKEN_OPERATOR_ARRAYRANGE"},
+        {TOKEN_ARRAY_LENGTH, "TOKEN_ARRAY_LENGTH"},
+        {TOKEN_ARRAY_ACCESS, "TOKEN_ARRAY_ACCESS"},
+        {TOKEN_ARRAY_LAST_INDEX, "TOKEN_ARRAY_LAST_INDEX"},
+        {TOKEN_ARRAY_INSERT, "TOKEN_ARRAY_INSERT"},
+        {TOKEN_ARRAY_REMOVE, "TOKEN_ARRAY_REMOVE"},
+        {TOKEN_ARRAY_SORT_ASC, "TOKEN_ARRAY_SORT_ASC"},
+        {TOKEN_ARRAY_SORT_DESC, "TOKEN_ARRAY_SORT_DESC"},
+        {TOKEN_ELEMENT_TYPE, "TOKEN_ELEMENT_TYPE"},
+        {TOKEN_KEYWORD_RANGE, "TOKEN_KEYWORD_RANGE"},
+        {TOKEN_DOT, "TOKEN_DOT"},
+        {TOKEN_KEYWORD_REPEAT, "TOKEN_KEYWORD_REPEAT"}};
 
     auto it = tokenTypeNames.find(type);
     if (it != tokenTypeNames.end())

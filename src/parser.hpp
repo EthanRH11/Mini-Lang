@@ -142,6 +142,8 @@ public:
         cursor = 0;
         size = tokens.size();
         current = tokens[0];
+
+        initializeParserMaps();
     }
 
     /**
@@ -157,6 +159,21 @@ private:
     size_t cursor;               // Current position in the token stream
     size_t size;                 // Total number of tokens
     Token *current;              // Current token being processed
+
+    using ParseFunction = AST_NODE *(Parser::*)();
+
+    std::unordered_map<tokenType, ParseFunction> statementDispatch;
+    std::unordered_map<tokenType, ParseFunction> expressionDispatch;
+    std::unordered_map<tokenType, int> operatorPrecedence;
+    std::unordered_map<tokenType, NODE_TYPE> tokenToNodeType;
+
+    /**
+     * @brief Initialize dispatch tables and maps for token processing
+     *
+     * Sets up maps for token-to-function dispatching, operator precedence,
+     * and token-to-node-type conversion to improve parsing efficency
+     */
+    void initializeParserMaps();
 
     /**
      * @brief Advances to the next token if the current token matches the expected type
@@ -262,6 +279,14 @@ private:
     // General statement parsing
     AST_NODE *parseStatement();
 
+    // Array parsing
+    AST_NODE *parseKeywordRange();
+    AST_NODE *parseKeywordRepeat();
+
+    AST_NODE *parseArrayAccess();
+    AST_NODE *parseArrayLength();
+    AST_NODE *parseDot();
+
     /**
      * @brief parses an array decleration
      */
@@ -301,6 +326,15 @@ private:
      * Handles the block of statements enclosed in { }.
      */
     AST_NODE *parseFunctionBody();
+
+    AST_NODE *parseArrayAccess();
+    AST_NODE *parseArrayLength();
+    AST_NODE *parseDot();
+    AST_NODE *parseKeywordRange();
+    AST_NODE *parseKeywordRepeat();
+    AST_NODE *parseKeywordElement();
+
+    AST_NODE *parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dispatchTable);
 };
 
 /**

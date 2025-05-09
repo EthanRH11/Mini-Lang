@@ -12,84 +12,96 @@
 enum tokenType
 {
     // Identifiers
-    TOKEN_IDENTIFIER = 0, // User-defined identifier
+    TOKEN_IDENTIFIER, // User-defined identifier
 
     // Literals
-    TOKEN_INTEGER_VAL = 1, // Integer literals
-    TOKEN_DOUBLE_VAL = 2,  // Double (floating-point) literals
-    TOKEN_CHAR_VAL = 3,    // Character literals
-    TOKEN_STRING_VAL = 4,  // String literals
-    TOKEN_BOOL_VALUE = 42, // Bool literals
+    TOKEN_INTEGER_VAL, // Integer literals
+    TOKEN_DOUBLE_VAL,  // Double (floating-point) literals
+    TOKEN_CHAR_VAL,    // Character literals
+    TOKEN_STRING_VAL,  // String literals
+    TOKEN_BOOL_VALUE,  // Bool literals
 
     // Basic Operators
-    TOKEN_EQUALS = 5,            // Assignment '='
-    TOKEN_OPERATOR_ADD = 6,      // Addition '+'
-    TOKEN_OPERATOR_SUBT = 7,     // Subtraction '-'
-    TOKEN_OPERATOR_MULT = 8,     // Multiplication '*'
-    TOKEN_OPERATOR_DIV = 9,      // Division '/'
-    TOKEN_OPERATOR_MODULUS = 38, // Modulus '%'
+    TOKEN_EQUALS,           // Assignment '='
+    TOKEN_OPERATOR_ADD,     // Addition '+'
+    TOKEN_OPERATOR_SUBT,    // Subtraction '-'
+    TOKEN_OPERATOR_MULT,    // Multiplication '*'
+    TOKEN_OPERATOR_DIV,     // Division '/'
+    TOKEN_OPERATOR_MODULUS, // Modulus '%'
 
     // Punctuation
-    TOKEN_SEMICOLON = 10,   // Semicolon ';'
-    TOKEN_LEFT_PAREN = 11,  // Left parenthesis '('
-    TOKEN_RIGHT_PAREN = 12, // Right parenthesis ')'
+    TOKEN_SEMICOLON,   // Semicolon ';'
+    TOKEN_LEFT_PAREN,  // Left parenthesis '('
+    TOKEN_RIGHT_PAREN, // Right parenthesis ')'
 
     // Keywords
-    TOKEN_KEYWORD_INT = 13,    // 'int' keyword
-    TOKEN_KEYWORD_DOUBLE = 14, // 'double' keyword
-    TOKEN_KEYWORD_CHAR = 15,   // 'char' keyword
-    TOKEN_KEYWORD_STR = 16,    // 'str' keyword
-    TOKEN_KEYWORD_PRINT = 17,  // 'print' keyword
-    TOKEN_KEYWORD_INPUT = 46,  //'input' keyword
-    TOKEN_INPUT_TYPE = 47,     //<type>
-    TOKEN_KEYWORD_BOOL = 41,   //'bool' keyword
-    TOKEN_KEYWORD_RESULT = 43, //"result" keywords
+    TOKEN_KEYWORD_INT,    // 'int' keyword
+    TOKEN_KEYWORD_DOUBLE, // 'double' keyword
+    TOKEN_KEYWORD_CHAR,   // 'char' keyword
+    TOKEN_KEYWORD_STR,    // 'str' keyword
+    TOKEN_KEYWORD_PRINT,  // 'print' keyword
+    TOKEN_KEYWORD_INPUT,  //'input' keyword
+    TOKEN_INPUT_TYPE,     //<type>
+    TOKEN_KEYWORD_BOOL,   //'bool' keyword
+    TOKEN_KEYWORD_RESULT, //"result" keywords
 
     // newline operator
-    TOKEN_NL_SYMBOL = 40, //'...' new line
+    TOKEN_NL_SYMBOL, //'...' new line
 
     // Special Tokens
-    TOKEN_EOF = 18, // End of file/input
+    TOKEN_EOF, // End of file/input
 
     // Comparison Operators
-    TOKEN_OPERATOR_LESSTHAN = 19,      // '<'
-    TOKEN_OPERATOR_GREATERTHAN = 20,   // '>'
-    TOKEN_OPERATOR_LESS_EQUAL = 21,    // '<='
-    TOKEN_OPERATOR_GREATER_EQUAL = 22, // '>='
-    TOKEN_OPERATOR_EQUALS = 23,        // '='
-    TOKEN_OPERATOR_DOESNT_EQUAL = 39,  //'=/='
+    TOKEN_OPERATOR_LESSTHAN,      // '<'
+    TOKEN_OPERATOR_GREATERTHAN,   // '>'
+    TOKEN_OPERATOR_LESS_EQUAL,    // '<='
+    TOKEN_OPERATOR_GREATER_EQUAL, // '>='
+    TOKEN_OPERATOR_EQUALS,        // '='
+    TOKEN_OPERATOR_DOESNT_EQUAL,  //'=/='
 
     // Braces
-    TOKEN_RIGHT_CURL = 24, // Right curly brace '}'
-    TOKEN_LEFT_CURL = 25,  // Left curly brace '{'
+    TOKEN_RIGHT_CURL, // Right curly brace '}'
+    TOKEN_LEFT_CURL,  // Left curly brace '{'
 
     // Control Flow
-    TOKEN_KEYWORD_IF = 26,    // 'if' keyword
-    TOKEN_KEYWORD_ELSE = 27,  // 'else' keyword
-    TOKEN_KEYWORD_FOR = 28,   // 'for' keyword
-    TOKEN_KEYWORD_BEGIN = 29, // 'begin' keyword (if you support block-starts)
+    TOKEN_KEYWORD_IF,    // 'if' keyword
+    TOKEN_KEYWORD_ELSE,  // 'else' keyword
+    TOKEN_KEYWORD_FOR,   // 'for' keyword
+    TOKEN_KEYWORD_BEGIN, // 'begin' keyword (if you support block-starts)
 
     // Compound Assignment and Unary Operators
-    TOKEN_OPERATOR_ADD_ASSIGN = 30, // '+='
-    TOKEN_OPERATOR_INCREMENT = 31,  // '++'
-    TOKEN_OPERATOR_DECREMENT = 32,  // '--'
+    TOKEN_OPERATOR_ADD_ASSIGN, // '+='
+    TOKEN_OPERATOR_INCREMENT,  // '++'
+    TOKEN_OPERATOR_DECREMENT,  // '--'
 
     // Miscellaneous
-    TOKEN_OPERATOR_NEWLINE = 33, // Newline as a token (if needed)
-    TOKEN_SPACESHIP = 34,        // '=>' (spaceship operator)
-    TOKEN_KEYWORD_FUNCTION = 35, // 'function' keyword
-    TOKEN_FUNCTION_PARAMS = 36,  // Special token for function parameters
-    TOKEN_COMMA = 37,            // PARAM seperator
+    TOKEN_OPERATOR_NEWLINE, // Newline as a token (if needed)
+    TOKEN_SPACESHIP,        // '=>' (spaceship operator)
+    TOKEN_KEYWORD_FUNCTION, // 'function' keyword
+    TOKEN_FUNCTION_PARAMS,  // Special token for function parameters
+    TOKEN_COMMA,            // PARAM seperator
 
     // Commenting
-    TOKEN_SINGLELINE_COMMENT = 44, // Single line comment
-    TOKEN_MULTILINE_COMMENT = 45,  // Multiline comments
+    TOKEN_SINGLELINE_COMMENT, // Single line comment
+    TOKEN_MULTILINE_COMMENT,  // Multiline comments
 
     // While Loops
-    TOKEN_KEYWORD_CHECK = 48, // Keyword 'repeat'
+    TOKEN_KEYWORD_CHECK, // Keyword 'repeat'
 
-    TOKEN_KEYWORD_ELEMENT = 49,
-    TOKEN_ELEMENT_TYPE = 50,
+    TOKEN_KEYWORD_ELEMENT,
+    TOKEN_DOT,
+    TOKEN_KEYWORD_REPEAT,
+    TOKEN_KEYWORD_RANGE,
+    TOKEN_ELEMENT_TYPE,
+    TOKEN_ARRAY_INITIALIZER,
+    TOKEN_OPERATOR_ARRAYRANGE,
+    TOKEN_ARRAY_LENGTH,
+    TOKEN_ARRAY_ACCESS,
+    TOKEN_ARRAY_LAST_INDEX,
+    TOKEN_ARRAY_INSERT,
+    TOKEN_ARRAY_REMOVE,
+    TOKEN_ARRAY_SORT_ASC,
+    TOKEN_ARRAY_SORT_DESC,
 
 };
 

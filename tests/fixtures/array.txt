@@ -4,13 +4,14 @@ begin:
     elements<int> integerArray;
 
 >>$ Initialize an array
+>>$ Creates an array like [1, 2, 3, 4, 5, 6,]
     integerArray |= (1, 2, 3, 4, 5, 6);
 
 >>$ Initialize an array within a range
-integerArray |= repeat(0, 10);  >>$Creates  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]
+integerArray = repeat(0, 10);  >>$Creates  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]
 
 >>$ Initialize within a range
-integerArray |= range(1..10);   >>$ Creates [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+integerArray = range(1..10);   >>$ Creates [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 >>$ Get a single element at specific index
     int first = integerArray@(3)
