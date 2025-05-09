@@ -1855,6 +1855,7 @@ AST_NODE *Parser::parseKeywordFor()
 
     return node;
 }
+
 /**
  * @brief Parses a term (atomic element of an expression)
  * @return AST node representing the term
