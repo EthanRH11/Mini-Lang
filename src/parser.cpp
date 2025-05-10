@@ -1,5 +1,6 @@
 #include "parser.hpp"
 #include "lexer.hpp"
+#include "dynamic_array.hpp"
 #include <iostream>
 
 /**
@@ -44,7 +45,15 @@ void Parser::initializeParserMaps()
         {TOKEN_KEYWORD_INPUT, &Parser::parseKeywordInput},
         {TOKEN_KEYWORD_ELEMENT, &Parser::parseKeywordElement},
         {TOKEN_KEYWORD_RANGE, &Parser::parseKeywordRange},
-        {TOKEN_KEYWORD_REPEAT, &Parser::parseKeywordRepeat}};
+        {TOKEN_KEYWORD_REPEAT, &Parser::parseKeywordRepeat},
+        {TOKEN_KEYWORD_ELEMENT, &Parser::parseArrayDeclaration},
+        {TOKEN_ARRAY_INITIALIZER, &Parser::parseArrayInit},
+        {TOKEN_ARRAY_ACCESS, &Parser::parseArrayAccess},
+        {TOKEN_ARRAY_LENGTH, &Parser::parseArrayLength},
+        {TOKEN_ARRAY_INSERT, &Parser::parseArrayInsert},
+        {TOKEN_ARRAY_REMOVE, &Parser::parseArrayRemove},
+        {TOKEN_ARRAY_SORT_ASC, &Parser::parseArraySortAsc},
+        {TOKEN_ARRAY_SORT_DESC, &Parser::parseArraySortDesc}};
 
     // Initialize expression dispatch table
     expressionDispatch = {
@@ -62,7 +71,9 @@ void Parser::initializeParserMaps()
         {TOKEN_OPERATOR_SUBT, &Parser::parseSubt},
         {TOKEN_ARRAY_ACCESS, &Parser::parseArrayAccess},
         {TOKEN_ARRAY_LENGTH, &Parser::parseArrayLength},
-        {TOKEN_DOT, &Parser::parseDot}};
+        {TOKEN_DOT, &Parser::parseDot},
+        {TOKEN_ARRAY_ACCESS, &Parser::parseArrayAccess},
+        {TOKEN_ARRAY_LENGTH, &Parser::parseArrayLength}};
 
     // Initialize operator precedence map (higher number = higher precedence)
     operatorPrecedence = {
@@ -135,9 +146,7 @@ void Parser::initializeParserMaps()
         {TOKEN_KEYWORD_RESULT, NODE_RESULTSTATEMENT},
         {TOKEN_KEYWORD_INPUT, NODE_KEYWORD_INPUT},
 
-        // Array-related
-        {TOKEN_KEYWORD_ELEMENT, NODE_ELEMENT},
-        {TOKEN_ELEMENT_TYPE, NODE_ELEMENTTYPE}};
+    };
 }
 
 /**
@@ -145,7 +154,8 @@ void Parser::initializeParserMaps()
  * @param dispatchTable map of token types to parsing functions
  * @return AST node resulting from the appropriate parsing function
  */
-AST_NODE *Parser::parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dispatchTable)
+AST_NODE *
+Parser::parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dispatchTable)
 {
     if (current == nullptr)
     {
@@ -494,7 +504,128 @@ AST_NODE *Parser::parseNewLine()
 
     return node;
 }
+//-------------------------------------------------------------------
+// Array Parsing Methods
+//-------------------------------------------------------------------
 
+AST_NODE *Parser::parseArrayDeclaration()
+{
+    proceed(TOKEN_KEYWORD_ELEMENT);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_DECLARATION;
+
+    if (current->TYPE != TOKEN_ELEMENT_TYPE)
+    {
+        std::cerr << "< Syntax Error > Expected element type after 'elements'" << std::endl;
+        exit(1);
+    }
+
+    std::string elementType = current->value;
+    proceed(TOKEN_ELEMENT_TYPE);
+
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array name after type." << std::endl;
+        exit(1);
+    }
+
+    std::string arrayName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+    node->VALUE = arrayName;
+
+    AST_NODE *typeNode = new AST_NODE();
+    typeNode->TYPE = NODE_ELEMENT_TYPE;
+    typeNode->VALUE = elementType;
+    node->CHILD = typeNode;
+
+    return node;
+}
+
+AST_NODE *Parser::parseArrayAccess()
+{
+    proceed(TOKEN_ARRAY_ACCESS);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_ACCESS;
+
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array identifier" << std::endl;
+        exit(1);
+    }
+
+    node->VALUE = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' after array access operator" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    node->CHILD = parseExpression();
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected closing ')' after array index" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    return node;
+}
+
+AST_NODE *Parser::parseArrayInit()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_INIT;
+    node->VALUE = current->value;
+
+    // skip name of array
+    proceed(TOKEN_IDENTIFIER);
+
+    if (current->TYPE != TOKEN_ARRAY_INITIALIZER)
+    {
+        std::cerr << "< Syntax Error > Expected '|=' following array identifier" << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_ARRAY_INITIALIZER);
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' to being initializing array" << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_LEFT_PAREN);
+
+    node->SUB_STATEMENTS.push_back(parseExpression());
+
+    while (current->TYPE == TOKEN_COMMA)
+    {
+        proceed(TOKEN_COMMA);
+        node->SUB_STATEMENTS.push_back(parseExpression());
+    }
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected closing parenthesis after array initialization" << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_RIGHT_PAREN);
+    return node;
+}
+AST_NODE *Parser::parseArrayRange() {}
+AST_NODE *Parser::parseArrayRepeat() {}
+AST_NODE *Parser::parseArrayLength() {}
+AST_NODE *Parser::parseArrayInsert() {}
+AST_NODE *Parser::parseArrayRemove() {}
+AST_NODE *Parser::parseArraySortAsc() {}
+AST_NODE *Parser::parseArraySortDesc() {}
 //-------------------------------------------------------------------
 // Keyword and special token parsing methods
 //-------------------------------------------------------------------
@@ -1150,80 +1281,6 @@ AST_NODE *Parser::parseDoesntEqual()
 
     return node;
 }
-
-//-------------------------------------------------------------------
-// Data Structure Handling Methods
-//-------------------------------------------------------------------
-
-// AST_NODE *Parser::parseKeywordInput()
-// {
-//     // Create a node for input keyword
-//     AST_NODE *node = new AST_NODE();
-//     node->TYPE = NODE_ELEMENT;
-//     node->VALUE = "elements";
-
-//     proceed(TOKEN_KEYWORD_ELEMENT);
-
-//     if (current->TYPE != TOKEN_ELEMENT_TYPE)
-//     {
-//         std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
-//         exit(1);
-//     }
-
-//     // Parse the input type (already parsed by lexer as TOKEN_INPUT_TYPE)
-//     AST_NODE *inputType = new AST_NODE();
-//     inputType->TYPE = NODE_INPUT_TYPE;
-//     inputType->VALUE = current->value;
-//     node->CHILD = inputType;
-
-//     proceed(TOKEN_INPUT_TYPE);
-
-//     if (current->TYPE != TOKEN_LEFT_PAREN)
-//     {
-//         std::cerr << "< Syntax Error > Expected '(' following input." << std::endl;
-//         exit(1);
-//     }
-//     proceed(TOKEN_LEFT_PAREN);
-
-//     AST_NODE *promptNode = new AST_NODE();
-//     promptNode->TYPE = NODE_INPUT_PROMPT;
-//     promptNode->CHILD = parseExpression();
-
-//     node->SUB_STATEMENTS.push_back(promptNode);
-
-//     if (current->TYPE != TOKEN_RIGHT_PAREN)
-//     {
-//         std::cerr << "< Syntax Error > Expected ')' follwing the prompt" << std::endl;
-//         exit(1);
-//     }
-//     proceed(TOKEN_RIGHT_PAREN);
-//     // Expect spaceship operator (=>)
-//     if (current->TYPE != TOKEN_SPACESHIP)
-//     {
-//         std::cerr << "< Syntax Error > Expected '=>' after input prompt" << std::endl;
-//         exit(1);
-//     }
-//     proceed(TOKEN_SPACESHIP);
-
-//     // Expect variable name
-//     if (current->TYPE != TOKEN_IDENTIFIER)
-//     {
-//         std::cerr << "< Syntax Error > Expected variable name after '=>'" << std::endl;
-//         exit(1);
-//     }
-
-//     // Create a variable node and add it to sub-statements
-//     AST_NODE *varNode = new AST_NODE();
-//     varNode->TYPE = NODE_IDENTIFIER;
-//     varNode->VALUE = current->value;
-
-//     promptNode->SUB_STATEMENTS.push_back(varNode);
-
-//     proceed(TOKEN_IDENTIFIER);
-
-//     return node;
-// }
-
 //-------------------------------------------------------------------
 // Function Handling methods
 //-------------------------------------------------------------------
@@ -1402,106 +1459,6 @@ AST_NODE *Parser::parseFunctionBody()
  *
  * Handles blocks of code enclosed in curly braces { }.
  */
-// AST_NODE *Parser::parseLeftCurl()
-// {
-//     proceed(TOKEN_LEFT_CURL);
-
-//     AST_NODE *blockNode = new AST_NODE();
-//     blockNode->TYPE = NODE_BLOCK;
-
-//     // Parse statements until closing brace
-//     while (current != nullptr && current->TYPE != TOKEN_RIGHT_CURL)
-//     {
-//         AST_NODE *statement = nullptr;
-//         std::cout << "Current Token: " << getTokenTypeName(current->TYPE) << std::endl;
-
-//         // Handle different statement types
-//         switch (current->TYPE)
-//         {
-//         case TOKEN_IDENTIFIER:
-//             statement = parseID();
-//             break;
-//         case TOKEN_KEYWORD_INT:
-//             statement = parseKeywordINT();
-//             break;
-//         case TOKEN_OPERATOR_INCREMENT:
-//             statement = parseIncrementOperator();
-//             break;
-//         case TOKEN_OPERATOR_DECREMENT:
-//             statement = parseDecrementOperator();
-//             break;
-//         case TOKEN_KEYWORD_PRINT:
-//             statement = parseKeywordPrint();
-//             break;
-//         case TOKEN_KEYWORD_CHAR:
-//             statement = parseKeywordChar();
-//             break;
-//         case TOKEN_KEYWORD_DOUBLE:
-//             statement = parseKeywordDouble();
-//             break;
-//         case TOKEN_KEYWORD_STR:
-//             statement = parseStringValue();
-//             break;
-//         case TOKEN_KEYWORD_FOR:
-//             statement = parseKeywordFor();
-//             break;
-//         case TOKEN_KEYWORD_IF:
-//             statement = parseKeywordIf();
-//             break;
-//         case TOKEN_KEYWORD_CHECK:
-//             statement = parseKeywordCheck();
-//             break;
-//         case TOKEN_OPERATOR_DOESNT_EQUAL:
-//             statement = parseDoesntEqual();
-//             break;
-//         case TOKEN_NL_SYMBOL:
-//             statement = parseNewLineCharacter();
-//             break;
-//         case TOKEN_KEYWORD_RESULT:
-//             statement = parseResultStatement();
-//             break;
-//         case TOKEN_KEYWORD_BOOL:
-//             statement = parseKeywordBool();
-//             break;
-//         case TOKEN_SINGLELINE_COMMENT:
-//             advanceCursor();
-//             break;
-//         case TOKEN_MULTILINE_COMMENT:
-//             advanceCursor();
-//             break;
-//         case TOKEN_KEYWORD_INPUT:
-//             statement = parseKeywordInput();
-//             break;
-//         default:
-//             std::cerr << "< Syntax Error > Unexpected token in block: "
-//                       << getTokenTypeName(current->TYPE) << std::endl;
-//             exit(1);
-//         }
-
-//         if (statement != nullptr)
-//         {
-//             blockNode->SUB_STATEMENTS.push_back(statement);
-//         }
-
-//         // Handle semicolons within the block
-//         if (current != nullptr && current->TYPE == TOKEN_SEMICOLON)
-//         {
-//             proceed(TOKEN_SEMICOLON);
-//         }
-//     }
-
-//     // Check for the closing brace
-//     if (current == nullptr || current->TYPE != TOKEN_RIGHT_CURL)
-//     {
-//         std::cerr << "< Syntax Error > Expected '}' to close block" << std::endl;
-//         exit(1);
-//     }
-
-//     // Consume the closing brace
-//     proceed(TOKEN_RIGHT_CURL);
-
-//     return blockNode;
-// }
 
 AST_NODE *Parser::parseLeftCurl()
 {
@@ -1864,160 +1821,6 @@ AST_NODE *Parser::parseKeywordFor()
  * Handles the atomic elements of expressions, like literals,
  * identifiers, and parenthesized expressions.
  */
-// AST_NODE *Parser::parseTerm()
-// {
-//     if (current->TYPE == TOKEN_OPERATOR_SUBT)
-//     {
-//         proceed(TOKEN_OPERATOR_SUBT);
-
-//         AST_NODE *unaryMinus = new AST_NODE();
-//         unaryMinus->TYPE = NODE_SUBT;
-
-//         AST_NODE *operand = parseTerm();
-//         unaryMinus->SUB_STATEMENTS.push_back(operand);
-//         return unaryMinus;
-//     }
-
-//     if (current->TYPE == TOKEN_INTEGER_VAL)
-//     {
-//         return parseIntegerValue();
-//     }
-//     else if (current->TYPE == TOKEN_IDENTIFIER)
-//     {
-//         std::string identifierName = current->value;
-//         proceed(TOKEN_IDENTIFIER);
-
-//         // Check if this is a function call
-//         if (current != nullptr && current->TYPE == TOKEN_LEFT_PAREN)
-//         {
-//             AST_NODE *functionCallNode = new AST_NODE();
-//             functionCallNode->TYPE = NODE_FUNCTION_CALL;
-//             functionCallNode->VALUE = identifierName;
-//             proceed(TOKEN_LEFT_PAREN);
-
-//             // Parse function arguments
-//             while (current != nullptr && current->TYPE != TOKEN_RIGHT_PAREN)
-//             {
-//                 AST_NODE *argNode = parseExpression(); // Parse full expressions as args
-//                 functionCallNode->SUB_STATEMENTS.push_back(argNode);
-
-//                 // Handle comma-separated arguments
-//                 if (current != nullptr && current->TYPE == TOKEN_COMMA)
-//                 {
-//                     proceed(TOKEN_COMMA);
-//                 }
-//                 else if (current != nullptr && current->TYPE != TOKEN_RIGHT_PAREN)
-//                 {
-//                     std::cerr << "< Syntax Error > Expected ',' or ')'" << std::endl;
-//                     exit(1);
-//                 }
-//             }
-
-//             if (current == nullptr || current->TYPE != TOKEN_RIGHT_PAREN)
-//             {
-//                 std::cerr << "< Syntax Error > Expected ')' to close function call" << std::endl;
-//                 exit(1);
-//             }
-//             proceed(TOKEN_RIGHT_PAREN);
-
-//             return functionCallNode;
-//         }
-
-//         // Regular variable identifier
-//         AST_NODE *node = new AST_NODE();
-//         node->TYPE = NODE_IDENTIFIER;
-//         node->VALUE = identifierName;
-//         return node;
-//     }
-//     else if (current->TYPE == TOKEN_LEFT_PAREN)
-//     {
-//         proceed(TOKEN_LEFT_PAREN);
-//         AST_NODE *expr = parseExpression();
-
-//         if (current->TYPE != TOKEN_RIGHT_PAREN)
-//         {
-//             std::cerr << "Expected closing parenthesis" << std::endl;
-//             exit(1);
-//         }
-//         proceed(TOKEN_RIGHT_PAREN);
-//         return expr;
-//     }
-//     else if (current->TYPE == TOKEN_CHAR_VAL)
-//     {
-//         return parseCharValue();
-//     }
-//     else if (current->TYPE == TOKEN_STRING_VAL)
-//     {
-//         return parseStringValue();
-//     }
-//     else if (current->TYPE == TOKEN_DOUBLE_VAL)
-//     {
-//         return parseDoubleValue();
-//     }
-//     else if (current->TYPE == TOKEN_BOOL_VALUE)
-//     {
-//         return parseBoolValue();
-//     }
-//     else if (current->TYPE == TOKEN_OPERATOR_DECREMENT)
-//     {
-//         proceed(TOKEN_OPERATOR_DECREMENT);
-//         if (current->TYPE != TOKEN_IDENTIFIER)
-//         {
-//             std::cerr << "Expected identifier after decrement operator" << std::endl;
-//             exit(1);
-//         }
-//         std::string identifierName = current->value;
-//         proceed(TOKEN_IDENTIFIER);
-
-//         // Create identifier node
-//         AST_NODE *idNode = new AST_NODE();
-//         idNode->TYPE = NODE_IDENTIFIER;
-//         idNode->VALUE = identifierName;
-
-//         // Create decrement node with identifier as child
-//         AST_NODE *decNode = new AST_NODE();
-//         decNode->TYPE = NODE_OPERATOR_DECREMENT;
-//         decNode->SUB_STATEMENTS.push_back(idNode);
-
-//         return decNode;
-//     }
-//     else if (current->TYPE == TOKEN_OPERATOR_INCREMENT)
-//     {
-//         proceed(TOKEN_OPERATOR_INCREMENT);
-//         if (current->TYPE != TOKEN_IDENTIFIER)
-//         {
-//             std::cerr << "Expected identifier after increment operator" << std::endl;
-//             exit(1);
-//         }
-//         std::string identifierName = current->value;
-//         proceed(TOKEN_IDENTIFIER);
-
-//         // Create identifier node
-//         AST_NODE *idNode = new AST_NODE();
-//         idNode->TYPE = NODE_IDENTIFIER;
-//         idNode->VALUE = identifierName;
-
-//         // Create increment node with identifier as child
-//         AST_NODE *incNode = new AST_NODE();
-//         incNode->TYPE = NODE_OPERATOR_INCREMENT;
-//         incNode->SUB_STATEMENTS.push_back(idNode);
-
-//         return incNode;
-//     }
-//     else if (current->TYPE == TOKEN_OPERATOR_NEWLINE)
-//     {
-//         return parseNewLine();
-//     }
-//     else if (current->TYPE == TOKEN_NL_SYMBOL)
-//     {
-//         return parseNewLineCharacter();
-//     }
-
-//     // If we get here, the token is not valid in an expression
-//     std::cerr << "Unexpected token in expression" << std::endl;
-//     exit(1);
-//     return nullptr;
-// }
 
 AST_NODE *Parser::parseTerm()
 {
@@ -2044,113 +1847,6 @@ AST_NODE *Parser::parseTerm()
  * through a left-to-right evaluation. Builds a tree representing
  * the expression structure.
  */
-// AST_NODE *Parser::parseExpression()
-// {
-//     // Start with a term as the left-hand side
-//     AST_NODE *left = parseTerm();
-
-//     // Continue processing operators as long as they're available
-//     while (current != nullptr &&
-//            (current->TYPE == TOKEN_OPERATOR_ADD ||
-//             current->TYPE == TOKEN_OPERATOR_SUBT ||
-//             current->TYPE == TOKEN_OPERATOR_MULT ||
-//             current->TYPE == TOKEN_OPERATOR_LESSTHAN ||
-//             current->TYPE == TOKEN_OPERATOR_LESS_EQUAL ||
-//             current->TYPE == TOKEN_OPERATOR_GREATERTHAN ||
-//             current->TYPE == TOKEN_OPERATOR_INCREMENT ||
-//             current->TYPE == TOKEN_OPERATOR_DIV ||
-//             current->TYPE == TOKEN_OPERATOR_MODULUS ||
-//             current->TYPE == TOKEN_OPERATOR_DOESNT_EQUAL))
-//     {
-//         AST_NODE *opNode = nullptr;
-
-//         // Create appropriate operator node based on token type
-//         if (current->TYPE == TOKEN_OPERATOR_ADD)
-//         {
-//             proceed(TOKEN_OPERATOR_ADD);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_ADD;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_LESS_EQUAL)
-//         {
-//             proceed(TOKEN_OPERATOR_LESS_EQUAL);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_LESS_EQUAL;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_DIV)
-//         {
-//             proceed(TOKEN_OPERATOR_DIV);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_DIVISION;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_MODULUS)
-//         {
-//             proceed(TOKEN_OPERATOR_MODULUS);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_MODULUS;
-//         }
-//         else if (current->TYPE == TOKEN_NL_SYMBOL)
-//         {
-//             proceed(TOKEN_NL_SYMBOL);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_NEWLINE_SYMBOL;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_SUBT)
-//         {
-//             proceed(TOKEN_OPERATOR_SUBT);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_SUBT;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_MULT)
-//         {
-//             proceed(TOKEN_OPERATOR_MULT);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_MULT;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_LESSTHAN)
-//         {
-//             proceed(TOKEN_OPERATOR_LESSTHAN);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_LESS_THAN;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_GREATERTHAN)
-//         {
-//             proceed(TOKEN_OPERATOR_GREATERTHAN);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_GREATER_THAN;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_INCREMENT)
-//         {
-//             // Special case for post-increment
-//             proceed(TOKEN_OPERATOR_INCREMENT);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_OPERATOR_INCREMENT;
-
-//             // For post-increment, just add the expression as a child
-//             opNode->SUB_STATEMENTS.push_back(left);
-//             return opNode;
-//         }
-//         else if (current->TYPE == TOKEN_OPERATOR_DOESNT_EQUAL)
-//         {
-//             proceed(TOKEN_OPERATOR_DOESNT_EQUAL);
-//             opNode = new AST_NODE();
-//             opNode->TYPE = NODE_NOT_EQUAL;
-//         }
-
-//         // For binary operators, parse the right operand
-//         AST_NODE *right = parseTerm();
-
-//         // Build the operator node with left and right children
-//         opNode->SUB_STATEMENTS.push_back(left);
-//         opNode->SUB_STATEMENTS.push_back(right);
-
-//         // The entire expression becomes the new left operand
-//         left = opNode;
-//     }
-
-//     return left;
-// }
-
 AST_NODE *Parser::parseExpression()
 {
     AST_NODE *left = parseTerm();
@@ -2593,10 +2289,6 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_INPUT_PROMPT";
     case NODE_CHECK:
         return "NODE_CHECK";
-    case NODE_ELEMENT:
-        return "NODE_ELEMENT";
-    case NODE_ELEMENTTYPE:
-        return "NODE_ELEMENTTYPE";
     default:
         return "Unknown node";
     }

@@ -93,8 +93,19 @@ enum NODE_TYPE
 
     NODE_CHECK, // Check loop
 
-    NODE_ELEMENT,     // Keyword 'element'
-    NODE_ELEMENTTYPE, //'elements' type
+    NODE_ELEMENT_TYPE,
+
+    NODE_ARRAY_DECLARATION, // For declarations like: elements<int> arr;
+    NODE_ARRAY_ACCESS,      // For accessing elements: arr@(index)
+    NODE_ARRAY_ASSIGN,      // For assignment: arr@(index) = value;
+    NODE_ARRAY_INIT,        // For initialization: arr |= (1, 2, 3);
+    NODE_ARRAY_RANGE,       // For range init: arr |= range(1..10);
+    NODE_ARRAY_REPEAT,      // For repeat init: arr |= repeat(0, 10);
+    NODE_ARRAY_LENGTH,      // For getting length: #arr
+    NODE_ARRAY_INSERT,      // For insertion: +> arr(index, value)
+    NODE_ARRAY_REMOVE,      // For removal: -< arr(index)
+    NODE_ARRAY_SORT_ASC,    // For ascending sort: ~> arr
+    NODE_ARRAY_SORT_DESC,   // For descending sort: <~ arr
 
 };
 
@@ -287,6 +298,18 @@ private:
     AST_NODE *parseArrayLength();
     AST_NODE *parseDot();
 
+    // Array-related methods
+    AST_NODE *parseArrayDeclaration();
+    AST_NODE *parseArrayAccess();
+    AST_NODE *parseArrayInit();
+    AST_NODE *parseArrayRange();
+    AST_NODE *parseArrayRepeat();
+    AST_NODE *parseArrayLength();
+    AST_NODE *parseArrayInsert();
+    AST_NODE *parseArrayRemove();
+    AST_NODE *parseArraySortAsc();
+    AST_NODE *parseArraySortDesc();
+
     /**
      * @brief parses an array decleration
      */
@@ -326,13 +349,6 @@ private:
      * Handles the block of statements enclosed in { }.
      */
     AST_NODE *parseFunctionBody();
-
-    AST_NODE *parseArrayAccess();
-    AST_NODE *parseArrayLength();
-    AST_NODE *parseDot();
-    AST_NODE *parseKeywordRange();
-    AST_NODE *parseKeywordRepeat();
-    AST_NODE *parseKeywordElement();
 
     AST_NODE *parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dispatchTable);
 };

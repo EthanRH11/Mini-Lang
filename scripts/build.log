@@ -1,4 +1,42 @@
-Compilation started at Fri May  9 14:03:58 EDT 2025
+Compilation started at Sat May 10 11:09:29 EDT 2025
+In file included from ../src/interperter.hpp:15,
+                 from ../src/dynamic_array.cpp:2:
+../src/parser.hpp:330:15: error: ‘AST_NODE* Parser::parseArrayAccess()’ cannot be overloaded with ‘AST_NODE* Parser::parseArrayAccess()’
+  330 |     AST_NODE *parseArrayAccess();
+      |               ^~~~~~~~~~~~~~~~
+../src/parser.hpp:286:15: note: previous declaration ‘AST_NODE* Parser::parseArrayAccess()’
+  286 |     AST_NODE *parseArrayAccess();
+      |               ^~~~~~~~~~~~~~~~
+../src/parser.hpp:331:15: error: ‘AST_NODE* Parser::parseArrayLength()’ cannot be overloaded with ‘AST_NODE* Parser::parseArrayLength()’
+  331 |     AST_NODE *parseArrayLength();
+      |               ^~~~~~~~~~~~~~~~
+../src/parser.hpp:287:15: note: previous declaration ‘AST_NODE* Parser::parseArrayLength()’
+  287 |     AST_NODE *parseArrayLength();
+      |               ^~~~~~~~~~~~~~~~
+../src/parser.hpp:332:15: error: ‘AST_NODE* Parser::parseDot()’ cannot be overloaded with ‘AST_NODE* Parser::parseDot()’
+  332 |     AST_NODE *parseDot();
+      |               ^~~~~~~~
+../src/parser.hpp:288:15: note: previous declaration ‘AST_NODE* Parser::parseDot()’
+  288 |     AST_NODE *parseDot();
+      |               ^~~~~~~~
+../src/parser.hpp:333:15: error: ‘AST_NODE* Parser::parseKeywordRange()’ cannot be overloaded with ‘AST_NODE* Parser::parseKeywordRange()’
+  333 |     AST_NODE *parseKeywordRange();
+      |               ^~~~~~~~~~~~~~~~~
+../src/parser.hpp:283:15: note: previous declaration ‘AST_NODE* Parser::parseKeywordRange()’
+  283 |     AST_NODE *parseKeywordRange();
+      |               ^~~~~~~~~~~~~~~~~
+../src/parser.hpp:334:15: error: ‘AST_NODE* Parser::parseKeywordRepeat()’ cannot be overloaded with ‘AST_NODE* Parser::parseKeywordRepeat()’
+  334 |     AST_NODE *parseKeywordRepeat();
+      |               ^~~~~~~~~~~~~~~~~~
+../src/parser.hpp:284:15: note: previous declaration ‘AST_NODE* Parser::parseKeywordRepeat()’
+  284 |     AST_NODE *parseKeywordRepeat();
+      |               ^~~~~~~~~~~~~~~~~~
+../src/parser.hpp:335:15: error: ‘AST_NODE* Parser::parseKeywordElement()’ cannot be overloaded with ‘AST_NODE* Parser::parseKeywordElement()’
+  335 |     AST_NODE *parseKeywordElement();
+      |               ^~~~~~~~~~~~~~~~~~~
+../src/parser.hpp:231:15: note: previous declaration ‘AST_NODE* Parser::parseKeywordElement()’
+  231 |     AST_NODE *parseKeywordElement();
+      |               ^~~~~~~~~~~~~~~~~~~
 In file included from ../src/interperter.hpp:15,
                  from ../src/interperter.cpp:11:
 ../src/parser.hpp:330:15: error: ‘AST_NODE* Parser::parseArrayAccess()’ cannot be overloaded with ‘AST_NODE* Parser::parseArrayAccess()’
