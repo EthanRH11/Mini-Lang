@@ -53,7 +53,9 @@ void Parser::initializeParserMaps()
         {TOKEN_ARRAY_INSERT, &Parser::parseArrayInsert},
         {TOKEN_ARRAY_REMOVE, &Parser::parseArrayRemove},
         {TOKEN_ARRAY_SORT_ASC, &Parser::parseArraySortAsc},
-        {TOKEN_ARRAY_SORT_DESC, &Parser::parseArraySortDesc}};
+        {TOKEN_ARRAY_SORT_DESC, &Parser::parseArraySortDesc},
+        {TOKEN_SINGLELINE_COMMENT, &Parser::parseSingleLineComment},
+        {TOKEN_MULTILINE_COMMENT, &Parser::parseMultiLineComment}};
 
     // Initialize expression dispatch table
     expressionDispatch = {
@@ -70,10 +72,11 @@ void Parser::initializeParserMaps()
         {TOKEN_NL_SYMBOL, &Parser::parseNewLineCharacter},
         {TOKEN_OPERATOR_SUBT, &Parser::parseSubt},
         {TOKEN_ARRAY_ACCESS, &Parser::parseArrayAccess},
+        {TOKEN_KEYWORD_RANGE, &Parser::parseKeywordRange},
+        {TOKEN_KEYWORD_REPEAT, &Parser::parseKeywordRepeat},
         {TOKEN_ARRAY_LENGTH, &Parser::parseArrayLength},
-        {TOKEN_DOT, &Parser::parseDot},
-        {TOKEN_ARRAY_ACCESS, &Parser::parseArrayAccess},
-        {TOKEN_ARRAY_LENGTH, &Parser::parseArrayLength}};
+        {TOKEN_ARRAY_LAST_INDEX, &Parser::parseArrayLastIndex},
+    };
 
     // Initialize operator precedence map (higher number = higher precedence)
     operatorPrecedence = {
@@ -174,6 +177,24 @@ Parser::parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dis
         exit(1);
         return nullptr;
     }
+}
+
+AST_NODE *Parser::parseSingleLineComment()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_COMMENT;
+    node->VALUE = current->value;
+    advanceCursor();
+    return node;
+}
+
+AST_NODE *Parser::parseMultiLineComment()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_COMMENT;
+    node->VALUE = current->value;
+    advanceCursor();
+    return node;
 }
 
 /**
@@ -619,13 +640,396 @@ AST_NODE *Parser::parseArrayInit()
     proceed(TOKEN_RIGHT_PAREN);
     return node;
 }
-AST_NODE *Parser::parseArrayRange() {}
-AST_NODE *Parser::parseArrayRepeat() {}
-AST_NODE *Parser::parseArrayLength() {}
-AST_NODE *Parser::parseArrayInsert() {}
-AST_NODE *Parser::parseArrayRemove() {}
-AST_NODE *Parser::parseArraySortAsc() {}
-AST_NODE *Parser::parseArraySortDesc() {}
+AST_NODE *Parser::parseArrayRange()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_RANGE;
+    node->VALUE = current->value;
+
+    proceed(TOKEN_IDENTIFIER);
+
+    if (current->TYPE != TOKEN_EQUALS)
+    {
+        std::cerr << "< Syntax Error > Expected '=' to initialize the array with a range" << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_EQUALS);
+
+    if (current->TYPE != TOKEN_KEYWORD_RANGE)
+    {
+        std::cerr << "< Syntax Error > Expected keyword range." << std::endl;
+        exit(1);
+    }
+
+    // Directly parse the range expression (including parentheses)
+    node->CHILD = parseKeywordRange();
+
+    return node;
+}
+AST_NODE *Parser::parseArrayRepeat()
+{
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_REPEAT;
+    node->VALUE = current->value;
+
+    proceed(TOKEN_IDENTIFIER);
+
+    if (current->TYPE != TOKEN_EQUALS)
+    {
+        std::cerr << "< Syntax Error > Expected '=' to initialize the array with a range" << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_ARRAY_INITIALIZER);
+
+    if (current->TYPE != TOKEN_KEYWORD_REPEAT)
+    {
+        std::cerr << "< Syntax Error > Expected keyword repeat.";
+        exit(1);
+    }
+
+    proceed(TOKEN_LEFT_PAREN);
+
+    AST_NODE *numToRepeat = parseExpression();
+    node->CHILD = numToRepeat;
+
+    if (current->TYPE != TOKEN_COMMA)
+    {
+        std::cerr << "< Syntax Error > Expected ',' seperating repeat value and amount." << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_COMMA);
+
+    AST_NODE *counter = parseExpression();
+    node->SUB_STATEMENTS.push_back(counter);
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected closing parenthesis ')'" << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_RIGHT_PAREN);
+
+    return node;
+}
+AST_NODE *Parser::parseArrayLength()
+{
+    // Expect array length operator (#)
+    if (current->TYPE != TOKEN_ARRAY_LENGTH)
+    {
+        std::cerr << "< Syntax Error > Expected '#' for array length" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_ARRAY_LENGTH);
+
+    // Parse the array name
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array identifier after '#'" << std::endl;
+        exit(1);
+    }
+    std::string arrayName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // Create and populate the node
+    AST_NODE *arrayLength = new AST_NODE();
+    arrayLength->TYPE = NODE_ARRAY_LENGTH;
+    arrayLength->VALUE = arrayName; // The array being measured
+
+    return arrayLength;
+}
+AST_NODE *Parser::parseArrayInsert()
+{
+    // Parse the insertion operator (+>)
+    proceed(TOKEN_ARRAY_INSERT);
+
+    // Check for array identifier
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array identifier after '+>'" << std::endl;
+        exit(1);
+    }
+    std::string arrayName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // Check for opening parenthesis
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' after array identifier" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    // Create the node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_INSERT;
+    node->VALUE = arrayName;
+
+    // Parse the index expression
+    AST_NODE *indexNode = parseExpression();
+    node->CHILD = indexNode;
+
+    // Check for comma
+    if (current->TYPE != TOKEN_COMMA)
+    {
+        std::cerr << "< Syntax Error > Expected ',' after index in array insert" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_COMMA);
+
+    // Parse the value expression
+    AST_NODE *valueNode = parseExpression();
+    node->SUB_STATEMENTS.push_back(valueNode);
+
+    // Check for closing parenthesis
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected ')' after value in array insert" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    return node;
+}
+AST_NODE *Parser::parseArrayRemove()
+{
+    // Parse the removal operator (-<)
+    proceed(TOKEN_ARRAY_REMOVE);
+
+    // Check for array identifier
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array identifier after '-<'" << std::endl;
+        exit(1);
+    }
+    std::string arrayName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // Check for opening parenthesis
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' after array identifier" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    // Create the node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_REMOVE;
+    node->VALUE = arrayName;
+
+    // Parse the index expression
+    AST_NODE *indexNode = parseExpression();
+    node->CHILD = indexNode;
+
+    // Check for closing parenthesis
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected ')' after index in array remove" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    return node;
+}
+AST_NODE *Parser::parseArraySortAsc()
+{ // Parse the ascending sort operator (~>)
+    proceed(TOKEN_ARRAY_SORT_ASC);
+
+    // Check for array identifier
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array identifier after '~>'" << std::endl;
+        exit(1);
+    }
+    std::string arrayName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // Create the node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_SORT_ASC;
+    node->VALUE = arrayName;
+
+    return node;
+}
+AST_NODE *Parser::parseArraySortDesc()
+{ // Parse the descending sort operator (<~)
+    proceed(TOKEN_ARRAY_SORT_DESC);
+
+    // Check for array identifier
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array identifier after '<~'" << std::endl;
+        exit(1);
+    }
+    std::string arrayName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // Create the node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_SORT_DESC;
+    node->VALUE = arrayName;
+
+    return node;
+}
+
+AST_NODE *Parser::parseArrayLastIndex()
+{
+    // Consume the token
+    proceed(TOKEN_ARRAY_LAST_INDEX);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_LAST_INDEX;
+    node->VALUE = current->value; // or set as needed
+
+    return node;
+}
+AST_NODE *Parser::parseKeywordElement()
+{
+    // Parse the 'elements' keyword
+    proceed(TOKEN_KEYWORD_ELEMENT);
+
+    // Check for element type
+    if (current->TYPE != TOKEN_ELEMENT_TYPE)
+    {
+        std::cerr << "< Syntax Error > Expected element type after 'elements'" << std::endl;
+        exit(1);
+    }
+
+    std::string elementType = current->value;
+    proceed(TOKEN_ELEMENT_TYPE);
+
+    // Check for array identifier
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        std::cerr << "< Syntax Error > Expected array identifier after element type" << std::endl;
+        exit(1);
+    }
+
+    std::string arrayName = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // Create the array declaration node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_DECLARATION;
+    node->VALUE = arrayName;
+
+    // Create and attach the element type node
+    AST_NODE *typeNode = new AST_NODE();
+    typeNode->TYPE = NODE_ELEMENT_TYPE;
+    typeNode->VALUE = elementType;
+    node->CHILD = typeNode;
+
+    return node;
+}
+
+AST_NODE *Parser::parseKeywordRange()
+{
+    // Parse the 'range' keyword
+    proceed(TOKEN_KEYWORD_RANGE);
+
+    // Check for opening parenthesis
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' after 'range'" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    // Create the range node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_RANGE;
+
+    // Parse the start integer
+    if (current->TYPE != TOKEN_INTEGER_VAL)
+    {
+        std::cerr << "< Syntax Error > Expected integer at start of range" << std::endl;
+        exit(1);
+    }
+    AST_NODE *startNode = new AST_NODE();
+    startNode->TYPE = NODE_INT_LITERAL;
+    startNode->VALUE = current->value;
+    proceed(TOKEN_INTEGER_VAL);
+    node->CHILD = startNode;
+
+    // Check for range operator
+    if (current->TYPE != TOKEN_OPERATOR_ARRAYRANGE)
+    {
+        std::cerr << "< Syntax Error > Expected '..' in range expression" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_OPERATOR_ARRAYRANGE);
+
+    // Parse the end integer
+    if (current->TYPE != TOKEN_INTEGER_VAL)
+    {
+        std::cerr << "< Syntax Error > Expected integer at end of range" << std::endl;
+        exit(1);
+    }
+    AST_NODE *endNode = new AST_NODE();
+    endNode->TYPE = NODE_INT_LITERAL;
+    endNode->VALUE = current->value;
+    proceed(TOKEN_INTEGER_VAL);
+    node->SUB_STATEMENTS.push_back(endNode);
+
+    // Check for closing parenthesis
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected ')' after range expression" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    return node;
+}
+
+AST_NODE *Parser::parseKeywordRepeat()
+{
+    // Parse the 'repeat' keyword
+    proceed(TOKEN_KEYWORD_REPEAT);
+
+    // Check for opening parenthesis
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' after 'repeat'" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    // Create the repeat node
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_ARRAY_REPEAT;
+
+    // Parse the value to repeat
+    AST_NODE *valueNode = parseExpression();
+    node->CHILD = valueNode;
+
+    // Check for comma
+    if (current->TYPE != TOKEN_COMMA)
+    {
+        std::cerr << "< Syntax Error > Expected ',' after value in repeat expression" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_COMMA);
+
+    // Parse the count expression
+    AST_NODE *countNode = parseExpression();
+    node->SUB_STATEMENTS.push_back(countNode);
+
+    // Check for closing parenthesis
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected ')' after count in repeat expression" << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    return node;
+}
+
 //-------------------------------------------------------------------
 // Keyword and special token parsing methods
 //-------------------------------------------------------------------
@@ -976,6 +1380,16 @@ AST_NODE *Parser::parseID()
     std::string identifierName = current->value;
     proceed(TOKEN_IDENTIFIER);
 
+    // Check for array initializer (|=)
+    if (current != nullptr && current->TYPE == TOKEN_ARRAY_INITIALIZER)
+    {
+        // Let parseArrayInit handle it
+        // But we need to set current back to the identifier name, because parseArrayInit expects to consume it
+        cursor--;                 // Step back to re-parse identifier
+        current = tokens[cursor]; // Restore current token to the identifier
+        return parseArrayInit();  // This will consume identifier, |=, and the list
+    }
+
     // Handle function calls
     if (current != nullptr && current->TYPE == TOKEN_LEFT_PAREN)
     {
@@ -990,7 +1404,6 @@ AST_NODE *Parser::parseID()
             AST_NODE *argNode = parseExpression();
             functionCallNode->SUB_STATEMENTS.push_back(argNode);
 
-            // Handle comma-separated arguments
             if (current->TYPE == TOKEN_COMMA)
             {
                 proceed(TOKEN_COMMA);
@@ -1005,49 +1418,23 @@ AST_NODE *Parser::parseID()
         return functionCallNode;
     }
 
-    // Handle special identifiers
-    if (identifierName == "out_to_console")
-    {
-        AST_NODE *node = new AST_NODE();
-        node->TYPE = NODE_PRINT;
-
-        // Check for opening parenthesis
-        if (current->TYPE != TOKEN_LEFT_PAREN)
-        {
-            std::cerr << "Expected '(' after out_to_console" << std::endl;
-            exit(1);
-        }
-        proceed(TOKEN_LEFT_PAREN);
-
-        // Parse the expression to print
-        node->CHILD = parseExpression();
-
-        // Check for closing parenthesis
-        if (current->TYPE != TOKEN_RIGHT_PAREN)
-        {
-            std::cerr << "Expected ')' after print argument" << std::endl;
-            exit(1);
-        }
-        proceed(TOKEN_RIGHT_PAREN);
-
-        return node;
-    }
-    else if (identifierName == "end")
+    // Handle 'end' keyword as identifier (language-specific)
+    if (identifierName == "end")
     {
         return parseKeywordEOF();
     }
 
-    // Regular variable identifier
+    // Handle regular variable usage or assignment
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_IDENTIFIER;
     node->VALUE = identifierName;
 
-    // Check for assignment
     if (current != nullptr && current->TYPE == TOKEN_EQUALS)
     {
         proceed(TOKEN_EQUALS);
         node->CHILD = parseExpression();
     }
+
     return node;
 }
 /**
@@ -1942,7 +2329,7 @@ AST_NODE *Parser::parse()
         }
     }
 
-    if (cursor < size && tokens[cursor]->TYPE == TOKEN_SEMICOLON)
+    if (cursor < size && tokens[cursor]->TYPE == TOKEN_EOF)
     {
         if (tokens[cursor]->value == "end")
         {
@@ -1951,223 +2338,18 @@ AST_NODE *Parser::parse()
         }
         else
         {
-            std::cerr << "< Syntax Error > Program must end with keyword 'end'" << std::endl;
+            std::cerr << "< Syntax Error > Program must end with keyword 'end' 1" << std::endl;
             exit(1);
         }
     }
     else
     {
-        std::cerr << "< Syntax Error > Program must end with keyword 'end'" << std::endl;
+        std::cerr << "< Syntax Error > Program must end with keyword 'end' 2" << std::endl;
         exit(1);
     }
 
     return root;
 }
-// AST_NODE *Parser::parse()
-// {
-//     // Create root node
-//     AST_NODE *root = new AST_NODE();
-//     root->TYPE = NODE_ROOT;
-
-//     bool foundBegin = false;
-
-//     // Process tokens until EOF
-//     while (cursor < size && tokens[cursor]->TYPE != TOKEN_EOF)
-//     {
-//         current = tokens[cursor];
-//         if (current == nullptr)
-//         {
-//             break;
-//         }
-
-//         AST_NODE *statement = nullptr;
-
-//         // Dispatch based on token type
-//         switch (current->TYPE)
-//         {
-//         case TOKEN_IDENTIFIER:
-//             statement = parseID();
-//             break;
-
-//         case TOKEN_KEYWORD_INT:
-//             statement = parseKeywordINT();
-//             break;
-
-//         case TOKEN_KEYWORD_PRINT:
-//             statement = parseKeywordPrint();
-//             break;
-
-//         case TOKEN_OPERATOR_INCREMENT:
-//             statement = parseIncrementOperator();
-//             break;
-//         case TOKEN_OPERATOR_DECREMENT:
-//             statement = parseDecrementOperator();
-//             break;
-//         case TOKEN_EOF:
-//             statement = parseKeywordEOF();
-//             break;
-
-//         case TOKEN_EQUALS:
-//             statement = parseEquals();
-//             break;
-
-//         case TOKEN_INTEGER_VAL:
-//             statement = parseIntegerValue();
-//             break;
-
-//         case TOKEN_SEMICOLON:
-//             statement = parseSemicolon();
-//             break;
-
-//         case TOKEN_OPERATOR_ADD:
-//             statement = parseAdd();
-//             break;
-
-//         case TOKEN_LEFT_PAREN:
-//             statement = parseLeftParen();
-//             break;
-
-//         case TOKEN_KEYWORD_FOR:
-//             statement = parseKeywordFor();
-//             break;
-
-//         case TOKEN_RIGHT_PAREN:
-//             statement = parseRightParen();
-//             break;
-
-//         case TOKEN_CHAR_VAL:
-//             statement = parseCharValue();
-//             break;
-
-//         case TOKEN_KEYWORD_CHAR:
-//             statement = parseKeywordChar();
-//             break;
-
-//         case TOKEN_DOUBLE_VAL:
-//             statement = parseDoubleValue();
-//             break;
-
-//         case TOKEN_KEYWORD_DOUBLE:
-//             statement = parseKeywordDouble();
-//             break;
-
-//         case TOKEN_KEYWORD_STR:
-//             statement = parseStringValue();
-//             break;
-
-//         case TOKEN_KEYWORD_IF:
-//             statement = parseKeywordIf();
-//             break;
-
-//         case TOKEN_KEYWORD_CHECK:
-//             statement = parseKeywordCheck();
-//             break;
-
-//         case TOKEN_OPERATOR_GREATERTHAN:
-//             statement = greaterThan();
-//             break;
-
-//         case TOKEN_LEFT_CURL:
-//             statement = parseLeftCurl();
-//             break;
-
-//         case TOKEN_RIGHT_CURL:
-//             statement = parseRightCurl();
-//             break;
-
-//         case TOKEN_KEYWORD_ELSE:
-//             statement = parseKeywordElse();
-//             break;
-
-//         case TOKEN_OPERATOR_MULT:
-//             statement = parseMult();
-//             break;
-
-//         case TOKEN_OPERATOR_SUBT:
-//             statement = parseSubt();
-//             break;
-
-//         case TOKEN_OPERATOR_NEWLINE:
-//             statement = parseNewLine();
-//             break;
-
-//         case TOKEN_OPERATOR_DIV:
-//             statement = parseDivi();
-//             break;
-
-//         case TOKEN_OPERATOR_MODULUS:
-//             statement = parseModulus();
-//             break;
-
-//         case TOKEN_OPERATOR_DOESNT_EQUAL:
-//             statement = parseDoesntEqual();
-//             break;
-
-//         case TOKEN_NL_SYMBOL:
-//             statement = parseNewLineCharacter();
-//             break;
-
-//         case TOKEN_KEYWORD_BEGIN:
-//             // Ensure only one begin block in program
-//             if (foundBegin)
-//             {
-//                 std::cerr << "< Syntax Error > Multiple 'begin:' blocks found" << std::endl;
-//                 exit(1);
-//             }
-//             statement = parseBeginBlock();
-//             foundBegin = true;
-//             break;
-
-//         case TOKEN_KEYWORD_FUNCTION:
-//             statement = parseFunctionDecleration();
-//             break;
-//         case TOKEN_MULTILINE_COMMENT:
-//             advanceCursor();
-//             break;
-//         case TOKEN_SINGLELINE_COMMENT:
-//             advanceCursor();
-//             break;
-//         default:
-//             std::cerr << "< Syntax Error > Unexpected token: "
-//                       << getTokenTypeName(current->TYPE) << std::endl;
-//             exit(1);
-//         }
-
-//         // Add the statement to the AST if valid
-//         if (statement != nullptr)
-//         {
-//             root->SUB_STATEMENTS.push_back(statement);
-//         }
-
-//         // Handle semicolons after statements
-//         if (cursor < size && tokens[cursor]->TYPE == TOKEN_SEMICOLON)
-//         {
-//             proceed(TOKEN_SEMICOLON); // Just consume it, don't add to tree
-//         }
-//     }
-
-//     // Validate proper program ending
-//     if (cursor < size && tokens[cursor]->TYPE == TOKEN_EOF)
-//     {
-//         if (tokens[cursor]->value == "end")
-//         {
-//             current = tokens[cursor];
-//             root->SUB_STATEMENTS.push_back(parseKeywordEOF());
-//         }
-//         else
-//         {
-//             std::cerr << "< Syntax Error > Program must end with keyword 'end'" << std::endl;
-//             exit(1);
-//         }
-//     }
-//     else
-//     {
-//         std::cerr << "< Syntax Error > Program must end with keyword 'end'" << std::endl;
-//         exit(1);
-//     }
-
-//     return root;
-// }
 
 /**
  * @brief Helper function to get string representation of node types
@@ -2289,6 +2471,34 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_INPUT_PROMPT";
     case NODE_CHECK:
         return "NODE_CHECK";
+    case NODE_ARRAY_DECLARATION:
+        return "NODE_ARRAY_DECLARATION";
+    case NODE_ARRAY_ACCESS:
+        return "NODE_ARRAY_ACCESS";
+    case NODE_ARRAY_ASSIGN:
+        return "NODE_ARRAY_ASSIGN";
+    case NODE_ARRAY_RANGE:
+        return "NODE_ARRAY_RANGE";
+    case NODE_ARRAY_INIT:
+        return "NODE_ARRAY_INIT";
+    case NODE_ARRAY_REPEAT:
+        return "NODE_ARRAY_REPEAT";
+    case NODE_ARRAY_LENGTH:
+        return "NODE_ARRAY_LENGTH";
+    case NODE_ARRAY_INSERT:
+        return "NODE_ARRAY_INSERT";
+    case NODE_ARRAY_REMOVE:
+        return "NODE_ARRAY_REMOVE";
+    case NODE_ARRAY_SORT_ASC:
+        return "NODE_ARRAY_SORT_ASC";
+    case NODE_ARRAY_SORT_DESC:
+        return "NODE_ARRAY_SORT_DESC";
+    case NODE_ARRAY_LAST_INDEX:
+        return "NODE_ARRAY_LAST_INDEX";
+    case NODE_COMMENT:
+        return "NODE_COMMENT";
+    case NODE_RANGE_OPERATOR:
+        return "NODE_RANGE_OPERATOR";
     default:
         return "Unknown node";
     }
@@ -2303,147 +2513,6 @@ std::string getNodeTypeName(NODE_TYPE type)
  * based on their starting token. Handles semicolon placement
  * based on statement type.
  */
-// AST_NODE *Parser::parseStatement()
-// {
-//     if (current == nullptr)
-//     {
-//         std::cerr << "Unexpected end of file while parsing statement" << std::endl;
-//         exit(1);
-//     }
-
-//     AST_NODE *statement = nullptr;
-
-//     // Dispatch based on token type
-//     switch (current->TYPE)
-//     {
-//     case TOKEN_IDENTIFIER:
-//         statement = parseID();
-//         break;
-
-//     case TOKEN_KEYWORD_INT:
-//         statement = parseKeywordINT();
-//         break;
-
-//     case TOKEN_KEYWORD_FOR:
-//         statement = parseKeywordFor();
-//         break;
-//     case TOKEN_KEYWORD_INPUT:
-//         statement = parseKeywordInput();
-//         break;
-//     case TOKEN_KEYWORD_PRINT:
-//         statement = parseKeywordPrint();
-//         break;
-
-//     case TOKEN_EOF:
-//         statement = parseKeywordEOF();
-//         break;
-
-//     case TOKEN_EQUALS:
-//         statement = parseEquals();
-//         break;
-
-//     case TOKEN_INTEGER_VAL:
-//         statement = parseIntegerValue();
-//         break;
-
-//     case TOKEN_SEMICOLON:
-//         statement = parseSemicolon();
-//         break;
-
-//     case TOKEN_OPERATOR_ADD:
-//         statement = parseAdd();
-//         break;
-
-//     case TOKEN_LEFT_PAREN:
-//         statement = parseLeftParen();
-//         break;
-
-//     case TOKEN_RIGHT_PAREN:
-//         statement = parseRightParen();
-//         break;
-
-//     case TOKEN_CHAR_VAL:
-//         statement = parseCharValue();
-//         break;
-
-//     case TOKEN_KEYWORD_CHAR:
-//         statement = parseKeywordChar();
-//         break;
-
-//     case TOKEN_DOUBLE_VAL:
-//         statement = parseDoubleValue();
-//         break;
-
-//     case TOKEN_KEYWORD_DOUBLE:
-//         statement = parseKeywordDouble();
-//         break;
-
-//     case TOKEN_KEYWORD_STR:
-//         statement = parseStringValue();
-//         break;
-
-//     case TOKEN_STRING_VAL:
-//         statement = parseStringValue();
-//         break;
-
-//     case TOKEN_LEFT_CURL:
-//         statement = parseLeftCurl();
-//         break;
-
-//     case TOKEN_RIGHT_CURL:
-//         statement = parseRightCurl();
-//         break;
-
-//     case TOKEN_KEYWORD_IF:
-//         statement = parseKeywordIf();
-//         break;
-//     case TOKEN_KEYWORD_CHECK:
-//         statement = parseKeywordCheck();
-//         break;
-//     case TOKEN_OPERATOR_DIV:
-//         statement = parseDivi();
-//         break;
-
-//     case TOKEN_OPERATOR_MODULUS:
-//         statement = parseModulus();
-//         break;
-
-//     case TOKEN_OPERATOR_MULT:
-//         statement = parseMult();
-//         break;
-
-//     case TOKEN_NL_SYMBOL:
-//         statement = parseNewLineCharacter();
-//         break;
-//     case TOKEN_KEYWORD_BOOL:
-//         statement = parseKeywordBool();
-//         break;
-//     case TOKEN_BOOL_VALUE:
-//         statement = parseBoolValue();
-//         break;
-//     case TOKEN_KEYWORD_RESULT:
-//         statement = parseResultStatement();
-//         break;
-//     default:
-//         std::cerr << "< Syntax Error > Unexpected token in statement: "
-//                   << getTokenTypeName(current->TYPE) << std::endl;
-//         exit(1);
-//     }
-
-//     // Handle semicolons after statements, but only for statements that need them
-//     // Don't consume semicolons after blocks or control structures that don't need them
-//     if (statement != nullptr &&
-//         current != nullptr &&
-//         current->TYPE == TOKEN_SEMICOLON &&
-//         statement->TYPE != NODE_BLOCK &&
-//         statement->TYPE != NODE_IF)
-//     {
-//         proceed(TOKEN_SEMICOLON);
-//     }
-
-//     return statement;
-// }
-
 AST_NODE *Parser::parseStatement()
 {
     if (current == nullptr)

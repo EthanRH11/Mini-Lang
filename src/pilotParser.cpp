@@ -15,6 +15,7 @@ void printTokens(const std::vector<Token *> &tokens);
 void printNodes(AST_NODE *node, int depth = 0);
 void deleteASTTree(AST_NODE *node);
 void printUsage(const char *programName);
+void filterComments(AST_NODE *node);
 
 int main(int argc, char *argv[])
 {
@@ -78,6 +79,7 @@ int main(int argc, char *argv[])
         AST_NODE *root = nullptr;
         Parser parser(tokens);
         root = parser.parse();
+        filterComments(root);
 
         if (mode == "parse" || mode == "all")
         {
@@ -215,4 +217,44 @@ void deleteASTTree(AST_NODE *node)
 
     // Delete the node itself
     delete node;
+}
+
+void filterComments(AST_NODE *node)
+{
+    if (!node)
+        return;
+
+    // First, recurse into all children
+    for (AST_NODE *child : node->SUB_STATEMENTS)
+    {
+        filterComments(child);
+    }
+    if (node->CHILD)
+    {
+        filterComments(node->CHILD);
+    }
+
+    // Now, remove comments from SUB_STATEMENTS
+    auto &subs = node->SUB_STATEMENTS;
+    subs.erase(
+        std::remove_if(subs.begin(), subs.end(),
+                       [](AST_NODE *child)
+                       {
+                           if (!child)
+                               return false;
+                           if (child->TYPE == NODE_COMMENT)
+                           {
+                               delete child;
+                               return true;
+                           }
+                           return false;
+                       }),
+        subs.end());
+
+    // Remove comment from CHILD if present
+    if (node->CHILD && node->CHILD->TYPE == NODE_COMMENT)
+    {
+        delete node->CHILD;
+        node->CHILD = nullptr;
+    }
 }

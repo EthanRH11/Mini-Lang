@@ -29,10 +29,9 @@ integerArray = range(1..10);   >>$ Creates [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 int size = #integerArray;
 
->>$Sort the array
-~> integerArray; //sort in ascending order
-<~ integerArray; //sort in descending order
-
-
+>>$Sort the array in ascending order
+~> integerArray; 
+>>$ Sort array in descending order
+<~ integerArray; 
 
 end

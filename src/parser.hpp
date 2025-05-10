@@ -106,7 +106,10 @@ enum NODE_TYPE
     NODE_ARRAY_REMOVE,      // For removal: -< arr(index)
     NODE_ARRAY_SORT_ASC,    // For ascending sort: ~> arr
     NODE_ARRAY_SORT_DESC,   // For descending sort: <~ arr
+    NODE_ARRAY_LAST_INDEX,
 
+    NODE_COMMENT,
+    NODE_RANGE_OPERATOR,
 };
 
 /**
@@ -140,6 +143,9 @@ struct AST_NODE
 class Parser
 {
 public:
+    AST_NODE *parseArrayLastIndex();
+    AST_NODE *parseSingleLineComment();
+    AST_NODE *parseMultiLineComment();
     /**
      * @brief Constructor for Parser class
      * @param tokens Vector of tokens from the lexer
@@ -238,7 +244,6 @@ private:
     // Input
     AST_NODE *parseKeywordInput();
     AST_NODE *parseInputType();
-
     AST_NODE *parseKeywordElement();
     AST_NODE *parseElementType();
 
@@ -293,10 +298,6 @@ private:
     // Array parsing
     AST_NODE *parseKeywordRange();
     AST_NODE *parseKeywordRepeat();
-
-    AST_NODE *parseArrayAccess();
-    AST_NODE *parseArrayLength();
-    AST_NODE *parseDot();
 
     // Array-related methods
     AST_NODE *parseArrayDeclaration();
