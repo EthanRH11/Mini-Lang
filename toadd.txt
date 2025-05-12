@@ -122,7 +122,7 @@ add math*
 
 
 //TO DO LIST (PRIORITY)
-
+NEED TO ADD ARRAY INDEX MANIPULATION TO ARRAY ACCESS, so we dont just get the number we can change the number
 
 
 ERROR HANDLER
