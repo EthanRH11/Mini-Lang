@@ -53,6 +53,7 @@ void Parser::initializeParserMaps()
         {TOKEN_ARRAY_REMOVE, &Parser::parseArrayRemove},
         {TOKEN_ARRAY_SORT_ASC, &Parser::parseArraySortAsc},
         {TOKEN_ARRAY_SORT_DESC, &Parser::parseArraySortDesc},
+        {TOKEN_DOT, &Parser::parseDot},
         {TOKEN_SINGLELINE_COMMENT, &Parser::parseSingleLineComment},
         {TOKEN_MULTILINE_COMMENT, &Parser::parseMultiLineComment}};
 
@@ -992,6 +993,10 @@ AST_NODE *Parser::parseKeywordRepeat()
     return node;
 }
 
+AST_NODE *Parser::parseDot()
+{
+}
+
 //-------------------------------------------------------------------
 // Keyword and special token parsing methods
 //-------------------------------------------------------------------
@@ -1341,6 +1346,11 @@ AST_NODE *Parser::parseID()
 {
     std::string identifierName = current->value;
     proceed(TOKEN_IDENTIFIER);
+
+    if (current && current->TYPE == TOKEN_DOT)
+    {
+        return parseDot();
+    }
 
     if (current && current->TYPE == TOKEN_ARRAY_INITIALIZER)
     {

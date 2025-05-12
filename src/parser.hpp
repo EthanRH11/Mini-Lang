@@ -107,6 +107,8 @@ enum NODE_TYPE
     NODE_ARRAY_SORT_ASC,    // For ascending sort: ~> arr
     NODE_ARRAY_SORT_DESC,   // For descending sort: <~ arr
     NODE_ARRAY_LAST_INDEX,
+    NODE_DOT,
+    NODE_ARRAY_INDEX,
 
     NODE_COMMENT,
     NODE_RANGE_OPERATOR,
@@ -309,6 +311,7 @@ private:
     AST_NODE *parseArrayRemove();
     AST_NODE *parseArraySortAsc();
     AST_NODE *parseArraySortDesc();
+    AST_NODE *parseDot();
 
     /**
      * @brief parses an array decleration
