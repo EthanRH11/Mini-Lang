@@ -35,6 +35,7 @@ echo -e "${BLUE}Using parser at: ${PARSER}${NC}"
 PASSED=0
 FAILED=0
 TOTAL=0
+FAILED_TESTS=()
 
 # Function to run a single test
 run_test() {
@@ -54,15 +55,17 @@ run_test() {
     if [ $run_status -ne 0 ]; then
         echo -e "${RED}EXECUTION FAILED (exit code: ${run_status})${NC}"
         FAILED=$((FAILED + 1))
+        FAILED_TESTS+=("$filename")
         return 1
     fi
     
     # Find the most recent output file
-    local output_file=$(ls -t ${OUTPUT_DIR}/output_* | head -1)
+    local output_file=$(ls -t ${OUTPUT_DIR}/output_* 2>/dev/null | head -1)
     
     if [ -z "$output_file" ]; then
         echo -e "${RED}No output file found in ${OUTPUT_DIR}${NC}"
         FAILED=$((FAILED + 1))
+        FAILED_TESTS+=("$filename")
         return 1
     fi
     
@@ -83,6 +86,7 @@ run_test() {
             echo "Got:"
             cat "${RESULTS_DIR}/${filename}.out"
             FAILED=$((FAILED + 1))
+            FAILED_TESTS+=("$filename")
             return 1
         fi
     else
@@ -134,14 +138,18 @@ run_tests() {
     echo -e "${YELLOW}Test Summary:${NC}"
     echo "Total: ${TOTAL}"
     echo -e "${GREEN}Passed: ${PASSED}${NC}"
+    echo -e "${RED}Failed: ${FAILED}${NC}"
     
+    # If there were failures, list them
     if [ ${FAILED} -gt 0 ]; then
-        echo -e "${RED}Failed: ${FAILED}${NC}"
+        echo -e "${RED}Failed test files:${NC}"
+        for t in "${FAILED_TESTS[@]}"; do
+            echo "  - $t"
+        done
         return 1
-    else
-        echo "Failed: ${FAILED}"
-        return 0
     fi
+
+    return 0
 }
 
 # Run the tests

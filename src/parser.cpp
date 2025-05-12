@@ -48,7 +48,6 @@ void Parser::initializeParserMaps()
         {TOKEN_KEYWORD_REPEAT, &Parser::parseKeywordRepeat},
         {TOKEN_KEYWORD_ELEMENT, &Parser::parseArrayDeclaration},
         {TOKEN_ARRAY_INITIALIZER, &Parser::parseArrayInit},
-        {TOKEN_ARRAY_ACCESS, &Parser::parseArrayAccess},
         {TOKEN_ARRAY_LENGTH, &Parser::parseArrayLength},
         {TOKEN_ARRAY_INSERT, &Parser::parseArrayInsert},
         {TOKEN_ARRAY_REMOVE, &Parser::parseArrayRemove},
@@ -71,7 +70,6 @@ void Parser::initializeParserMaps()
         {TOKEN_OPERATOR_NEWLINE, &Parser::parseNewLine},
         {TOKEN_NL_SYMBOL, &Parser::parseNewLineCharacter},
         {TOKEN_OPERATOR_SUBT, &Parser::parseSubt},
-        {TOKEN_ARRAY_ACCESS, &Parser::parseArrayAccess},
         {TOKEN_KEYWORD_RANGE, &Parser::parseKeywordRange},
         {TOKEN_KEYWORD_REPEAT, &Parser::parseKeywordRepeat},
         {TOKEN_ARRAY_LENGTH, &Parser::parseArrayLength},
@@ -95,7 +93,6 @@ void Parser::initializeParserMaps()
         {TOKEN_OPERATOR_INCREMENT, 8}, // Unary operators have highest precedence
         {TOKEN_OPERATOR_DECREMENT, 8},
         {TOKEN_DOT, 9},                // Dot operator (for method calls) has even higher precedence
-        {TOKEN_ARRAY_ACCESS, 9},       // Array access has high precedence
         {TOKEN_ARRAY_LENGTH, 9},       // Array length operator has high precedence
         {TOKEN_ARRAY_INITIALIZER, 2},  // Array initialization has low precedence
         {TOKEN_OPERATOR_ARRAYRANGE, 2} // Array range operator has low precedence
@@ -559,41 +556,6 @@ AST_NODE *Parser::parseArrayDeclaration()
     typeNode->TYPE = NODE_ELEMENT_TYPE;
     typeNode->VALUE = elementType;
     node->CHILD = typeNode;
-
-    return node;
-}
-
-AST_NODE *Parser::parseArrayAccess()
-{
-    proceed(TOKEN_ARRAY_ACCESS);
-
-    AST_NODE *node = new AST_NODE();
-    node->TYPE = NODE_ARRAY_ACCESS;
-
-    if (current->TYPE != TOKEN_IDENTIFIER)
-    {
-        std::cerr << "< Syntax Error > Expected array identifier" << std::endl;
-        exit(1);
-    }
-
-    node->VALUE = current->value;
-    proceed(TOKEN_IDENTIFIER);
-
-    if (current->TYPE != TOKEN_LEFT_PAREN)
-    {
-        std::cerr << "< Syntax Error > Expected '(' after array access operator" << std::endl;
-        exit(1);
-    }
-    proceed(TOKEN_LEFT_PAREN);
-
-    node->CHILD = parseExpression();
-
-    if (current->TYPE != TOKEN_RIGHT_PAREN)
-    {
-        std::cerr << "< Syntax Error > Expected closing ')' after array index" << std::endl;
-        exit(1);
-    }
-    proceed(TOKEN_RIGHT_PAREN);
 
     return node;
 }
@@ -1380,34 +1342,60 @@ AST_NODE *Parser::parseID()
     std::string identifierName = current->value;
     proceed(TOKEN_IDENTIFIER);
 
-    // Check for array initializer (|=)
-    if (current != nullptr && current->TYPE == TOKEN_ARRAY_INITIALIZER)
+    if (current && current->TYPE == TOKEN_ARRAY_INITIALIZER)
     {
-        // Let parseArrayInit handle it
-        // But we need to set current back to the identifier name, because parseArrayInit expects to consume it
-        cursor--;                 // Step back to re-parse identifier
-        current = tokens[cursor]; // Restore current token to the identifier
-        return parseArrayInit();  // This will consume identifier, |=, and the list
+        cursor--; // step back so parseArrayInit sees the identifier
+        current = tokens[cursor];
+        return parseArrayInit(); // consumes IDENT, '|=', and the list
     }
 
-    // Handle function calls
-    if (current != nullptr && current->TYPE == TOKEN_LEFT_PAREN)
+    if (current && current->TYPE == TOKEN_ARRAY_ACCESS)
     {
-        AST_NODE *functionCallNode = new AST_NODE();
-        functionCallNode->TYPE = NODE_FUNCTION_CALL;
-        functionCallNode->VALUE = identifierName;
+        proceed(TOKEN_ARRAY_ACCESS);
+        if (current->TYPE != TOKEN_LEFT_PAREN)
+        {
+            std::cerr << "< Syntax Error > Expected '(' after '@'" << std::endl;
+            exit(1);
+        }
+        proceed(TOKEN_LEFT_PAREN);
+        AST_NODE *node = new AST_NODE();
+        node->TYPE = NODE_ARRAY_ACCESS;
+        node->VALUE = identifierName;
+
+        // index or last-element
+        if (current->TYPE == TOKEN_ARRAY_LAST_INDEX)
+        {
+            proceed(TOKEN_ARRAY_LAST_INDEX);
+            AST_NODE *lastNode = new AST_NODE();
+            lastNode->TYPE = NODE_ARRAY_LAST_INDEX;
+            node->CHILD = lastNode;
+        }
+        else
+        {
+            node->CHILD = parseExpression();
+        }
+
+        if (current->TYPE != TOKEN_RIGHT_PAREN)
+        {
+            std::cerr << "< Syntax Error > Expected ')' after array access" << std::endl;
+            exit(1);
+        }
+        proceed(TOKEN_RIGHT_PAREN);
+        return node;
+    }
+
+    if (current && current->TYPE == TOKEN_LEFT_PAREN)
+    {
+        AST_NODE *call = new AST_NODE();
+        call->TYPE = NODE_FUNCTION_CALL;
+        call->VALUE = identifierName;
         proceed(TOKEN_LEFT_PAREN);
 
-        // Parse function arguments
-        while (current != nullptr && current->TYPE != TOKEN_RIGHT_PAREN)
+        while (current && current->TYPE != TOKEN_RIGHT_PAREN)
         {
-            AST_NODE *argNode = parseExpression();
-            functionCallNode->SUB_STATEMENTS.push_back(argNode);
-
+            call->SUB_STATEMENTS.push_back(parseExpression());
             if (current->TYPE == TOKEN_COMMA)
-            {
                 proceed(TOKEN_COMMA);
-            }
             else if (current->TYPE != TOKEN_RIGHT_PAREN)
             {
                 std::cerr << "< Syntax Error > Expected ',' or ')'" << std::endl;
@@ -1415,21 +1403,19 @@ AST_NODE *Parser::parseID()
             }
         }
         proceed(TOKEN_RIGHT_PAREN);
-        return functionCallNode;
+        return call;
     }
 
-    // Handle 'end' keyword as identifier (language-specific)
     if (identifierName == "end")
     {
         return parseKeywordEOF();
     }
 
-    // Handle regular variable usage or assignment
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_IDENTIFIER;
     node->VALUE = identifierName;
 
-    if (current != nullptr && current->TYPE == TOKEN_EQUALS)
+    if (current && current->TYPE == TOKEN_EQUALS)
     {
         proceed(TOKEN_EQUALS);
         node->CHILD = parseExpression();
@@ -2499,6 +2485,8 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_COMMENT";
     case NODE_RANGE_OPERATOR:
         return "NODE_RANGE_OPERATOR";
+    case NODE_ELEMENT_TYPE:
+        return "NODE_ELEMENT_TYPE";
     default:
         return "Unknown node";
     }

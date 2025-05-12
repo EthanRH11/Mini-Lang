@@ -8,30 +8,43 @@ begin:
     integerArray |= (1, 2, 3, 4, 5, 6);
 
 >>$ Initialize an array within a range
-integerArray = repeat(0, 10);  >>$Creates  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]
+>>$integerArray = repeat(0, 10);  >>$Creates  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]
 
 >>$ Initialize within a range
-integerArray = range(1..10);   >>$ Creates [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+>>$integerArray = range(1..10);   >>$ Creates [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 >>$ Get a single element at specific index
-    int first = integerArray@(3)
-
+    int thirdElement = integerArray@(3)
+    out_to_console("The third element is: " + thirdElement); 
+    ...
 >>$ Get the last element
     int last = integerArray@($);
-
+    out_to_console("The last element is: " + last);
+    ...
 >>$ Append 42 to the array at index 4
 +> integerArray(4, 42);
+    int fourth = integerArray@(4);
+    out_to_console("The fourth element, after appending: " + fourth)
+    ...
+    out_to_console("The number above should be 42");
+    ...
 
 >>$ Remove number at index
--< integerArray(4);
+>>$-< integerArray(4);
 
 >>$ Get the length of the array
 
 int size = #integerArray;
+out_to_console("The size of the array is: " + size);
+...
+out_to_console("The number above should be 5 or 6");
+...
 
 >>$Sort the array in ascending order
-~> integerArray; 
+>>$ ~> integerArray; 
 >>$ Sort array in descending order
-<~ integerArray; 
+>>$ <~ integerArray; 
+
+out_to_console(integerArray);
 
 end

@@ -301,7 +301,6 @@ private:
 
     // Array-related methods
     AST_NODE *parseArrayDeclaration();
-    AST_NODE *parseArrayAccess();
     AST_NODE *parseArrayInit();
     AST_NODE *parseArrayRange();
     AST_NODE *parseArrayRepeat();

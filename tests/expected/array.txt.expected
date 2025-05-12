@@ -1,0 +1,7 @@
+The third element is: 4
+The last element is: 6
+The fourth element, after appending: 42
+The number above should be 42
+The size of the array is: 7
+The number above should be 5 or 6
+[1,2,3,4,42,5,6]

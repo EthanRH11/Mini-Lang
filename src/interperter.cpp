@@ -7,9 +7,11 @@
 #include <iomanip>
 #include <filesystem>
 #include <variant>
+#include <memory>
 
 #include "interperter.hpp"
 #include "Value.hpp"
+#include "dynamic_array.hpp"
 #include "parser.hpp"
 
 namespace fs = std::filesystem;
@@ -105,7 +107,7 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_CHAR_LITERAL:
         if (node->VALUE.length() == 1)
         {
-            return Value(node->VALUE);
+            return Value(node->VALUE[0]);
         }
         else
         {
@@ -128,42 +130,80 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() - right.getInteger());
-        }
-        return Value(0);
-    case NODE_MULT:
-        // if (node->SUB_STATEMENTS.size() >= 2)
-        // {
-        //     left = evaluateExpression(node->SUB_STATEMENTS[0]);
-        //     right = evaluateExpression(node->SUB_STATEMENTS[1]);
-
-        //     return Value(left.getInteger() * right.getInteger());
-        // }
-        // return Value(0);
-        {
-            Value leftValue = evaluateExpression(node->SUB_STATEMENTS[0]);
-            Value rightValue = evaluateExpression(node->SUB_STATEMENTS[1]);
-
-            // Debug output to see actual values during multiplication
-            std::cout << "Multiplying: " << leftValue.toString() << " * " << rightValue.toString() << std::endl;
-
-            if (leftValue.isInteger() && rightValue.isInteger())
+            if (left.isInt() && right.isInt())
             {
-                return Value(leftValue.getInteger() * rightValue.getInteger());
+                return Value(left.asInt() - right.asInt());
+            }
+            else if ((left.isInt() || left.isDouble()) && (right.isInt() || right.isDouble()))
+            {
+                double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+                double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+                return Value(leftVal - rightVal);
             }
             else
             {
-                std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
+                std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
                 return Value(0);
             }
         }
+        return Value(0);
+    case NODE_MULT:
+    {
+        Value leftValue = evaluateExpression(node->SUB_STATEMENTS[0]);
+        Value rightValue = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+        // Debug output to see actual values during multiplication
+        std::cout << "Multiplying: " << leftValue.toString() << " * " << rightValue.toString() << std::endl;
+
+        if (leftValue.isInt() && rightValue.isInt())
+        {
+            return Value(leftValue.asInt() * rightValue.asInt());
+        }
+        else if ((leftValue.isInt() || leftValue.isDouble()) && (rightValue.isInt() || rightValue.isDouble()))
+        {
+            double leftVal = leftValue.isInt() ? leftValue.asInt() : leftValue.asDouble();
+            double rightVal = rightValue.isInt() ? rightValue.asInt() : rightValue.asDouble();
+            return Value(leftVal * rightVal);
+        }
+        else
+        {
+            std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
+            return Value(0);
+        }
+    }
     case NODE_DIVISION:
         if (node->SUB_STATEMENTS.size() >= 2)
         {
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() / right.getInteger());
+            if (left.isInt() && right.isInt())
+            {
+                if (right.asInt() == 0)
+                {
+                    std::cerr << "Error: Division by zero" << std::endl;
+                    return Value(0);
+                }
+                return Value(left.asInt() / right.asInt());
+            }
+            else if ((left.isInt() || left.isDouble()) && (right.isInt() || right.isDouble()))
+            {
+                double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+                double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+
+                if (rightVal == 0.0)
+                {
+                    std::cerr << "Error: Division by zero" << std::endl;
+                    return Value(0);
+                }
+
+                return Value(leftVal / rightVal);
+            }
+            else
+            {
+                std::cerr << "Error: Cannot divide non-numeric values" << std::endl;
+                return Value(0);
+            }
         }
         return Value(0);
     case NODE_KEYWORD_INPUT:
@@ -174,7 +214,20 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() % right.getInteger());
+            if (left.isInt() && right.isInt())
+            {
+                if (right.asInt() == 0)
+                {
+                    std::cerr << "Error: Modulus by zero" << std::endl;
+                    return Value(0);
+                }
+                return Value(left.asInt() % right.asInt());
+            }
+            else
+            {
+                std::cerr << "Error: Modulus requires integer operands" << std::endl;
+                return Value(0);
+            }
         }
         return Value(0);
     case NODE_NOT_EQUAL:
@@ -183,7 +236,24 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() != right.getInteger());
+            // Compare based on types
+            if (left.isInt() && right.isInt())
+            {
+                return Value(left.asInt() != right.asInt());
+            }
+            else if (left.isDouble() && right.isDouble())
+            {
+                return Value(left.asDouble() != right.asDouble());
+            }
+            else if (left.isString() && right.isString())
+            {
+                return Value(left.asString() != right.asString());
+            }
+            else
+            {
+                // Compare string representations for mixed types
+                return Value(left.toString() != right.toString());
+            }
         }
         return Value(false);
     case NODE_LESS_THAN:
@@ -192,7 +262,21 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() < right.getInteger());
+            if (left.isInt() && right.isInt())
+            {
+                return Value(left.asInt() < right.asInt());
+            }
+            else if ((left.isInt() || left.isDouble()) && (right.isInt() || right.isDouble()))
+            {
+                double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+                double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+                return Value(leftVal < rightVal);
+            }
+            else
+            {
+                std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                return Value(false);
+            }
         }
         return Value(false);
     case NODE_GREATER_THAN:
@@ -201,7 +285,21 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() > right.getInteger());
+            if (left.isInt() && right.isInt())
+            {
+                return Value(left.asInt() > right.asInt());
+            }
+            else if ((left.isInt() || left.isDouble()) && (right.isInt() || right.isDouble()))
+            {
+                double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+                double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+                return Value(leftVal > rightVal);
+            }
+            else
+            {
+                std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                return Value(false);
+            }
         }
         return Value(false);
     case NODE_IDENTIFIER:
@@ -220,7 +318,21 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
-            return Value(left.getInteger() <= right.getInteger());
+            if (left.isInt() && right.isInt())
+            {
+                return Value(left.asInt() <= right.asInt());
+            }
+            else if ((left.isInt() || left.isDouble()) && (right.isInt() || right.isDouble()))
+            {
+                double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+                double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+                return Value(leftVal <= rightVal);
+            }
+            else
+            {
+                std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                return Value(false);
+            }
         }
         return Value(false);
     case NODE_OPERATOR_DECREMENT:
@@ -245,21 +357,21 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
 
         valuePtr = &variables[varName];
-        if (valuePtr->isInteger())
+        if (valuePtr->isInt())
         {
-            int newValue = valuePtr->getInteger() - 1;
+            int newValue = valuePtr->asInt() - 1;
             *valuePtr = Value(newValue);
             return *valuePtr;
         }
         else if (valuePtr->isDouble())
         {
-            double newValue = valuePtr->getDouble() - 1.0;
+            double newValue = valuePtr->asDouble() - 1.0;
             *valuePtr = Value(newValue);
             return *valuePtr;
         }
         else if (valuePtr->isChar())
         {
-            char newValue = valuePtr->getChar() - 1;
+            char newValue = valuePtr->asChar() - 1;
             *valuePtr = Value(newValue);
             return *valuePtr;
         }
@@ -291,21 +403,21 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
 
         valuePtr = &variables[varName];
-        if (valuePtr->isInteger())
+        if (valuePtr->isInt())
         {
-            int newValue = valuePtr->getInteger() + 1;
+            int newValue = valuePtr->asInt() + 1;
             *valuePtr = Value(newValue);
             return *valuePtr;
         }
         else if (valuePtr->isDouble())
         {
-            double newValue = valuePtr->getDouble() + 1.0;
+            double newValue = valuePtr->asDouble() + 1.0;
             *valuePtr = Value(newValue);
             return *valuePtr;
         }
         else if (valuePtr->isChar())
         {
-            char newValue = valuePtr->getChar() + 1;
+            char newValue = valuePtr->asChar() + 1;
             *valuePtr = Value(newValue);
             return *valuePtr;
         }
@@ -317,54 +429,198 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         break;
     case NODE_NEWLINE:
         return Value('\n');
-    // case NODE_FUNCTION_CALL:
+    case NODE_ARRAY_DECLARATION:
+    {
+        // Create a new empty array
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>();
+        return Value(array);
+    }
+    case NODE_ARRAY_REPEAT:
+    {
+        Value element = evaluateExpression(node->CHILD);
+        int count = std::stoi(node->SUB_STATEMENTS[0]->VALUE);
+
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>();
+        array->initializeRepeat(element, count);
+
+        return Value(array);
+    }
+    case NODE_ARRAY_LENGTH:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        auto array = variables[arrayName].asArray();
+        return Value(static_cast<int>(array->getLength()));
+    }
+    // case NODE_ARRAY_LAST_INDEX:
     // {
-    //     static int recursionDepth = 0;
-    //     recursionDepth++;
-
-    //     std::string funcName = node->VALUE;
-    //     std::cout << "Entering Function: " << funcName << " depth: " << recursionDepth << std::endl;
-    //     std::string callID = generateCallID(funcName, recursionDepth);
-
-    //     // Look up function definition
-    //     AST_NODE *funcDef = findFunctionByName(funcName);
-    //     if (!funcDef)
+    //     std::string arrayName = node->VALUE;
+    //     if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
     //     {
-    //         std::cerr << "Undefined function: " << funcName << std::endl;
+    //         std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
     //         exit(1);
     //     }
 
-    //     // Create a complete copy of the current variable scope
-    //     std::map<std::string, Value> localScope;
-    //     localScope.insert(variables.begin(), variables.end());
-
-    //     // Bind arguments to parameters
-    //     AST_NODE *params = funcDef->SUB_STATEMENTS[0];
-    //     for (size_t i = 0; i < node->SUB_STATEMENTS.size() && i < params->SUB_STATEMENTS.size(); i++)
+    //     auto array = variables[arrayName].asArray();
+    //     if (array->getLength() == 0)
     //     {
-    //         AST_NODE *paramNode = params->SUB_STATEMENTS[i];
-    //         AST_NODE *argNode = node->SUB_STATEMENTS[i];
-
-    //         // Evaluate argument
-    //         Value argValue = evaluateExpression(argNode);
-
-    //         // Bind to parameter name in the local scope
-    //         variables[paramNode->VALUE] = argValue;
+    //         std::cerr << "Error: Cannot get last element of empty array" << std::endl;
+    //         exit(1);
     //     }
-    //     returnValue = Value(); // Clear the return value before executing
-    //     // Execute function body
-    //     executeNode(funcDef->CHILD);
 
-    //     // Get the function's return value
-    //     Value result = returnValue;
-    //     // std::cout << "Return value from " << funcName << " depth " << recursionDepth << ": " << result.getInteger() << std::endl;
-
-    //     // Restore previous scope
-    //     variables = localScope;
-
-    //     recursionDepth--;
-    //     return result;
+    //     return array->getLastElement();
     // }
+    case NODE_ARRAY_ACCESS:
+    {
+        std::string arrayName = node->VALUE;
+        if (!variables.count(arrayName) || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array\n";
+            exit(1);
+        }
+        auto arr = variables[arrayName].asArray();
+
+        // if child is a literal index:
+        if (node->CHILD->TYPE != NODE_ARRAY_LAST_INDEX)
+        {
+            int idx = evaluateExpression(node->CHILD).asInt();
+            return arr->getElement(idx);
+        }
+        // else child is last-element marker:
+        if (arr->getLength() == 0)
+        {
+            std::cerr << "Error: Cannot get last element of empty array\n";
+            exit(1);
+        }
+        return arr->getLastElement();
+    }
+    case NODE_ARRAY_ASSIGN:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        int index = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
+        Value value = evaluateExpression(node->SUB_STATEMENTS[1]);
+        auto array = variables[arrayName].asArray();
+
+        try
+        {
+            array->setElement(index, value);
+            return value;
+        }
+        catch (const std::out_of_range &e)
+        {
+            std::cerr << "Error: Array index out of bounds" << std::endl;
+            exit(1);
+        }
+    }
+    case NODE_ARRAY_INIT:
+    {
+        std::vector<Value> values;
+        for (auto &stmt : node->SUB_STATEMENTS)
+        {
+            values.push_back(evaluateExpression(stmt));
+        }
+
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>(values);
+        return Value(array);
+    }
+    case NODE_ARRAY_RANGE:
+    {
+
+        int start = evaluateExpression(node->CHILD).asInt();
+        int end = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
+
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>();
+        array->initializeRange(start, end);
+
+        return Value(array);
+    }
+    case NODE_ARRAY_INSERT:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        int index = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
+        Value value = evaluateExpression(node->SUB_STATEMENTS[1]);
+        auto array = variables[arrayName].asArray();
+
+        try
+        {
+            array->insertElement(index, value);
+            return value;
+        }
+        catch (const std::out_of_range &e)
+        {
+            std::cerr << "Error: Invalid array index for insertion" << std::endl;
+            exit(1);
+        }
+    }
+    case NODE_ARRAY_REMOVE:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        int index = evaluateExpression(node->CHILD).asInt();
+        auto array = variables[arrayName].asArray();
+
+        try
+        {
+            Value removed = array->getElement(index);
+            array->removeElement(index);
+            return removed;
+        }
+        catch (const std::out_of_range &e)
+        {
+            std::cerr << "Error: Array index out of bounds" << std::endl;
+            exit(1);
+        }
+    }
+    case NODE_ARRAY_SORT_ASC:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        auto array = variables[arrayName].asArray();
+        array->sortAscending();
+        return variables[arrayName];
+    }
+    case NODE_ARRAY_SORT_DESC:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        auto array = variables[arrayName].asArray();
+        array->sortDescending();
+        return variables[arrayName];
+    }
+    case NODE_PAREN_EXPR:
+        return evaluateExpression(node->CHILD);
     case NODE_FUNCTION_CALL:
     {
         static int recursionDepth = 0;
@@ -486,7 +742,7 @@ void Interpreter::executeStatement(AST_NODE *node)
         }
         else
         {
-            variables[node->VALUE] = Value("");
+            variables[node->VALUE] = Value('\0');
         }
         break;
     case NODE_PRINT:
@@ -500,6 +756,12 @@ void Interpreter::executeStatement(AST_NODE *node)
             std::cout << "EMPTY PRINT" << std::endl;
         }
         break;
+    case NODE_ARRAY_DECLARATION:
+    {
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>();
+        variables[node->VALUE] = Value(array);
+    }
+    break;
     case NODE_SEMICOLON:
         break;
     default:
@@ -531,25 +793,25 @@ void Interpreter::executeNode(AST_NODE *node)
         Value condition = evaluateExpression(node->CHILD);
         bool conditionResult = false;
 
-        if (condition.isInteger())
+        if (condition.isInt())
         {
-            conditionResult = condition.getInteger() != 0;
+            conditionResult = condition.asInt() != 0;
         }
         else if (condition.isDouble())
         {
-            conditionResult = condition.getDouble() != 0.0;
+            conditionResult = condition.asDouble() != 0.0;
         }
         else if (condition.isBool())
         {
-            conditionResult = condition.getBool();
+            conditionResult = condition.asBool();
         }
         else if (condition.isString())
         {
-            conditionResult = !condition.getString().empty();
+            conditionResult = !condition.asString().empty();
         }
         else if (condition.isChar())
         {
-            conditionResult = condition.getChar() != '\0';
+            conditionResult = condition.asChar() != '\0';
         }
         std::cout << "IF condition evaluated to: " << (conditionResult ? "true" : "false") << std::endl;
 
@@ -583,17 +845,17 @@ void Interpreter::executeNode(AST_NODE *node)
             Value condition = evaluateExpression(node->CHILD);
 
             bool continueLoop = false;
-            if (condition.isInteger())
+            if (condition.isInt())
             {
-                continueLoop = condition.getInteger() != 0;
+                continueLoop = condition.asInt() != 0;
             }
             else if (condition.isDouble())
             {
-                continueLoop = condition.getDouble() != 0.0;
+                continueLoop = condition.asDouble() != 0.0;
             }
             else if (condition.isBool())
             {
-                continueLoop = condition.getBool();
+                continueLoop = condition.asBool();
             }
 
             if (!continueLoop)
@@ -603,11 +865,6 @@ void Interpreter::executeNode(AST_NODE *node)
             if (!node->SUB_STATEMENTS.empty())
             {
                 executeNode(node->SUB_STATEMENTS[0]);
-
-                // Here we would implement breaking
-                // if(hasBreakValue()){
-                // return;
-                // }
             }
         }
     }
@@ -670,6 +927,14 @@ void Interpreter::executeNode(AST_NODE *node)
             variables[node->VALUE] = Value("");
         }
         break;
+    case NODE_ELEMENT_TYPE:
+        break;
+    case NODE_ARRAY_DECLARATION:
+    {
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>();
+        variables[node->VALUE] = Value(array);
+    }
+    break;
     case NODE_OPERATOR_DECREMENT:
     {
         if (node->SUB_STATEMENTS.size() != 1)
@@ -694,8 +959,8 @@ void Interpreter::executeNode(AST_NODE *node)
             exit(1);
         }
 
-        // Increment the value based on its type
-        evaluateExpression(node); // This calls your existing increment logic in evaluateExpression
+        // Decrement the value based on its type
+        evaluateExpression(node); // This calls your existing decrement logic in evaluateExpression
         break;
     }
     case NODE_OPERATOR_INCREMENT:
@@ -784,6 +1049,187 @@ void Interpreter::executeNode(AST_NODE *node)
             executeNode(stmt);
         }
         break;
+    case NODE_ARRAY_ACCESS:
+    {
+        // std::string arrayName = node->VALUE;
+        // if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        // {
+        //     std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+        //     exit(1);
+        // }
+
+        // int index = evaluateExpression(node->CHILD).asInt();
+        // auto array = variables[arrayName].asArray();
+
+        // try
+        // {
+        //     Value result = array->getElement(index);
+        //     // If this is part of an assignment, we'll handle it elsewhere
+        //     // Otherwise, return the value at the index
+        //     return result;
+        // }
+        // catch (const std::out_of_range &e)
+        // {
+        //     std::cerr << "Error: Array index out of bounds" << std::endl;
+        //     exit(1);
+        // }
+    }
+    break;
+    case NODE_ARRAY_ASSIGN:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        int index = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
+        Value value = evaluateExpression(node->SUB_STATEMENTS[1]);
+        auto array = variables[arrayName].asArray();
+
+        try
+        {
+            array->setElement(index, value);
+        }
+        catch (const std::out_of_range &e)
+        {
+            std::cerr << "Error: Array index out of bounds" << std::endl;
+            exit(1);
+        }
+        break;
+    }
+    case NODE_ARRAY_INIT:
+    {
+        std::string arrayName = node->VALUE;
+        std::vector<Value> values;
+
+        for (auto &stmt : node->SUB_STATEMENTS)
+        {
+            values.push_back(evaluateExpression(stmt));
+        }
+
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>(values);
+        variables[arrayName] = Value(array);
+        break;
+    }
+    case NODE_ARRAY_RANGE:
+    {
+        std::string arrayName = node->VALUE;
+
+        int start = evaluateExpression(node->CHILD).asInt();
+        int end = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
+
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>();
+        array->initializeRange(start, end);
+
+        variables[arrayName] = Value(array);
+        break;
+    }
+    case NODE_ARRAY_REPEAT:
+    {
+        std::string arrayName = node->VALUE;
+        if (node->SUB_STATEMENTS.size() != 2)
+        {
+            std::cerr << "Error: Repeat requires value and count" << std::endl;
+            exit(1);
+        }
+
+        Value value = evaluateExpression(node->SUB_STATEMENTS[0]);
+        int count = evaluateExpression(node->SUB_STATEMENTS[1]).asInt();
+
+        std::shared_ptr<DynamicArray> array = std::make_shared<DynamicArray>();
+        array->initializeRepeat(value, count);
+
+        variables[arrayName] = Value(array);
+        break;
+    }
+    case NODE_ARRAY_LENGTH:
+    {
+        // Already handled in evaluateExpression
+        evaluateExpression(node);
+        break;
+    }
+    case NODE_ARRAY_INSERT:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        // FIX: index is in node->CHILD, not SUB_STATEMENTS[0]
+        int index = evaluateExpression(node->CHILD).asInt();
+        Value value = evaluateExpression(node->SUB_STATEMENTS[0]);
+        auto array = variables[arrayName].asArray();
+
+        try
+        {
+            array->insertElement(index, value);
+        }
+        catch (const std::out_of_range &e)
+        {
+            std::cerr << "Error: Invalid array index for insertion" << std::endl;
+            exit(1);
+        }
+        break;
+    }
+    case NODE_ARRAY_REMOVE:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        int index = evaluateExpression(node->CHILD).asInt();
+        auto array = variables[arrayName].asArray();
+
+        try
+        {
+            array->removeElement(index);
+        }
+        catch (const std::out_of_range &e)
+        {
+            std::cerr << "Error: Array index out of bounds" << std::endl;
+            exit(1);
+        }
+        break;
+    }
+    case NODE_ARRAY_SORT_ASC:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        auto array = variables[arrayName].asArray();
+        array->sortAscending();
+        break;
+    }
+    case NODE_ARRAY_SORT_DESC:
+    {
+        std::string arrayName = node->VALUE;
+        if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        auto array = variables[arrayName].asArray();
+        array->sortDescending();
+        break;
+    }
+    case NODE_ARRAY_LAST_INDEX:
+    {
+        // Already handled in evaluateExpression
+        evaluateExpression(node);
+        break;
+    }
     case NODE_FOR:
     {
         AST_NODE *args = node->CHILD;
@@ -810,25 +1256,25 @@ void Interpreter::executeNode(AST_NODE *node)
 
                 // Convert condition result to boolean
                 bool continueLoop = false;
-                if (condResult.isInteger())
+                if (condResult.isInt())
                 {
-                    continueLoop = condResult.getInteger() != 0;
+                    continueLoop = condResult.asInt() != 0;
                 }
                 else if (condResult.isDouble())
                 {
-                    continueLoop = condResult.getDouble() != 0.0;
+                    continueLoop = condResult.asDouble() != 0.0;
                 }
                 else if (condResult.isBool())
                 {
-                    continueLoop = condResult.getBool();
+                    continueLoop = condResult.asBool();
                 }
                 else if (condResult.isString())
                 {
-                    continueLoop = !condResult.getString().empty();
+                    continueLoop = !condResult.asString().empty();
                 }
                 else if (condResult.isChar())
                 {
-                    continueLoop = condResult.getChar() != '\0';
+                    continueLoop = condResult.asChar() != '\0';
                 }
 
                 // Exit loop if condition is false
@@ -987,3 +1433,46 @@ AST_NODE *Interpreter::findFunctionByName(const std::string &name)
     }
     return nullptr;
 }
+
+// /**
+//  * @brief Compatibility methods to bridge the gap between old and new Value class methods
+//  */
+// bool Value::isInteger() const
+// {
+//     return isInt();
+// }
+
+// int Value::getInteger() const
+// {
+//     return asInt();
+// }
+
+// bool Value::isString() const
+// {
+//     return this->isString();
+// }
+
+// std::string Value::getString() const
+// {
+//     return asString();
+// }
+
+// double Value::getDouble() const
+// {
+//     return asDouble();
+// }
+
+// bool Value::isBool() const
+// {
+//     return this->isBool();
+// }
+
+// bool Value::getBool() const
+// {
+//     return asBool();
+// }
+
+// char Value::getChar() const
+// {
+//     return asChar();
+// }

@@ -1,0 +1,32 @@
+
+begin:
+
+    int a = 20;
+    int b = 5;
+    int c = 30;
+    int d = 35;
+
+    if(a > b) {
+        out_to_console("a is greater than b");
+        ...
+        if(c > a){
+            out_to_console("c is greater than a");
+            ...
+            if((a + b) > d){
+                out_to_console("Shouldn't be here");
+                ...
+            } else {
+                out_to_console("a + b is less than d");
+                ...
+            }
+        } else {
+            out_to_console("shouldn't be here");
+            ...
+        }
+    } else {
+        out_to_console("shouldn't be here");
+        ...
+    }
+
+
+end

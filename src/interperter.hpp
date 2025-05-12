@@ -14,6 +14,7 @@
 
 #include "parser.hpp"
 #include "Value.hpp"
+#include "dynamic_array.hpp"
 
 /**
  * @class Interpreter
@@ -65,6 +66,7 @@ private:
     Value returnValue;                                             ///< Holds return values from functions
     std::map<std::string, std::stack<Value>> functionReturnValues; ///< Tracks return values for recursive calls
 
+    // bool hasReturnValue() const;
     /**
      * @brief Finds a function declaration by name
      * @param name The name of the function to find
@@ -121,25 +123,25 @@ private:
     void printToOutput(const Value &value)
     {
         // Print to console
-        if (value.isInteger())
+        if (value.isInt())
         {
-            std::cout << value.getInteger();
-            outputFile << value.getInteger();
+            std::cout << value.asInt();
+            outputFile << value.asInt();
         }
         else if (value.isDouble())
         {
-            std::cout << value.getDouble();
-            outputFile << value.getDouble();
+            std::cout << value.asDouble();
+            outputFile << value.asDouble();
         }
         else if (value.isBool())
         {
-            std::cout << (value.getBool() ? "true" : "false");
-            outputFile << (value.getBool() ? "true" : "false");
+            std::cout << (value.asBool() ? "true" : "false");
+            outputFile << (value.asBool() ? "true" : "false");
         }
         else if (value.isString())
         {
             // Check if the string contains newline characters
-            std::string str = value.getString();
+            std::string str = value.asString();
             bool containsNewline = str.find('\n') != std::string::npos;
 
             std::cout << str;
@@ -154,7 +156,7 @@ private:
         }
         else if (value.isChar())
         {
-            char ch = value.getChar();
+            char ch = value.asChar();
             std::cout << ch;
             outputFile << ch;
 
@@ -164,6 +166,37 @@ private:
                 std::cout.flush();
                 outputFile.flush();
             }
+        }
+        else if (value.isArray())
+        {
+            auto arrPtr = value.asArray();
+            if (!arrPtr)
+            {
+                std::cerr << "Error: null array\n";
+                return;
+            }
+
+            const DynamicArray &arr = *arrPtr;
+
+            std::cout << "[";
+            outputFile << "[";
+
+            size_t n = arr.getLength();
+            for (size_t i = 0; i < n; ++i)
+            {
+                Value elem = arr.getElement(static_cast<int>(i));
+
+                printToOutput(elem);
+
+                if (i + 1 < n)
+                {
+                    std::cout << ",";
+                    outputFile << ",";
+                }
+            }
+
+            std::cout << "]";
+            outputFile << "]";
         }
         else
         {
@@ -331,9 +364,9 @@ private:
         return funcName + "_" + std::to_string(depth);
     }
 
-    bool hasReturnValue()
+    bool hasReturnValue() const
     {
-        return returnValue.isInitialized();
+        return !returnValue.isNone();
     }
 };
 

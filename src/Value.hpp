@@ -1,81 +1,92 @@
 #ifndef VALUE_HPP
 #define VALUE_HPP
 
-#include <sstream>
-#include <iostream>
-#include <fstream>
-#include <chrono>
-#include <ctime>
-#include <variant>
+#include <memory>
 #include <string>
+#include <variant>
+#include <vector>
+#include <iostream>
+
+// Forward declaration
+class DynamicArray;
 
 class Value
 {
 public:
-    Value() : type(Type::INTEGER)
-    {
-        data.intValue = 0;
-    }
     enum class Type
     {
         INTEGER,
-        STRING,
         DOUBLE,
         BOOL,
-        FLOAT,
-        CHAR
+        CHAR,
+        STRING,
+        ARRAY,
+        NONE
     };
 
-    Value(int val);
-    Value(const std::string &val);
-    Value(double val);
-    Value(float val);
-    Value(bool val);
-    Value(char val);
+    // Constructors
+    Value(); // NONE
+    Value(int v);
+    Value(double v);
+    Value(bool v);
+    Value(char v);
+    Value(const std::string &v);
+    Value(std::shared_ptr<DynamicArray> arr);
 
-    Type getType() const { return type; }
+    // Copy/move
+    Value(const Value &);
+    Value(Value &&) noexcept;
+    Value &operator=(const Value &);
+    Value &operator=(Value &&) noexcept;
 
-    friend std::ostream &operator<<(std::ostream &os, const Value &v);
-    // Addition operator for combining values
-    Value operator+(const Value &other) const;
+    // Type info
+    Type getType() const;
 
-    bool isInteger() const;
-    bool isString() const;
+    // Type checks
+    bool isInt() const;
     bool isDouble() const;
-    bool isFloat() const;
     bool isBool() const;
     bool isChar() const;
+    bool isString() const;
+    bool isArray() const;
+    bool isNone() const;
+    bool isInitialize() const { return !isNone(); }
 
-    // Getters
+    // Add these to Value.hpp in the public section
+    bool isInteger() const;
     int getInteger() const;
-    std::string getString() const;
     double getDouble() const;
-    float getFloat() const;
     bool getBool() const;
     char getChar() const;
+    std::string getString() const;
 
+    // Getters
+    int asInt() const;
+    double asDouble() const;
+    bool asBool() const;
+    char asChar() const;
+    const std::string &asString() const;
+    std::shared_ptr<DynamicArray> asArray() const;
+
+    // String conversion
     std::string toString() const;
 
-    bool isInitialized() const
-    {
-        return initalized;
-    }
+    // Operators
+    Value operator+(const Value &rhs) const;
+    // ... (other operators as needed)
+
+    friend std::ostream &operator<<(std::ostream &os, const Value &v);
 
 private:
     Type type;
-
-    union
-    {
-        int intValue;
-        bool boolValue;
-        double doubleValue;
-        float floatValue;
-        char charValue;
-    } data;
-
-    std::string stringValue;
-
-    bool initalized = false;
+    std::variant<
+        int,
+        double,
+        bool,
+        char,
+        std::string,
+        std::shared_ptr<DynamicArray>>
+        data;
 };
 
-#endif // VALUE_HPP
+#endif
