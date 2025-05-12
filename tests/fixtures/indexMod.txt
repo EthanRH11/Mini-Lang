@@ -1,0 +1,10 @@
+begin:
+
+    elements<int> arr;
+
+    arr = range(0..20);
+
+    >>$ Modifies index 0 by adding 10 to it
+    arr.(0 + 10);
+
+end
