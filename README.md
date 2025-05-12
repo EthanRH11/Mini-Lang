@@ -49,8 +49,7 @@ To build and run the parser, follow these steps:
 
 - **Development Stage**: The project is still in progress.
 - **What’s Done**: Tokenizer, Parser, and Interperter are built.
-- **Next Steps**: Implementing Value class to handle different values. Implementing more coding aspects such as functions, if statements, and loops.
-
+- **Next Steps**: Implementing Error Class to handle errors within the language better. Implementing more data structures.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
