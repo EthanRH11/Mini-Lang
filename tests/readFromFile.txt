@@ -1,0 +1,16 @@
+needs: {
+    source: "readFromFile.hmlng
+}
+
+proc myFoo (int x) => {
+    x = x * 2;
+    result => {x};
+}
+
+begin:
+    int myInt = 12;
+    out_to_console(myFoo(myInt));
+
+    Ball(double r, double pi);
+
+end

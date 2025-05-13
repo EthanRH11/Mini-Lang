@@ -1,29 +1,35 @@
-Compilation started at Tue May 13 12:32:36 EDT 2025
+Compilation started at Tue May 13 15:08:54 EDT 2025
 ../src/interperter.cpp: In member function ‘Value Interpreter::evaluateExpression(AST_NODE*)’:
-../src/interperter.cpp:615:32: warning: comparison of integer expressions of different signedness: ‘int’ and ‘size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
-  615 |         if (index < 0 || index >= array->getLength())
+../src/interperter.cpp:629:32: warning: comparison of integer expressions of different signedness: ‘int’ and ‘size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+  629 |         if (index < 0 || index >= array->getLength())
       |                          ~~~~~~^~~~~~~~~~~~~~~~~~~~~
-../src/interperter.cpp:675:38: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
-  675 |             if (operandValue.isInt() && operandValue.asInt() == 0 ||
+../src/interperter.cpp:693:38: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+  693 |             if (operandValue.isInt() && operandValue.asInt() == 0 ||
       |                 ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/interperter.cpp:325:99: warning: this statement may fall through [-Wimplicit-fallthrough=]
+  325 |             ErrorHandler::getInstance().reportSemanticError("Undefined variable: '" + node->VALUE + "'");
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+../src/interperter.cpp:327:5: note: here
+  327 |     case NODE_LESS_EQUAL:
+      |     ^~~~
 ../src/lexer.cpp: In member function ‘Token* Lexer::processBool()’:
-../src/lexer.cpp:265:1: warning: control reaches end of non-void function [-Wreturn-type]
-  265 | }
+../src/lexer.cpp:276:1: warning: control reaches end of non-void function [-Wreturn-type]
+  276 | }
       | ^
 ../src/lexer.cpp: In member function ‘Token* Lexer::processOperator()’:
-../src/lexer.cpp:400:1: warning: control reaches end of non-void function [-Wreturn-type]
-  400 | }
+../src/lexer.cpp:443:1: warning: control reaches end of non-void function [-Wreturn-type]
+  443 | }
       | ^
 ../src/lexer.cpp: In member function ‘Token* Lexer::processStringLiteral()’:
-../src/lexer.cpp:435:55: warning: control reaches end of non-void function [-Wreturn-type]
-  435 |         ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
+../src/lexer.cpp:478:55: warning: control reaches end of non-void function [-Wreturn-type]
+  478 |         ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
       |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
 ../src/lexer.cpp: In member function ‘Token* Lexer::processCharLiteral()’:
-../src/lexer.cpp:483:51: warning: control reaches end of non-void function [-Wreturn-type]
-  483 |     ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
+../src/lexer.cpp:526:51: warning: control reaches end of non-void function [-Wreturn-type]
+  526 |     ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
       |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ../src/lexer.cpp: In member function ‘Token* Lexer::processInputType()’:
-../src/lexer.cpp:532:1: warning: control reaches end of non-void function [-Wreturn-type]
-  532 | }
+../src/lexer.cpp:575:1: warning: control reaches end of non-void function [-Wreturn-type]
+  575 | }
       | ^
-Test Log Entry Tue May 13 12:32:39 EDT 2025
+Test Log Entry Tue May 13 15:08:57 EDT 2025

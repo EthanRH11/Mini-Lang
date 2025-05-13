@@ -53,7 +53,8 @@ void Lexer::initializeLexerMaps()
         {'@', TOKEN_ARRAY_ACCESS},
         {'$', TOKEN_ARRAY_LAST_INDEX},
         {'.', TOKEN_DOT},
-        {'%', TOKEN_OPERATOR_MODULUS}};
+        {'%', TOKEN_OPERATOR_MODULUS},
+        {':', TOKEN_COLON_ACCESSOR}};
 
     MultiCharMap = {
         {"...", TOKEN_NL_SYMBOL},
@@ -72,7 +73,9 @@ void Lexer::initializeLexerMaps()
         {"-<", TOKEN_ARRAY_REMOVE},
         {"~>", TOKEN_ARRAY_SORT_ASC},
         {"<~", TOKEN_ARRAY_SORT_DESC},
-        {"=/=", TOKEN_OPERATOR_DOESNT_EQUAL}};
+        {"=/=", TOKEN_OPERATOR_DOESNT_EQUAL},
+        {"::", TOKEN_COLON_OOP},
+        {"->", TOKEN_ARROW_OP}};
 
     KeywordMap = {
         {"begin:", TOKEN_KEYWORD_BEGIN},
@@ -92,7 +95,15 @@ void Lexer::initializeLexerMaps()
         {"result", TOKEN_KEYWORD_RESULT},
         {"elements", TOKEN_KEYWORD_ELEMENT},
         {"repeat", TOKEN_KEYWORD_REPEAT},
-        {"range", TOKEN_KEYWORD_RANGE}};
+        {"range", TOKEN_KEYWORD_RANGE},
+        {"@once", TOKEN_READ_HEADER},
+        {"@last", TOKEN_END_HEADER},
+        {"object", TOKEN_KEYWORD_OBJECT},
+        {"available", TOKEN_KEYWORD_AVAILABLE},
+        {"secure", TOKEN_KEYWORD_SECURE},
+        {"default", TOKEN_OBJECT_DEFAULT},
+        {"factory", TOKEN_OBJECT_FACTORY},
+        {"method", TOKEN_OBJECT_METHOD}};
 }
 
 /**
@@ -340,7 +351,34 @@ Token *Lexer::processPrint()
 Token *Lexer::processOperator()
 {
     std::string op(1, current);
+    if (op == "@")
+    {
+        int startPos = cursor;
 
+        advanceCursor(); // consuming @
+        std::string nextChars = "";
+        while (std::isalpha(current) && nextChars.length() < 4)
+        {
+            nextChars += current;
+            advanceCursor();
+        }
+
+        if (nextChars == "once")
+        {
+            return new Token{TOKEN_READ_HEADER, "@once"};
+        }
+        else if (nextChars == "last")
+        {
+            return new Token{TOKEN_END_HEADER, "@last"};
+        }
+        else
+        {
+            cursor = startPos;
+            current = source[cursor];
+            advanceCursor();
+            return new Token{TOKEN_ARRAY_ACCESS, "@"};
+        }
+    }
     // Check for multi-character operators first
     if (op == ">" && peakAhead(1) == '>' && peakAhead(2) == '$')
     {
@@ -350,6 +388,11 @@ Token *Lexer::processOperator()
     {
         return processMultiLineComment();
     }
+
+    // if (op == "@" && (peakAhead(1) == 'o' || peakAhead(1) == 'l'))
+    // {
+    //     return processKeyword();
+    // }
 
     // Check for other potential multi-character operators
     std::string potentialMultiChar = "";
@@ -791,7 +834,18 @@ std::string getTokenTypeName(tokenType type)
         {TOKEN_ELEMENT_TYPE, "TOKEN_ELEMENT_TYPE"},
         {TOKEN_KEYWORD_RANGE, "TOKEN_KEYWORD_RANGE"},
         {TOKEN_DOT, "TOKEN_DOT"},
-        {TOKEN_KEYWORD_REPEAT, "TOKEN_KEYWORD_REPEAT"}};
+        {TOKEN_KEYWORD_REPEAT, "TOKEN_KEYWORD_REPEAT"},
+        {TOKEN_READ_HEADER, "TOKEN_READ_HEADER"},
+        {TOKEN_KEYWORD_OBJECT, "TOKEN_KEYWORD_OBJECT"},
+        {TOKEN_KEYWORD_AVAILABLE, "TOKEN_KEYWORD_AVAILABLE"},
+        {TOKEN_KEYWORD_SECURE, "TOKEN_KEYWORD_SECURE"},
+        {TOKEN_COLON_OOP, "TOKEN_COLON_OOP"},
+        {TOKEN_OBJECT_DEFAULT, "TOKEN_OBJECT_DEFAULT"},
+        {TOKEN_OBJECT_FACTORY, "TOKEN_OBJECT_FACTORY"},
+        {TOKEN_OBJECT_METHOD, "TOKEN_OBJECT_METHOD"},
+        {TOKEN_ARROW_OP, "TOKEN_ARROW_OP"},
+        {TOKEN_END_HEADER, "TOKEN_END_HEADER"},
+        {TOKEN_COLON_ACCESSOR, "TOKEN_COLON_ACCESSOR"}};
 
     auto it = tokenTypeNames.find(type);
     if (it != tokenTypeNames.end())
