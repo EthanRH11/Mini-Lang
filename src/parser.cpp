@@ -993,8 +993,183 @@ AST_NODE *Parser::parseKeywordRepeat()
     return node;
 }
 
-AST_NODE *Parser::parseDot()
+AST_NODE *Parser::parseDot(/*const std::string &identifier*/)
 {
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_DOT;
+    node->VALUE = arrayIDforDot;
+
+    proceed(TOKEN_DOT);
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected '(' after dot operator." << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    node->CHILD = parseDotExpression();
+
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        std::cerr << "< Syntax Error > Expected ')' to close dot expression." << std::endl;
+        exit(1);
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+
+    return node;
+}
+
+// AST_NODE *Parser::parseDotExpression()
+// {
+//     AST_NODE *indexNode = new AST_NODE();
+//     indexNode->TYPE = NODE_ARRAY_INDEX;
+//     indexNode->VALUE = current->value;
+
+//     proceed(TOKEN_INTEGER_VAL);
+
+//     AST_NODE *operatorNode = nullptr;
+
+//     switch (current->TYPE)
+//     {
+//     case TOKEN_OPERATOR_ADD:
+//         operatorNode = new AST_NODE();
+//         operatorNode->TYPE = NODE_ADD;
+//         operatorNode->VALUE = current->value;
+//         proceed(TOKEN_OPERATOR_ADD);
+//     case TOKEN_OPERATOR_SUBT:
+//         operatorNode = new AST_NODE();
+//         operatorNode->TYPE = NODE_SUBT;
+//         operatorNode->VALUE = current->value;
+//         proceed(TOKEN_OPERATOR_SUBT);
+//     case TOKEN_OPERATOR_DIV:
+//         operatorNode = new AST_NODE();
+//         operatorNode->TYPE = NODE_DIVISION;
+//         operatorNode->VALUE = current->value;
+//         proceed(TOKEN_OPERATOR_DIV);
+//     case TOKEN_OPERATOR_MODULUS:
+//         operatorNode = new AST_NODE();
+//         operatorNode->TYPE = NODE_MODULUS;
+//         operatorNode->VALUE = current->value;
+//         proceed(TOKEN_OPERATOR_MODULUS);
+//     case TOKEN_OPERATOR_MULT:
+//         operatorNode = new AST_NODE();
+//         operatorNode->TYPE = NODE_MULT;
+//         operatorNode->VALUE = current->value;
+//         proceed(TOKEN_OPERATOR_MULT);
+//     default:
+//         std::cerr << "< Syntax Error > Expected a mathematical operator between index and value." << std::endl;
+//         exit(1);
+//     }
+
+//     if (current->TYPE != TOKEN_INTEGER_VAL)
+//     {
+//         std::cerr << "< Syntax Error > Expected a value after the operator." << std::endl;
+//         exit(1);
+//     }
+
+//     AST_NODE *operandNode = new AST_NODE();
+//     operandNode->TYPE = NODE_INT;
+//     operandNode->VALUE = current->value;
+//     proceed(TOKEN_INTEGER_VAL);
+
+//     operatorNode->CHILD = operandNode;
+
+//     indexNode->CHILD = operatorNode;
+
+//     return indexNode;
+// }
+AST_NODE *Parser::parseDotExpression()
+{
+    std::cout << "DEBUG: Entering parseDotExpression, current token: "
+              << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
+
+    AST_NODE *indexNode = new AST_NODE();
+    indexNode->TYPE = NODE_ARRAY_INDEX;
+    indexNode->VALUE = current->value;
+
+    std::cout << "DEBUG: Expecting INTEGER for index value" << std::endl;
+    if (current->TYPE != TOKEN_INTEGER_VAL)
+    {
+        std::cerr << "< Syntax Error > Expected INTEGER for array index but got "
+                  << getTokenTypeName(current->TYPE) << std::endl;
+        exit(1);
+    }
+
+    proceed(TOKEN_INTEGER_VAL);
+
+    std::cout << "DEBUG: After index value, current token: "
+              << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
+
+    AST_NODE *operatorNode = nullptr;
+
+    switch (current->TYPE)
+    {
+    case TOKEN_OPERATOR_ADD:
+        std::cout << "DEBUG: Found ADD operator" << std::endl;
+        operatorNode = new AST_NODE();
+        operatorNode->TYPE = NODE_ADD;
+        operatorNode->VALUE = current->value;
+        proceed(TOKEN_OPERATOR_ADD);
+        break;
+    case TOKEN_OPERATOR_SUBT:
+        std::cout << "DEBUG: Found SUBTRACT operator" << std::endl;
+        operatorNode = new AST_NODE();
+        operatorNode->TYPE = NODE_SUBT;
+        operatorNode->VALUE = current->value;
+        proceed(TOKEN_OPERATOR_SUBT);
+        break;
+    case TOKEN_OPERATOR_DIV:
+        std::cout << "DEBUG: Found DIVIDE operator" << std::endl;
+        operatorNode = new AST_NODE();
+        operatorNode->TYPE = NODE_DIVISION;
+        operatorNode->VALUE = current->value;
+        proceed(TOKEN_OPERATOR_DIV);
+        break;
+    case TOKEN_OPERATOR_MODULUS:
+        std::cout << "DEBUG: Found MODULUS operator" << std::endl;
+        operatorNode = new AST_NODE();
+        operatorNode->TYPE = NODE_MODULUS;
+        operatorNode->VALUE = current->value;
+        proceed(TOKEN_OPERATOR_MODULUS);
+        break;
+    case TOKEN_OPERATOR_MULT:
+        std::cout << "DEBUG: Found MULTIPLY operator" << std::endl;
+        operatorNode = new AST_NODE();
+        operatorNode->TYPE = NODE_MULT;
+        operatorNode->VALUE = current->value;
+        proceed(TOKEN_OPERATOR_MULT);
+        break;
+    default:
+        std::cerr << "< Syntax Error > Expected a mathematical operator between index and value, but got "
+                  << getTokenTypeName(current->TYPE) << std::endl;
+        exit(1);
+    }
+
+    std::cout << "DEBUG: After operator, current token: "
+              << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
+
+    if (current->TYPE != TOKEN_INTEGER_VAL)
+    {
+        std::cerr << "< Syntax Error > Expected a value after the operator, but got "
+                  << getTokenTypeName(current->TYPE) << std::endl;
+        exit(1);
+    }
+
+    AST_NODE *operandNode = new AST_NODE();
+    operandNode->TYPE = NODE_INT;
+    operandNode->VALUE = current->value;
+
+    std::cout << "DEBUG: Found operand value: " << current->value << std::endl;
+    proceed(TOKEN_INTEGER_VAL);
+
+    operatorNode->CHILD = operandNode;
+    indexNode->CHILD = operatorNode;
+
+    std::cout << "DEBUG: Exiting parseDotExpression, current token: "
+              << getTokenTypeName(current->TYPE) << std::endl;
+
+    return indexNode;
 }
 
 //-------------------------------------------------------------------
@@ -1345,6 +1520,7 @@ AST_NODE *Parser::parseSemicolon()
 AST_NODE *Parser::parseID()
 {
     std::string identifierName = current->value;
+    arrayIDforDot = current->value;
     proceed(TOKEN_IDENTIFIER);
 
     if (current && current->TYPE == TOKEN_DOT)
@@ -2497,6 +2673,10 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_RANGE_OPERATOR";
     case NODE_ELEMENT_TYPE:
         return "NODE_ELEMENT_TYPE";
+    case NODE_ARRAY_INDEX:
+        return "NODE_ARRAY_INDEX";
+    case NODE_DOT:
+        return "NODE_DOT";
     default:
         return "Unknown node";
     }

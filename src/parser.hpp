@@ -179,6 +179,7 @@ private:
     size_t size;                 // Total number of tokens
     Token *current;              // Current token being processed
 
+    std::string arrayIDforDot; // helper string for dot function
     using ParseFunction = AST_NODE *(Parser::*)();
 
     std::unordered_map<tokenType, ParseFunction> statementDispatch;
@@ -311,7 +312,8 @@ private:
     AST_NODE *parseArrayRemove();
     AST_NODE *parseArraySortAsc();
     AST_NODE *parseArraySortDesc();
-    AST_NODE *parseDot();
+    AST_NODE *parseDot(/*const std::string &*/);
+    AST_NODE *parseDotExpression();
 
     /**
      * @brief parses an array decleration

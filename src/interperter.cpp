@@ -593,6 +593,134 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             exit(1);
         }
     }
+    case NODE_DOT:
+    {
+        std::string arrayName = node->VALUE;
+        if (!variables.count(arrayName) || !variables[arrayName].isArray())
+        {
+            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            exit(1);
+        }
+
+        auto array = variables[arrayName].asArray();
+
+        if (!node || node->CHILD->TYPE != NODE_ARRAY_INDEX)
+        {
+            std::cerr << "Error: Invalid dot expression structure" << std::endl;
+            exit(1);
+        }
+
+        int index = std::stoi(node->CHILD->VALUE);
+
+        if (index < 0 || index >= array->getLength())
+        {
+            std::cerr << "Error: Array index out of bounds: " << index << std::endl;
+            exit(1);
+        }
+
+        Value currentValueOfIndex = array->getElement(index);
+
+        if (!node->CHILD->CHILD)
+        {
+            std::cerr << "Error: Missing operator in dot expression" << std::endl;
+            exit(1);
+        }
+
+        Value operandValue = Value(std::stoi(node->CHILD->CHILD->CHILD->VALUE));
+
+        Value resultOfExpression;
+
+        switch (node->CHILD->CHILD->TYPE)
+        {
+        case NODE_ADD:
+            resultOfExpression = currentValueOfIndex + operandValue;
+            break;
+        case NODE_SUBT:
+            if (currentValueOfIndex.isInt() && operandValue.isInt())
+            {
+                resultOfExpression = Value(currentValueOfIndex.asInt() - operandValue.asInt());
+            }
+            else if ((currentValueOfIndex.isInt() || currentValueOfIndex.isDouble()) &&
+                     (operandValue.isInt() || operandValue.isDouble()))
+            {
+                double leftVal = currentValueOfIndex.isInt() ? currentValueOfIndex.asInt() : currentValueOfIndex.asDouble();
+                double rightVal = operandValue.isInt() ? operandValue.asInt() : operandValue.asDouble();
+                resultOfExpression = Value(leftVal - rightVal);
+            }
+            else
+            {
+                std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
+                exit(1);
+            }
+            break;
+        case NODE_MULT:
+            if (currentValueOfIndex.isInt() && operandValue.isInt())
+            {
+                resultOfExpression = Value(currentValueOfIndex.asInt() * operandValue.asInt());
+            }
+            else if ((currentValueOfIndex.isInt() || currentValueOfIndex.isDouble()) &&
+                     (operandValue.isInt() || operandValue.isDouble()))
+            {
+                double leftVal = currentValueOfIndex.isInt() ? currentValueOfIndex.asInt() : currentValueOfIndex.asDouble();
+                double rightVal = operandValue.isInt() ? operandValue.asInt() : operandValue.asDouble();
+                resultOfExpression = Value(leftVal * rightVal);
+            }
+            else
+            {
+                std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
+                exit(1);
+            }
+            break;
+        case NODE_DIVISION:
+            if (operandValue.isInt() && operandValue.asInt() == 0 ||
+                operandValue.isDouble() && operandValue.asDouble() == 0.0)
+            {
+                std::cerr << "Error: Division by zero" << std::endl;
+                exit(1);
+            }
+
+            if (currentValueOfIndex.isInt() && operandValue.isInt())
+            {
+                resultOfExpression = Value(currentValueOfIndex.asInt() / operandValue.asInt());
+            }
+            else if ((currentValueOfIndex.isInt() || currentValueOfIndex.isDouble()) &&
+                     (operandValue.isInt() || operandValue.isDouble()))
+            {
+                double leftVal = currentValueOfIndex.isInt() ? currentValueOfIndex.asInt() : currentValueOfIndex.asDouble();
+                double rightVal = operandValue.isInt() ? operandValue.asInt() : operandValue.asDouble();
+                resultOfExpression = Value(leftVal / rightVal);
+            }
+            else
+            {
+                std::cerr << "Error: Cannot divide non-numeric values" << std::endl;
+                exit(1);
+            }
+            break;
+        case NODE_MODULUS:
+            if (operandValue.isInt() && operandValue.asInt() == 0)
+            {
+                std::cerr << "Error: Modulus by zero" << std::endl;
+                exit(1);
+            }
+
+            if (currentValueOfIndex.isInt() && operandValue.isInt())
+            {
+                resultOfExpression = Value(currentValueOfIndex.asInt() % operandValue.asInt());
+            }
+            else
+            {
+                std::cerr << "Error: Modulus requires integer operands" << std::endl;
+                exit(1);
+            }
+            break;
+        default:
+            std::cerr << "Error: Unknown operator in dot expression" << std::endl;
+            exit(1);
+        }
+
+        array->setElement(index, resultOfExpression);
+        return resultOfExpression;
+    }
     case NODE_ARRAY_SORT_ASC:
     {
         std::string arrayName = node->VALUE;
@@ -1299,6 +1427,11 @@ void Interpreter::executeNode(AST_NODE *node)
         }
     }
     break;
+    case NODE_DOT:
+    {
+        evaluateExpression(node);
+        break;
+    }
     case NODE_ADD:
         evaluateExpression(node);
         break;

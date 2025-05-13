@@ -3,8 +3,34 @@ begin:
     elements<int> arr;
 
     arr = range(0..20);
+    out_to_console(arr);
+    ...
+    out_to_console("***************************************");
+    ...
+    out_to_console("Index prior to operation: " + arr@(5));
+    ...
+    arr.(5 + 20);
+    out_to_console("Index after addition operation: " + arr@(5));
+    ...
+    out_to_console("Index prior to operation: " + arr@(8));
+    ...
+    arr.(8 * 2);
+    out_to_console("Index after multiplication operation: " + arr@(8));
+    ...
+    out_to_console("Index prior to operation: " + arr@(11));
+    ...
+    arr.(11 - 4);
+    out_to_console("Index after subtraction operation: " +  arr@(11));
+    ...
+    out_to_console("Index prior to operation: " + arr@(18));
+    ...
+    arr.(18 / 2);
+    out_to_console("Index after division operation: " + arr@(18));
+    ...
+    out_to_console("Index prior to operation: " + arr@(20));
+    ...
+    arr.(20 % 2);   
+    out_to_console("Index after modulus operation: " + arr@(20));
 
-    >>$ Modifies index 0 by adding 10 to it
-    arr.(0 + 10);
 
 end

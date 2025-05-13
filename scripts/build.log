@@ -1,2 +1,9 @@
-Compilation started at Mon May 12 16:42:17 EDT 2025
-Test Log Entry Mon May 12 16:42:20 EDT 2025
+Compilation started at Tue May 13 10:42:32 EDT 2025
+../src/interperter.cpp: In member function ‘Value Interpreter::evaluateExpression(AST_NODE*)’:
+../src/interperter.cpp:615:32: warning: comparison of integer expressions of different signedness: ‘int’ and ‘size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
+  615 |         if (index < 0 || index >= array->getLength())
+      |                          ~~~~~~^~~~~~~~~~~~~~~~~~~~~
+../src/interperter.cpp:675:38: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+  675 |             if (operandValue.isInt() && operandValue.asInt() == 0 ||
+      |                 ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test Log Entry Tue May 13 10:42:35 EDT 2025

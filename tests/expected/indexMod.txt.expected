@@ -1,0 +1,12 @@
+[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+***************************************
+Index prior to operation: 5
+Index after addition operation: 25
+Index prior to operation: 8
+Index after multiplication operation: 16
+Index prior to operation: 11
+Index after subtraction operation: 7
+Index prior to operation: 18
+Index after division operation: 9
+Index prior to operation: 20
+Index after modulus operation: 0
