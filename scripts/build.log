@@ -1,4 +1,4 @@
-Compilation started at Tue May 13 10:42:32 EDT 2025
+Compilation started at Tue May 13 12:32:36 EDT 2025
 ../src/interperter.cpp: In member function ‘Value Interpreter::evaluateExpression(AST_NODE*)’:
 ../src/interperter.cpp:615:32: warning: comparison of integer expressions of different signedness: ‘int’ and ‘size_t’ {aka ‘long unsigned int’} [-Wsign-compare]
   615 |         if (index < 0 || index >= array->getLength())
@@ -6,4 +6,24 @@ Compilation started at Tue May 13 10:42:32 EDT 2025
 ../src/interperter.cpp:675:38: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
   675 |             if (operandValue.isInt() && operandValue.asInt() == 0 ||
       |                 ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Test Log Entry Tue May 13 10:42:35 EDT 2025
+../src/lexer.cpp: In member function ‘Token* Lexer::processBool()’:
+../src/lexer.cpp:265:1: warning: control reaches end of non-void function [-Wreturn-type]
+  265 | }
+      | ^
+../src/lexer.cpp: In member function ‘Token* Lexer::processOperator()’:
+../src/lexer.cpp:400:1: warning: control reaches end of non-void function [-Wreturn-type]
+  400 | }
+      | ^
+../src/lexer.cpp: In member function ‘Token* Lexer::processStringLiteral()’:
+../src/lexer.cpp:435:55: warning: control reaches end of non-void function [-Wreturn-type]
+  435 |         ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/lexer.cpp: In member function ‘Token* Lexer::processCharLiteral()’:
+../src/lexer.cpp:483:51: warning: control reaches end of non-void function [-Wreturn-type]
+  483 |     ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../src/lexer.cpp: In member function ‘Token* Lexer::processInputType()’:
+../src/lexer.cpp:532:1: warning: control reaches end of non-void function [-Wreturn-type]
+  532 | }
+      | ^
+Test Log Entry Tue May 13 12:32:39 EDT 2025

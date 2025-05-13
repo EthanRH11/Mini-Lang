@@ -12,6 +12,7 @@
 #include "interperter.hpp"
 #include "Value.hpp"
 #include "dynamic_array.hpp"
+#include "ErrorHandler.hpp"
 #include "parser.hpp"
 
 namespace fs = std::filesystem;
@@ -61,8 +62,9 @@ void Interpreter::execute()
 
     if (!beginBlock)
     {
-        std::cerr << "Error: No 'begin' block found in program." << std::endl;
-        exit(1);
+        // std::cerr << "Error: No 'begin' block found in program." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSemanticError("No 'begin' block found in program.");
     }
     executeNode(beginBlock);
 }
@@ -142,7 +144,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
+                // std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
+                ErrorHandler::getInstance().reportSemanticError("Cannot subtract non-numeric value.");
                 return Value(0);
             }
         }
@@ -153,7 +156,7 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         Value rightValue = evaluateExpression(node->SUB_STATEMENTS[1]);
 
         // Debug output to see actual values during multiplication
-        std::cout << "Multiplying: " << leftValue.toString() << " * " << rightValue.toString() << std::endl;
+        // std::cout << "Multiplying: " << leftValue.toString() << " * " << rightValue.toString() << std::endl;
 
         if (leftValue.isInt() && rightValue.isInt())
         {
@@ -167,7 +170,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         else
         {
-            std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
+            // std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
+            ErrorHandler::getInstance().reportSemanticError("Cannot multiple non-numeric values.");
             return Value(0);
         }
     }
@@ -181,7 +185,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             {
                 if (right.asInt() == 0)
                 {
-                    std::cerr << "Error: Division by zero" << std::endl;
+                    // std::cerr << "Error: Division by zero" << std::endl;
+                    ErrorHandler::getInstance().reportSemanticError("Division by zero.");
                     return Value(0);
                 }
                 return Value(left.asInt() / right.asInt());
@@ -193,7 +198,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
 
                 if (rightVal == 0.0)
                 {
-                    std::cerr << "Error: Division by zero" << std::endl;
+                    // std::cerr << "Error: Division by zero" << std::endl;
+                    ErrorHandler::getInstance().reportSemanticError("Division by zero.");
                     return Value(0);
                 }
 
@@ -201,7 +207,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot divide non-numeric values" << std::endl;
+                // std::cerr << "Error: Cannot divide non-numeric values" << std::endl;
+                ErrorHandler::getInstance().reportSemanticError("Cannot divide non-numeric values.");
                 return Value(0);
             }
         }
@@ -218,14 +225,16 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             {
                 if (right.asInt() == 0)
                 {
-                    std::cerr << "Error: Modulus by zero" << std::endl;
+                    // std::cerr << "Error: Modulus by zero" << std::endl;
+                    ErrorHandler::getInstance().reportSemanticError("Modulus by zero.");
                     return Value(0);
                 }
                 return Value(left.asInt() % right.asInt());
             }
             else
             {
-                std::cerr << "Error: Modulus requires integer operands" << std::endl;
+                // std::cerr << "Error: Modulus requires integer operands" << std::endl;
+                ErrorHandler::getInstance().reportSemanticError("Modulus requires integer operands.");
                 return Value(0);
             }
         }
@@ -274,7 +283,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                // std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                ErrorHandler::getInstance().reportSemanticError("Cannot compare non-numeric values.");
                 return Value(false);
             }
         }
@@ -297,7 +307,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                // std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                ErrorHandler::getInstance().reportSemanticError("Cannot compare non-numeric values.");
                 return Value(false);
             }
         }
@@ -309,8 +320,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         else
         {
-            std::cerr << "ERROR: Undefined variable: '" << node->VALUE << "'" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Undefined variable: '" << node->VALUE << "'" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Undefined variable: '" + node->VALUE + "'");
         }
     case NODE_LESS_EQUAL:
         if (node->SUB_STATEMENTS.size() >= 2)
@@ -330,7 +342,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                // std::cerr << "Error: Cannot compare non-numeric values" << std::endl;
+                ErrorHandler::getInstance().reportSemanticError("Cannot compare non-numeric values.");
                 return Value(false);
             }
         }
@@ -338,22 +351,25 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     case NODE_OPERATOR_DECREMENT:
         if (node->SUB_STATEMENTS.size() != 1)
         {
-            std::cerr << "ERROR: Decrement operator requires exactly one operand" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Decrement operator requires exactly one operand" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Decrement operator requires exactly one operand.");
         }
 
         operand = node->SUB_STATEMENTS[0];
         if (operand->TYPE != NODE_IDENTIFIER)
         {
-            std::cerr << "ERROR: Decrement operator can only be applied to variables" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Decrement operator can only be applied to variables" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Decrement operator can only be applied to variables.");
         }
 
         varName = operand->VALUE;
         if (variables.find(varName) == variables.end())
         {
-            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Undefined variable: '" + varName + "'");
         }
 
         valuePtr = &variables[varName];
@@ -377,29 +393,33 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         else
         {
-            std::cerr << "ERROR: Decrement operator not supported for this type" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Decrement operator not supported for this type" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Decrement operator not supported for this type.");
         }
         break;
     case NODE_OPERATOR_INCREMENT:
         if (node->SUB_STATEMENTS.size() != 1)
         {
-            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Increment operator requires exactly one operand.");
         }
 
         operand = node->SUB_STATEMENTS[0];
         if (operand->TYPE != NODE_IDENTIFIER)
         {
-            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Increment operator can only be applied to variables.");
         }
 
         varName = operand->VALUE;
         if (variables.find(varName) == variables.end())
         {
-            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Undefined variable: '" + varName + "'");
         }
 
         valuePtr = &variables[varName];
@@ -423,8 +443,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         else
         {
-            std::cerr << "ERROR: Increment operator not supported for this type" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Increment operator not supported for this type" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Increment operator not supported for this type.");
         }
         break;
     case NODE_NEWLINE:
@@ -450,38 +471,22 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         auto array = variables[arrayName].asArray();
         return Value(static_cast<int>(array->getLength()));
     }
-    // case NODE_ARRAY_LAST_INDEX:
-    // {
-    //     std::string arrayName = node->VALUE;
-    //     if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
-    //     {
-    //         std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-    //         exit(1);
-    //     }
-
-    //     auto array = variables[arrayName].asArray();
-    //     if (array->getLength() == 0)
-    //     {
-    //         std::cerr << "Error: Cannot get last element of empty array" << std::endl;
-    //         exit(1);
-    //     }
-
-    //     return array->getLastElement();
-    // }
     case NODE_ARRAY_ACCESS:
     {
         std::string arrayName = node->VALUE;
         if (!variables.count(arrayName) || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array\n";
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array\n";
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
         auto arr = variables[arrayName].asArray();
 
@@ -494,8 +499,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         // else child is last-element marker:
         if (arr->getLength() == 0)
         {
-            std::cerr << "Error: Cannot get last element of empty array\n";
-            exit(1);
+            // std::cerr << "Error: Cannot get last element of empty array\n";
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Cannot get last element of an empty array.");
         }
         return arr->getLastElement();
     }
@@ -504,8 +510,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         int index = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
@@ -519,8 +526,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         catch (const std::out_of_range &e)
         {
-            std::cerr << "Error: Array index out of bounds" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Array index out of bounds" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Array index out of bounds.");
         }
     }
     case NODE_ARRAY_INIT:
@@ -550,8 +558,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         int index = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
@@ -565,8 +574,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         catch (const std::out_of_range &e)
         {
-            std::cerr << "Error: Invalid array index for insertion" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Invalid array index for insertion" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Invalid array index for insertion.");
         }
     }
     case NODE_ARRAY_REMOVE:
@@ -574,8 +584,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         int index = evaluateExpression(node->CHILD).asInt();
@@ -589,8 +600,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         catch (const std::out_of_range &e)
         {
-            std::cerr << "Error: Array index out of bounds" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Array index out of bounds" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Array index out of bounds.");
         }
     }
     case NODE_DOT:
@@ -598,32 +610,36 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (!variables.count(arrayName) || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         auto array = variables[arrayName].asArray();
 
         if (!node || node->CHILD->TYPE != NODE_ARRAY_INDEX)
         {
-            std::cerr << "Error: Invalid dot expression structure" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Invalid dot expression structure" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Invalid dot expression structure.");
         }
 
         int index = std::stoi(node->CHILD->VALUE);
 
         if (index < 0 || index >= array->getLength())
         {
-            std::cerr << "Error: Array index out of bounds: " << index << std::endl;
-            exit(1);
+            // std::cerr << "Error: Array index out of bounds: " << index << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Array index out of bounds: " + index);
         }
 
         Value currentValueOfIndex = array->getElement(index);
 
         if (!node->CHILD->CHILD)
         {
-            std::cerr << "Error: Missing operator in dot expression" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Missing operator in dot expression" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Missing operator in dot expression.");
         }
 
         Value operandValue = Value(std::stoi(node->CHILD->CHILD->CHILD->VALUE));
@@ -649,8 +665,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
-                exit(1);
+                // std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSemanticError("Cannot subtract non-numeric values.");
             }
             break;
         case NODE_MULT:
@@ -667,16 +684,18 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
-                exit(1);
+                // std::cerr << "Error: Cannot multiply non-numeric values" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSemanticError("Cannot multiply non-numeric values.");
             }
             break;
         case NODE_DIVISION:
             if (operandValue.isInt() && operandValue.asInt() == 0 ||
                 operandValue.isDouble() && operandValue.asDouble() == 0.0)
             {
-                std::cerr << "Error: Division by zero" << std::endl;
-                exit(1);
+                // std::cerr << "Error: Division by zero" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSemanticError("Division by zero.");
             }
 
             if (currentValueOfIndex.isInt() && operandValue.isInt())
@@ -692,15 +711,17 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Cannot divide non-numeric values" << std::endl;
-                exit(1);
+                // std::cerr << "Error: Cannot divide non-numeric values" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSemanticError("Cannot divide non-numeric values.");
             }
             break;
         case NODE_MODULUS:
             if (operandValue.isInt() && operandValue.asInt() == 0)
             {
-                std::cerr << "Error: Modulus by zero" << std::endl;
-                exit(1);
+                /* std::cerr << "Error: Modulus by zero" << std::endl;
+                exit(1); */
+                ErrorHandler::getInstance().reportSemanticError("Modulus by zero");
             }
 
             if (currentValueOfIndex.isInt() && operandValue.isInt())
@@ -709,13 +730,15 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                std::cerr << "Error: Modulus requires integer operands" << std::endl;
-                exit(1);
+                // std::cerr << "Error: Modulus requires integer operands" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSemanticError("Modulus requires integer operands.");
             }
             break;
         default:
-            std::cerr << "Error: Unknown operator in dot expression" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Unknown operator in dot expression" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Unknown operator in dot expression.");
         }
 
         array->setElement(index, resultOfExpression);
@@ -726,8 +749,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         auto array = variables[arrayName].asArray();
@@ -739,8 +763,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         auto array = variables[arrayName].asArray();
@@ -755,15 +780,16 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         recursionDepth++;
 
         std::string funcName = node->VALUE;
-        std::cout << "Entering Function: " << funcName << " depth: " << recursionDepth << std::endl;
+        // std::cout << "Entering Function: " << funcName << " depth: " << recursionDepth << std::endl;
         std::string callID = generateCallID(funcName, recursionDepth);
 
         // Look up function definition
         AST_NODE *funcDef = findFunctionByName(funcName);
         if (!funcDef)
         {
-            std::cerr << "Undefined function: " << funcName << std::endl;
-            exit(1);
+            // std::cerr << "Undefined function: " << funcName << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Undefined function: " + funcName);
         }
 
         // Save the current state of all variables
@@ -793,8 +819,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         Value result = returnValue;
 
         // IMPORTANT: Print debug info to see what each recursive call is returning
-        std::cout << "Function " << funcName << " at depth " << recursionDepth
-                  << " returning: " << result.toString() << std::endl;
+        // std::cout << "Function " << funcName << " at depth " << recursionDepth
+        //           << " returning: " << result.toString() << std::endl;
 
         // Restore the previous state
         variables = oldVariables;
@@ -807,8 +833,9 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     }
 
     default:
-        std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
-        exit(1);
+        // std::cerr << "ERROR: Unexpected Expression of type: " << getNodeTypeName(node->TYPE) << "'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSemanticError("Unexpected expression of type: '" + getNodeTypeName(node->TYPE) + "'");
     }
 
     // Default return to avoid compiler warning - this code should never be reached
@@ -825,7 +852,7 @@ void Interpreter::executeStatement(AST_NODE *node)
     if (!node)
         return;
 
-    std::cout << "Executing statement: " << getNodeTypeName(node->TYPE) << std::endl;
+    // std::cout << "Executing statement: " << getNodeTypeName(node->TYPE) << std::endl;
 
     switch (node->TYPE)
     {
@@ -893,8 +920,9 @@ void Interpreter::executeStatement(AST_NODE *node)
     case NODE_SEMICOLON:
         break;
     default:
-        std::cerr << "Unknown Statement Type: " << getNodeTypeName(node->TYPE) << std::endl;
-        exit(1);
+        // std::cerr << "Unknown Statement Type: " << getNodeTypeName(node->TYPE) << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSemanticError("Unknown Statement Type: " + getNodeTypeName(node->TYPE));
     }
 }
 
@@ -941,7 +969,7 @@ void Interpreter::executeNode(AST_NODE *node)
         {
             conditionResult = condition.asChar() != '\0';
         }
-        std::cout << "IF condition evaluated to: " << (conditionResult ? "true" : "false") << std::endl;
+        // std::cout << "IF condition evaluated to: " << (conditionResult ? "true" : "false") << std::endl;
 
         if (conditionResult)
         {
@@ -1067,24 +1095,27 @@ void Interpreter::executeNode(AST_NODE *node)
     {
         if (node->SUB_STATEMENTS.size() != 1)
         {
-            std::cerr << "ERROR: decrement operator requires exactly one operand" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: decrement operator requires exactly one operand" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Decrement operator requires exactly one operand.");
         }
 
         // Get the operand (should be an identifier)
         AST_NODE *operand = node->SUB_STATEMENTS[0];
         if (operand->TYPE != NODE_IDENTIFIER)
         {
-            std::cerr << "ERROR: decrement operator can only be applied to variables" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: decrement operator can only be applied to variables" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Decrement operator can only be applied to variables.");
         }
 
         // Get the variable name
         std::string varName = operand->VALUE;
         if (variables.find(varName) == variables.end())
         {
-            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Undefined variable '" + varName + "'");
         }
 
         // Decrement the value based on its type
@@ -1095,24 +1126,27 @@ void Interpreter::executeNode(AST_NODE *node)
     {
         if (node->SUB_STATEMENTS.size() != 1)
         {
-            std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Increment operator requires exactly one operand" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Increment operator requires exactly one operand.");
         }
 
         // Get the operand (should be an identifier)
         AST_NODE *operand = node->SUB_STATEMENTS[0];
         if (operand->TYPE != NODE_IDENTIFIER)
         {
-            std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Increment operator can only be applied to variables" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Increment operator can only be applied to variables.");
         }
 
         // Get the variable name
         std::string varName = operand->VALUE;
         if (variables.find(varName) == variables.end())
         {
-            std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
-            exit(1);
+            // std::cerr << "ERROR: Undefined variable '" << varName << "'" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Undefined variable: '" + varName + "'");
         }
 
         // Increment the value based on its type
@@ -1129,8 +1163,9 @@ void Interpreter::executeNode(AST_NODE *node)
 
             if (variables.find(node->VALUE) == variables.end())
             {
-                std::cerr << "ERROR: Undefined Variable '" << node->VALUE << "'" << std::endl;
-                exit(1);
+                // std::cerr << "ERROR: Undefined Variable '" << node->VALUE << "'" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSemanticError("Undefined variable '" + node->VALUE + "'");
             }
 
             variables[varName] = result;
@@ -1140,8 +1175,9 @@ void Interpreter::executeNode(AST_NODE *node)
             // Just a variable reference
             if (variables.find(varName) == variables.end())
             {
-                std::cerr << "ERROR: Undefined Variable '" << varName << "'" << std::endl;
-                exit(1);
+                // std::cerr << "ERROR: Undefined Variable '" << varName << "'" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSemanticError("Undefined variable: '" + varName + "'");
             }
         }
         break;
@@ -1179,28 +1215,6 @@ void Interpreter::executeNode(AST_NODE *node)
         break;
     case NODE_ARRAY_ACCESS:
     {
-        // std::string arrayName = node->VALUE;
-        // if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
-        // {
-        //     std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-        //     exit(1);
-        // }
-
-        // int index = evaluateExpression(node->CHILD).asInt();
-        // auto array = variables[arrayName].asArray();
-
-        // try
-        // {
-        //     Value result = array->getElement(index);
-        //     // If this is part of an assignment, we'll handle it elsewhere
-        //     // Otherwise, return the value at the index
-        //     return result;
-        // }
-        // catch (const std::out_of_range &e)
-        // {
-        //     std::cerr << "Error: Array index out of bounds" << std::endl;
-        //     exit(1);
-        // }
     }
     break;
     case NODE_ARRAY_ASSIGN:
@@ -1208,8 +1222,9 @@ void Interpreter::executeNode(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         int index = evaluateExpression(node->SUB_STATEMENTS[0]).asInt();
@@ -1222,8 +1237,9 @@ void Interpreter::executeNode(AST_NODE *node)
         }
         catch (const std::out_of_range &e)
         {
-            std::cerr << "Error: Array index out of bounds" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Array index out of bounds" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Array index out of bounds.");
         }
         break;
     }
@@ -1259,8 +1275,9 @@ void Interpreter::executeNode(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (node->SUB_STATEMENTS.size() != 2)
         {
-            std::cerr << "Error: Repeat requires value and count" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Repeat requires value and count" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Repeat requires value and count.");
         }
 
         Value value = evaluateExpression(node->SUB_STATEMENTS[0]);
@@ -1283,8 +1300,9 @@ void Interpreter::executeNode(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         // FIX: index is in node->CHILD, not SUB_STATEMENTS[0]
@@ -1298,8 +1316,9 @@ void Interpreter::executeNode(AST_NODE *node)
         }
         catch (const std::out_of_range &e)
         {
-            std::cerr << "Error: Invalid array index for insertion" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Invalid array index for insertion" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Invalid array index for insertion.");
         }
         break;
     }
@@ -1308,8 +1327,9 @@ void Interpreter::executeNode(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         int index = evaluateExpression(node->CHILD).asInt();
@@ -1321,8 +1341,9 @@ void Interpreter::executeNode(AST_NODE *node)
         }
         catch (const std::out_of_range &e)
         {
-            std::cerr << "Error: Array index out of bounds" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Array index out of bounds" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Array index out of bounds.");
         }
         break;
     }
@@ -1331,8 +1352,9 @@ void Interpreter::executeNode(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         auto array = variables[arrayName].asArray();
@@ -1344,8 +1366,9 @@ void Interpreter::executeNode(AST_NODE *node)
         std::string arrayName = node->VALUE;
         if (variables.find(arrayName) == variables.end() || !variables[arrayName].isArray())
         {
-            std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
-            exit(1);
+            // std::cerr << "Error: " << arrayName << " is not an array" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError(arrayName + " is not an array.");
         }
 
         auto array = variables[arrayName].asArray();
@@ -1363,8 +1386,9 @@ void Interpreter::executeNode(AST_NODE *node)
         AST_NODE *args = node->CHILD;
         if (!args || args->TYPE != NODE_FOR_ARGS || args->SUB_STATEMENTS.size() != 3)
         {
-            std::cerr << "Error: few too many arguments for loop structure";
-            exit(1);
+            // std::cerr << "Error: few too many arguments for loop structure";
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Few too many arguments for loop structure.");
         }
 
         AST_NODE *initNode = args->SUB_STATEMENTS[0];
@@ -1453,8 +1477,9 @@ void Interpreter::executeNode(AST_NODE *node)
         AST_NODE *funcDef = findFunctionByName(funcName);
         if (!funcDef)
         {
-            std::cerr << "Undefined function: " << funcName << std::endl;
-            exit(1);
+            // std::cerr << "Undefined function: " << funcName << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Undefined function: '" + funcName + "'");
         }
 
         // Create a new scope for function parameters
@@ -1466,8 +1491,9 @@ void Interpreter::executeNode(AST_NODE *node)
         // Make sure params exists and is the right type
         if (!params || params->TYPE != NODE_FUNCTION_PARAMS)
         {
-            std::cerr << "Error: Function " << funcName << " has invalid parameter list" << std::endl;
-            exit(1);
+            // std::cerr << "Error: Function " << funcName << " has invalid parameter list" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSemanticError("Function: '" + funcName + "' has invalid parameter list.");
         }
 
         for (size_t i = 0; i < node->SUB_STATEMENTS.size() && i < params->SUB_STATEMENTS.size(); i++)
@@ -1544,8 +1570,9 @@ void Interpreter::executeNode(AST_NODE *node)
         evaluateExpression(node);
         break;
     default:
-        std::cerr << "Interpretation Error: Unknown node type: " << getNodeTypeName(node->TYPE) << std::endl;
-        exit(1);
+        // std::cerr << "Interpretation Error: Unknown node type: " << getNodeTypeName(node->TYPE) << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSemanticError("Unknown node type: '" + getNodeTypeName(node->TYPE) + "'");
     }
 }
 
@@ -1566,46 +1593,3 @@ AST_NODE *Interpreter::findFunctionByName(const std::string &name)
     }
     return nullptr;
 }
-
-// /**
-//  * @brief Compatibility methods to bridge the gap between old and new Value class methods
-//  */
-// bool Value::isInteger() const
-// {
-//     return isInt();
-// }
-
-// int Value::getInteger() const
-// {
-//     return asInt();
-// }
-
-// bool Value::isString() const
-// {
-//     return this->isString();
-// }
-
-// std::string Value::getString() const
-// {
-//     return asString();
-// }
-
-// double Value::getDouble() const
-// {
-//     return asDouble();
-// }
-
-// bool Value::isBool() const
-// {
-//     return this->isBool();
-// }
-
-// bool Value::getBool() const
-// {
-//     return asBool();
-// }
-
-// char Value::getChar() const
-// {
-//     return asChar();
-// }

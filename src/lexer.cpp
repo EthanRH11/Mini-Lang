@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "lexer.hpp"
+#include "ErrorHandler.hpp"
 
 /**
  * @brief Constructor for Lexer class
@@ -145,7 +146,8 @@ void Lexer::consumeKeyword(const std::string &keyword)
 {
     if (!matchKeyword(keyword))
     {
-        throw std::runtime_error("Error: Keyword mismatch during consumeKeyword.");
+        // throw std::runtime_error("Error: Keyword mismatch during consumeKeyword.");
+        ErrorHandler::getInstance().reportRuntimeError("Keyword mismatch during consumeKeyword.");
     }
     cursor += keyword.length();
     current = (cursor < size) ? source[cursor] : '\0';
@@ -227,7 +229,8 @@ Token *Lexer::processMultiLineComment()
     }
     if (!foundEndMarker)
     {
-        throw std::runtime_error("Error: Unterminated multiLine comment");
+        // throw std::runtime_error("Error: Unterminated multiLine comment");
+        ErrorHandler::getInstance().reportRuntimeError("Unterminated multiline comment.");
     }
     return new Token{TOKEN_MULTILINE_COMMENT, commentText};
 }
@@ -256,7 +259,8 @@ Token *Lexer::processBool()
     }
     else
     {
-        throw std::runtime_error("Invalid boolean literal: " + boolStr);
+        // throw std::runtime_error("Invalid boolean literal: " + boolStr);
+        ErrorHandler::getInstance().reportRuntimeError("Invalid boolean literal: " + boolStr);
     }
 }
 
@@ -391,7 +395,8 @@ Token *Lexer::processOperator()
         return new Token{it1->second, op};
     }
 
-    throw std::runtime_error("Error: Unknown operator: " + op);
+    // throw std::runtime_error("Error: Unknown operator: " + op);
+    ErrorHandler::getInstance().reportLexicalError("Unknown operator: " + op);
 }
 
 /**
@@ -418,14 +423,16 @@ Token *Lexer::processStringLiteral()
         // Verify string was properly terminated
         if (current != '"')
         {
-            throw std::runtime_error("Error: Unterminated String Literal.");
+            // throw std::runtime_error("Error: Unterminated String Literal.");
+            ErrorHandler::getInstance().reportLexicalError("Unterminated string literal.");
         }
         advanceCursor(); // Skip closing quote
         return new Token{TOKEN_STRING_VAL, value};
     }
     else
     {
-        throw std::runtime_error("Error: Invalid string literal.");
+        // throw std::runtime_error("Error: Invalid string literal.");
+        ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
     }
 }
 
@@ -448,7 +455,8 @@ Token *Lexer::processCharLiteral()
 
         if (current != '\'')
         {
-            throw std::runtime_error("Error: Invalid character literal.");
+            // throw std::runtime_error("Error: Invalid character literal.");
+            ErrorHandler::getInstance().reportLexicalError("Invalid character literal.");
         }
 
         advanceCursor(); // Move past closing quote
@@ -464,13 +472,15 @@ Token *Lexer::processCharLiteral()
 
         if (current != '\'')
         {
-            throw std::runtime_error("Error: Invalid character literal.");
+            // throw std::runtime_error("Error: Invalid character literal.");
+            ErrorHandler::getInstance().reportLexicalError("Invalid character literal.");
         }
         advanceCursor(); // Move past closing quote
         return new Token{TOKEN_OPERATOR_NEWLINE, std::string(1, newLineValue)};
     }
 
-    throw std::runtime_error("Error: Invalid character literal format.");
+    // throw std::runtime_error("Error: Invalid character literal format.");
+    ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
 }
 
 /**
@@ -495,7 +505,8 @@ Token *Lexer::processInputType()
 
         if (current != '>')
         {
-            throw std::runtime_error("Error: Unterminated input type specification.");
+            // throw std::runtime_error("Error: Unterminated input type specification.");
+            ErrorHandler::getInstance().reportLexicalError("Unterminated input type specification.");
         }
         advanceCursor();
 
@@ -509,12 +520,14 @@ Token *Lexer::processInputType()
         }
         else
         {
-            throw std::runtime_error("Error: Invalid input type: " + typeName);
+            // throw std::runtime_error("Error: Invalid input type: " + typeName);
+            ErrorHandler::getInstance().reportLexicalError("Invalid input type: " + typeName);
         }
     }
     else
     {
-        throw std::runtime_error("Error: Expected '<' for input type specification.");
+        // throw std::runtime_error("Error: Expected '<' for input type specification.");
+        ErrorHandler::getInstance().reportLexicalError("Expected '<' for input type specification.");
     }
 }
 
@@ -547,15 +560,15 @@ Token *Lexer::processKeyword()
     // Debug print for "range" and "repeat"
     if (keyword == "range" || keyword == "repeat")
     {
-        std::cerr << "DEBUG: Found keyword '" << keyword << "'" << std::endl;
+        // std::cerr << "DEBUG: Found keyword '" << keyword << "'" << std::endl;
     }
 
     // Look up in keyword map
     auto it = KeywordMap.find(keyword);
     if (it != KeywordMap.end())
     {
-        std::cerr << "DEBUG: Found in KeywordMap: " << keyword << " -> "
-                  << getTokenTypeName(it->second) << std::endl;
+        // std::cerr << "DEBUG: Found in KeywordMap: " << keyword << " -> "
+        //           << getTokenTypeName(it->second) << std::endl;
 
         Token *token = new Token{it->second, keyword};
 
@@ -574,7 +587,7 @@ Token *Lexer::processKeyword()
     // If "range" or "repeat" wasn't found in the map, log that too
     if (keyword == "range" || keyword == "repeat")
     {
-        std::cerr << "DEBUG: '" << keyword << "' NOT found in KeywordMap" << std::endl;
+        // std::cerr << "DEBUG: '" << keyword << "' NOT found in KeywordMap" << std::endl;
     }
 
     // If not found in keyword map, it's an identifier
@@ -697,7 +710,8 @@ std::vector<Token *> Lexer::tokenize()
         else if (!eof())
         {
             // Handle unexpected characters
-            throw std::runtime_error("Error: Unexpected character: " + std::string(1, current));
+            // throw std::runtime_error("Error: Unexpected character: " + std::string(1, current));
+            ErrorHandler::getInstance().reportLexicalError("Unexpected character: " + std::string(1, current));
         }
     }
 

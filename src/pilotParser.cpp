@@ -8,6 +8,7 @@
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "interperter.hpp"
+#include "ErrorHandler.hpp"
 
 namespace fs = std::filesystem;
 
@@ -58,6 +59,19 @@ int main(int argc, char *argv[])
         Lexer lexer(sourceCode);
         std::vector<Token *> tokens = lexer.tokenize();
 
+        if (ErrorHandler::getInstance().hasError())
+        {
+            std::cout << "\n===== LEXICAL ERRORS =====\n"
+                      << std::endl;
+            std::cout << ErrorHandler::getInstance().getErrorReport() << std::endl;
+
+            for (auto &token : tokens)
+            {
+                delete token;
+            }
+            return 1;
+        }
+
         if (mode == "lex" || mode == "all")
         {
             std::cout << "\n===== LEXICAL ANALYSIS ======\n"
@@ -79,6 +93,23 @@ int main(int argc, char *argv[])
         AST_NODE *root = nullptr;
         Parser parser(tokens);
         root = parser.parse();
+
+        if (ErrorHandler::getInstance().hasError())
+        {
+            std::cout << "\n===== SYNTAX ERRORS =====\n"
+                      << std::endl;
+            std::cout << ErrorHandler::getInstance().getErrorReport() << std::endl;
+
+            for (auto &token : tokens)
+            {
+                delete token;
+            }
+            if (root)
+            {
+                deleteASTTree(root);
+            }
+            return 1;
+        }
         filterComments(root);
 
         if (mode == "parse" || mode == "all")
@@ -119,6 +150,13 @@ int main(int argc, char *argv[])
 
             Interpreter interperter(root);
             interperter.execute();
+
+            if (ErrorHandler::getInstance().hasError())
+            {
+                std::cout << "\n===== RUNTIME ERRORS =====\n"
+                          << std::endl;
+                std::cout << ErrorHandler::getInstance().getErrorReport() << std::endl;
+            }
         }
 
         for (auto &token : tokens)
@@ -129,7 +167,18 @@ int main(int argc, char *argv[])
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        ErrorHandler::getInstance().reportRuntimeError(e.what());
+        std::cout << "\n===== UNHANDLED EXCEPTION =====\n"
+                  << std::endl;
+        std::cout << ErrorHandler::getInstance().getErrorReport() << std::endl;
+        return 1;
+    }
+
+    if (ErrorHandler::getInstance().hasError() && mode == "all")
+    {
+        std::cout << "\n===== ALL ERRORS =====\n"
+                  << std::endl;
+        std::cout << ErrorHandler::getInstance().getErrorReport() << std::endl;
         return 1;
     }
 

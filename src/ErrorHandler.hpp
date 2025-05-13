@@ -8,18 +8,12 @@
 
 /**
  * @class ErrorHandler
- * @brief Handlers error reporting and tracking for minilang interpreter
- *
- * This class provides methods for reporting errors in lexical analysis,
- * syntax parsing, and interpretation phases. It tracks errors and provides
- * utilities for displaying them to the user.
+ * @brief Singleton error handler for minilang interpreter
  */
 class ErrorHandler
 {
 public:
-    /**
-     * @brief Enum representing different types of errors
-     */
+    // Error types enum
     enum ErrorType
     {
         LEXICAL_ERROR,
@@ -28,83 +22,68 @@ public:
         RUNTIME_ERROR
     };
 
-    /**
-     * @brief Structure to hold information about an error
-     */
+    // Error struct
     struct Error
     {
         ErrorType type;
         std::string message;
-        int line;
-        int column;
 
-        Error(ErrorType t, const std::string &msg, int ln = -1, int col = -1)
-            : type(t), message(msg), line(ln), column(col) {}
+        Error(ErrorType t, const std::string &msg)
+            : type(t), message(msg) {}
     };
 
     /**
-     * @brief constructor
+     * @brief Get the singleton instance
+     * @return Reference to the global ErrorHandler instance
      */
-    ErrorHandler() : hasErrors(false) {}
+    static ErrorHandler &getInstance()
+    {
+        static ErrorHandler instance; // Guaranteed to be initialized only once
+        return instance;
+    }
+
+    // Delete copy constructor and assignment operator
+    ErrorHandler(const ErrorHandler &) = delete;
+    void operator=(const ErrorHandler &) = delete;
 
     /**
      * @brief Reports a lexical error
-     * @param message (The error message)
-     * @param line (Line where error occured)
-     * @param column (Column where error occured)
+     * @param message The error message
      */
-    void reportLexicalError(const std::string &msg, int line, int column)
+    void reportLexicalError(const std::string &msg)
     {
-        addError(LEXICAL_ERROR, msg, line, column);
-        std::cerr << "Lexical Error at line: " << line << ", column: " << column
-                  << ": " << msg << std::endl;
+        addError(LEXICAL_ERROR, msg);
+        std::cerr << "[ Lexical Error ] " << msg << std::endl;
     }
 
     /**
      * @brief Reports a syntax error
      * @param message The error message
-     * @param line Line number where the error occurred
-     * @param column Column number where the error occurred
      */
-    void reportSyntaxError(const std::string &message, int line, int column)
+    void reportSyntaxError(const std::string &message)
     {
-        addError(SYNTAX_ERROR, message, line, column);
-        std::cerr << "Syntax Error at line " << line << ", column " << column
-                  << ": " << message << std::endl;
+        addError(SYNTAX_ERROR, message);
+        std::cerr << "< Syntax Error > " << message << std::endl;
     }
 
     /**
      * @brief Reports a semantic error
      * @param message The error message
-     * @param line Line number where the error occurred
-     * @param column Column number where the error occurred
      */
-    void reportSemanticError(const std::string &message, int line, int column)
+    void reportSemanticError(const std::string &message)
     {
-        addError(SEMANTIC_ERROR, message, line, column);
-        std::cerr << "Semantic Error at line " << line << ", column " << column
-                  << ": " << message << std::endl;
+        addError(SEMANTIC_ERROR, message);
+        std::cerr << "{ Semantic Error } " << message << std::endl;
     }
 
     /**
      * @brief Reports a runtime error
      * @param message The error message
-     * @param line Line number where the error occurred
-     * @param column Column number where the error occurred
      */
-    void reportRuntimeError(const std::string &message, int line = -1, int column = -1)
+    void reportRuntimeError(const std::string &message)
     {
-        addError(RUNTIME_ERROR, message, line, column);
-
-        std::cerr << "Runtime Error";
-        if (line >= 0)
-        {
-            std::cerr << " at line " << line;
-            if (column >= 0)
-            {
-                std::cerr << ", column " << column;
-            }
-        }
+        addError(RUNTIME_ERROR, message);
+        std::cerr << "RUNTIME ERROR";
         std::cerr << ": " << message << std::endl;
     }
 
@@ -132,6 +111,7 @@ public:
      */
     std::string getErrorReport() const
     {
+        // Same implementation as before
         std::stringstream ss;
 
         if (errors.empty())
@@ -166,15 +146,6 @@ public:
 
             ss << error.message;
 
-            if (error.line >= 0)
-            {
-                ss << " (Line: " << error.line;
-                if (error.column >= 0)
-                {
-                    ss << ", Column: " << error.column;
-                }
-                ss << ")";
-            }
             ss << std::endl;
         }
         return ss.str();
@@ -190,6 +161,9 @@ public:
     }
 
 private:
+    // Private constructor for singleton pattern
+    ErrorHandler() : hasErrors(false) {}
+
     std::vector<Error> errors;
     bool hasErrors;
 
@@ -197,12 +171,10 @@ private:
      * @brief Adds an error to the error list
      * @param type The type of error
      * @param message The error message
-     * @param line Line number where the error occurred
-     * @param column Column number where the error occurred
      */
-    void addError(ErrorType type, const std::string &message, int line, int column)
+    void addError(ErrorType type, const std::string &message)
     {
-        errors.push_back(Error(type, message, line, column));
+        errors.push_back(Error(type, message));
         hasErrors = true;
     }
 };

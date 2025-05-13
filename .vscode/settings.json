@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "mlng": "c++",
         "array": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
@@ -73,7 +74,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeindex": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "codecvt": "cpp"
     },
     "github.copilot.enable": {
         "*": false,

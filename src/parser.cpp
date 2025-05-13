@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include "lexer.hpp"
 #include "dynamic_array.hpp"
+#include "ErrorHandler.hpp"
 #include <iostream>
 
 /**
@@ -160,8 +161,7 @@ Parser::parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dis
 {
     if (current == nullptr)
     {
-        std::cerr << "Unexpected end of file";
-        exit(1);
+        ErrorHandler::getInstance().reportRuntimeError("Unexpected end of file.");
     }
 
     auto it = dispatchTable.find(current->TYPE);
@@ -171,8 +171,9 @@ Parser::parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dis
     }
     else
     {
-        std::cerr << "Unexpected Token: " + getTokenTypeName(current->TYPE);
-        exit(1);
+        // std::cerr << "Unexpected Token: " + getTokenTypeName(current->TYPE);
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Unexpected Token: " + getTokenTypeName(current->TYPE));
         return nullptr;
     }
 }
@@ -213,16 +214,18 @@ Token *Parser::proceed(enum tokenType type)
     // Check for end of file
     if (cursor >= size)
     {
-        std::cerr << "< Syntax Error > Unexpected end of file" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Unexpected end of file" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Unexpected end of file");
     }
 
     // Validate token type
     if (tokens[cursor]->TYPE != type)
     {
-        std::cerr << "< Syntax Error > Expected " << getTokenTypeName(type)
-                  << " but got " << getTokenTypeName(tokens[cursor]->TYPE) << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected " << getTokenTypeName(type)
+        //           << " but got " << getTokenTypeName(tokens[cursor]->TYPE) << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected: " + getTokenTypeName(type) + " but got: " + getTokenTypeName(tokens[cursor]->TYPE));
     }
 
     // Advance cursor
@@ -393,8 +396,9 @@ AST_NODE *Parser::parseStringValue()
     }
     else
     {
-        std::cerr << "Unexpected token in string expression" << std::endl;
-        exit(1);
+        // std::cerr << "Unexpected token in string expression" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Unexpected token in string expression.");
     }
     return node;
 }
@@ -536,8 +540,9 @@ AST_NODE *Parser::parseArrayDeclaration()
 
     if (current->TYPE != TOKEN_ELEMENT_TYPE)
     {
-        std::cerr << "< Syntax Error > Expected element type after 'elements'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected element type after 'elements'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected element type after keyword 'elements'");
     }
 
     std::string elementType = current->value;
@@ -545,8 +550,10 @@ AST_NODE *Parser::parseArrayDeclaration()
 
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected array name after type." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected array name after type." << std::endl;
+        // exit(1);
+
+        ErrorHandler::getInstance().reportSyntaxError("Expected array identifier after type.");
     }
 
     std::string arrayName = current->value;
@@ -572,16 +579,19 @@ AST_NODE *Parser::parseArrayInit()
 
     if (current->TYPE != TOKEN_ARRAY_INITIALIZER)
     {
-        std::cerr << "< Syntax Error > Expected '|=' following array identifier" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '|=' following array identifier" << std::endl;
+        // exit(1);
+
+        ErrorHandler::getInstance().reportSyntaxError("Expected '|=' following array identifier.");
     }
 
     proceed(TOKEN_ARRAY_INITIALIZER);
 
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' to being initializing array" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' to being initializing array" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' following '|=' to initialize array.");
     }
 
     proceed(TOKEN_LEFT_PAREN);
@@ -596,8 +606,9 @@ AST_NODE *Parser::parseArrayInit()
 
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected closing parenthesis after array initialization" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected closing parenthesis after array initialization" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected closing parenthesis after array initialization.");
     }
 
     proceed(TOKEN_RIGHT_PAREN);
@@ -613,16 +624,18 @@ AST_NODE *Parser::parseArrayRange()
 
     if (current->TYPE != TOKEN_EQUALS)
     {
-        std::cerr << "< Syntax Error > Expected '=' to initialize the array with a range" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '=' to initialize the array with a range" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '=' to initialize the array with a range.");
     }
 
     proceed(TOKEN_EQUALS);
 
     if (current->TYPE != TOKEN_KEYWORD_RANGE)
     {
-        std::cerr << "< Syntax Error > Expected keyword range." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected keyword range." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected keyword 'range'.");
     }
 
     // Directly parse the range expression (including parentheses)
@@ -640,16 +653,18 @@ AST_NODE *Parser::parseArrayRepeat()
 
     if (current->TYPE != TOKEN_EQUALS)
     {
-        std::cerr << "< Syntax Error > Expected '=' to initialize the array with a range" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '=' to initialize the array with a range" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '=' to initialize the array with a range.");
     }
 
     proceed(TOKEN_ARRAY_INITIALIZER);
 
     if (current->TYPE != TOKEN_KEYWORD_REPEAT)
     {
-        std::cerr << "< Syntax Error > Expected keyword repeat.";
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected keyword repeat.";
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected keyword 'repeat'");
     }
 
     proceed(TOKEN_LEFT_PAREN);
@@ -659,8 +674,9 @@ AST_NODE *Parser::parseArrayRepeat()
 
     if (current->TYPE != TOKEN_COMMA)
     {
-        std::cerr << "< Syntax Error > Expected ',' seperating repeat value and amount." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ',' seperating repeat value and amount." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ',' seperating repeat value and amount.");
     }
 
     proceed(TOKEN_COMMA);
@@ -670,8 +686,9 @@ AST_NODE *Parser::parseArrayRepeat()
 
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected closing parenthesis ')'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected closing parenthesis ')'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected closing parenthesis ')'.");
     }
 
     proceed(TOKEN_RIGHT_PAREN);
@@ -683,16 +700,18 @@ AST_NODE *Parser::parseArrayLength()
     // Expect array length operator (#)
     if (current->TYPE != TOKEN_ARRAY_LENGTH)
     {
-        std::cerr << "< Syntax Error > Expected '#' for array length" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '#' for array length" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '#' for array length.");
     }
     proceed(TOKEN_ARRAY_LENGTH);
 
     // Parse the array name
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected array identifier after '#'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected array identifier after '#'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected array identifier after '#'");
     }
     std::string arrayName = current->value;
     proceed(TOKEN_IDENTIFIER);
@@ -712,8 +731,9 @@ AST_NODE *Parser::parseArrayInsert()
     // Check for array identifier
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected array identifier after '+>'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected array identifier after '+>'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected array identifier after '+>'");
     }
     std::string arrayName = current->value;
     proceed(TOKEN_IDENTIFIER);
@@ -721,8 +741,9 @@ AST_NODE *Parser::parseArrayInsert()
     // Check for opening parenthesis
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' after array identifier" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' after array identifier" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after array identifier.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -738,8 +759,9 @@ AST_NODE *Parser::parseArrayInsert()
     // Check for comma
     if (current->TYPE != TOKEN_COMMA)
     {
-        std::cerr << "< Syntax Error > Expected ',' after index in array insert" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ',' after index in array insert" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ',' after index in array insert.");
     }
     proceed(TOKEN_COMMA);
 
@@ -750,8 +772,9 @@ AST_NODE *Parser::parseArrayInsert()
     // Check for closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected ')' after value in array insert" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ')' after value in array insert" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after value in array insert.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -765,8 +788,9 @@ AST_NODE *Parser::parseArrayRemove()
     // Check for array identifier
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected array identifier after '-<'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected array identifier after '-<'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected array identifier after '-<'");
     }
     std::string arrayName = current->value;
     proceed(TOKEN_IDENTIFIER);
@@ -774,8 +798,9 @@ AST_NODE *Parser::parseArrayRemove()
     // Check for opening parenthesis
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' after array identifier" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' after array identifier" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after array identfier.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -791,8 +816,9 @@ AST_NODE *Parser::parseArrayRemove()
     // Check for closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected ')' after index in array remove" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ')' after index in array remove" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after index in array remove.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -805,8 +831,9 @@ AST_NODE *Parser::parseArraySortAsc()
     // Check for array identifier
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected array identifier after '~>'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected array identifier after '~>'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected array identifier after '~>'");
     }
     std::string arrayName = current->value;
     proceed(TOKEN_IDENTIFIER);
@@ -825,8 +852,9 @@ AST_NODE *Parser::parseArraySortDesc()
     // Check for array identifier
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected array identifier after '<~'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected array identifier after '<~'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected array identifier after '<~'");
     }
     std::string arrayName = current->value;
     proceed(TOKEN_IDENTIFIER);
@@ -858,8 +886,9 @@ AST_NODE *Parser::parseKeywordElement()
     // Check for element type
     if (current->TYPE != TOKEN_ELEMENT_TYPE)
     {
-        std::cerr << "< Syntax Error > Expected element type after 'elements'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected element type after 'elements'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected element type after 'element'.");
     }
 
     std::string elementType = current->value;
@@ -868,8 +897,9 @@ AST_NODE *Parser::parseKeywordElement()
     // Check for array identifier
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected array identifier after element type" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected array identifier after element type" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected array identifier after element type.");
     }
 
     std::string arrayName = current->value;
@@ -897,8 +927,9 @@ AST_NODE *Parser::parseKeywordRange()
     // Check for opening parenthesis
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' after 'range'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' after 'range'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after 'range'.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -909,8 +940,9 @@ AST_NODE *Parser::parseKeywordRange()
     // Parse the start integer
     if (current->TYPE != TOKEN_INTEGER_VAL)
     {
-        std::cerr << "< Syntax Error > Expected integer at start of range" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected integer at start of range" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected integer at start of range.");
     }
     AST_NODE *startNode = new AST_NODE();
     startNode->TYPE = NODE_INT_LITERAL;
@@ -921,16 +953,18 @@ AST_NODE *Parser::parseKeywordRange()
     // Check for range operator
     if (current->TYPE != TOKEN_OPERATOR_ARRAYRANGE)
     {
-        std::cerr << "< Syntax Error > Expected '..' in range expression" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '..' in range expression" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '..' in range expression.");
     }
     proceed(TOKEN_OPERATOR_ARRAYRANGE);
 
     // Parse the end integer
     if (current->TYPE != TOKEN_INTEGER_VAL)
     {
-        std::cerr << "< Syntax Error > Expected integer at end of range" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected integer at end of range" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected integer at end of range.");
     }
     AST_NODE *endNode = new AST_NODE();
     endNode->TYPE = NODE_INT_LITERAL;
@@ -941,8 +975,9 @@ AST_NODE *Parser::parseKeywordRange()
     // Check for closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected ')' after range expression" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ')' after range expression" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after range expression.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -957,8 +992,9 @@ AST_NODE *Parser::parseKeywordRepeat()
     // Check for opening parenthesis
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' after 'repeat'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' after 'repeat'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after 'repeat'.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -973,8 +1009,9 @@ AST_NODE *Parser::parseKeywordRepeat()
     // Check for comma
     if (current->TYPE != TOKEN_COMMA)
     {
-        std::cerr << "< Syntax Error > Expected ',' after value in repeat expression" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ',' after value in repeat expression" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ',' after value in repeat expression.");
     }
     proceed(TOKEN_COMMA);
 
@@ -985,8 +1022,9 @@ AST_NODE *Parser::parseKeywordRepeat()
     // Check for closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected ')' after count in repeat expression" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ')' after count in repeat expression" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after count in repeat expression.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -1003,8 +1041,9 @@ AST_NODE *Parser::parseDot(/*const std::string &identifier*/)
 
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' after dot operator." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' after dot operator." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after dot operator.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -1012,162 +1051,107 @@ AST_NODE *Parser::parseDot(/*const std::string &identifier*/)
 
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected ')' to close dot expression." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ')' to close dot expression." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' to close dot expression.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
     return node;
 }
 
-// AST_NODE *Parser::parseDotExpression()
-// {
-//     AST_NODE *indexNode = new AST_NODE();
-//     indexNode->TYPE = NODE_ARRAY_INDEX;
-//     indexNode->VALUE = current->value;
-
-//     proceed(TOKEN_INTEGER_VAL);
-
-//     AST_NODE *operatorNode = nullptr;
-
-//     switch (current->TYPE)
-//     {
-//     case TOKEN_OPERATOR_ADD:
-//         operatorNode = new AST_NODE();
-//         operatorNode->TYPE = NODE_ADD;
-//         operatorNode->VALUE = current->value;
-//         proceed(TOKEN_OPERATOR_ADD);
-//     case TOKEN_OPERATOR_SUBT:
-//         operatorNode = new AST_NODE();
-//         operatorNode->TYPE = NODE_SUBT;
-//         operatorNode->VALUE = current->value;
-//         proceed(TOKEN_OPERATOR_SUBT);
-//     case TOKEN_OPERATOR_DIV:
-//         operatorNode = new AST_NODE();
-//         operatorNode->TYPE = NODE_DIVISION;
-//         operatorNode->VALUE = current->value;
-//         proceed(TOKEN_OPERATOR_DIV);
-//     case TOKEN_OPERATOR_MODULUS:
-//         operatorNode = new AST_NODE();
-//         operatorNode->TYPE = NODE_MODULUS;
-//         operatorNode->VALUE = current->value;
-//         proceed(TOKEN_OPERATOR_MODULUS);
-//     case TOKEN_OPERATOR_MULT:
-//         operatorNode = new AST_NODE();
-//         operatorNode->TYPE = NODE_MULT;
-//         operatorNode->VALUE = current->value;
-//         proceed(TOKEN_OPERATOR_MULT);
-//     default:
-//         std::cerr << "< Syntax Error > Expected a mathematical operator between index and value." << std::endl;
-//         exit(1);
-//     }
-
-//     if (current->TYPE != TOKEN_INTEGER_VAL)
-//     {
-//         std::cerr << "< Syntax Error > Expected a value after the operator." << std::endl;
-//         exit(1);
-//     }
-
-//     AST_NODE *operandNode = new AST_NODE();
-//     operandNode->TYPE = NODE_INT;
-//     operandNode->VALUE = current->value;
-//     proceed(TOKEN_INTEGER_VAL);
-
-//     operatorNode->CHILD = operandNode;
-
-//     indexNode->CHILD = operatorNode;
-
-//     return indexNode;
-// }
 AST_NODE *Parser::parseDotExpression()
 {
-    std::cout << "DEBUG: Entering parseDotExpression, current token: "
-              << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
+    // std::cout << "DEBUG: Entering parseDotExpression, current token: "
+    //           << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
 
     AST_NODE *indexNode = new AST_NODE();
     indexNode->TYPE = NODE_ARRAY_INDEX;
     indexNode->VALUE = current->value;
 
-    std::cout << "DEBUG: Expecting INTEGER for index value" << std::endl;
+    // std::cout << "DEBUG: Expecting INTEGER for index value" << std::endl;
     if (current->TYPE != TOKEN_INTEGER_VAL)
     {
-        std::cerr << "< Syntax Error > Expected INTEGER for array index but got "
-                  << getTokenTypeName(current->TYPE) << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected INTEGER for array index but got "
+        //           << getTokenTypeName(current->TYPE) << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected INTEGER for array index but got " + getTokenTypeName(current->TYPE));
     }
 
     proceed(TOKEN_INTEGER_VAL);
 
-    std::cout << "DEBUG: After index value, current token: "
-              << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
+    // std::cout << "DEBUG: After index value, current token: "
+    //           << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
 
     AST_NODE *operatorNode = nullptr;
 
     switch (current->TYPE)
     {
     case TOKEN_OPERATOR_ADD:
-        std::cout << "DEBUG: Found ADD operator" << std::endl;
+        // std::cout << "DEBUG: Found ADD operator" << std::endl;
         operatorNode = new AST_NODE();
         operatorNode->TYPE = NODE_ADD;
         operatorNode->VALUE = current->value;
         proceed(TOKEN_OPERATOR_ADD);
         break;
     case TOKEN_OPERATOR_SUBT:
-        std::cout << "DEBUG: Found SUBTRACT operator" << std::endl;
+        // std::cout << "DEBUG: Found SUBTRACT operator" << std::endl;
         operatorNode = new AST_NODE();
         operatorNode->TYPE = NODE_SUBT;
         operatorNode->VALUE = current->value;
         proceed(TOKEN_OPERATOR_SUBT);
         break;
     case TOKEN_OPERATOR_DIV:
-        std::cout << "DEBUG: Found DIVIDE operator" << std::endl;
+        // std::cout << "DEBUG: Found DIVIDE operator" << std::endl;
         operatorNode = new AST_NODE();
         operatorNode->TYPE = NODE_DIVISION;
         operatorNode->VALUE = current->value;
         proceed(TOKEN_OPERATOR_DIV);
         break;
     case TOKEN_OPERATOR_MODULUS:
-        std::cout << "DEBUG: Found MODULUS operator" << std::endl;
+        // std::cout << "DEBUG: Found MODULUS operator" << std::endl;
         operatorNode = new AST_NODE();
         operatorNode->TYPE = NODE_MODULUS;
         operatorNode->VALUE = current->value;
         proceed(TOKEN_OPERATOR_MODULUS);
         break;
     case TOKEN_OPERATOR_MULT:
-        std::cout << "DEBUG: Found MULTIPLY operator" << std::endl;
+        // std::cout << "DEBUG: Found MULTIPLY operator" << std::endl;
         operatorNode = new AST_NODE();
         operatorNode->TYPE = NODE_MULT;
         operatorNode->VALUE = current->value;
         proceed(TOKEN_OPERATOR_MULT);
         break;
     default:
-        std::cerr << "< Syntax Error > Expected a mathematical operator between index and value, but got "
-                  << getTokenTypeName(current->TYPE) << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected a mathematical operator between index and value, but got "
+        //           << getTokenTypeName(current->TYPE) << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected a mathematical operator between index and value, but got " + getTokenTypeName(current->TYPE));
     }
 
-    std::cout << "DEBUG: After operator, current token: "
-              << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
+    // std::cout << "DEBUG: After operator, current token: "
+    //           << getTokenTypeName(current->TYPE) << " value: " << current->value << std::endl;
 
     if (current->TYPE != TOKEN_INTEGER_VAL)
     {
-        std::cerr << "< Syntax Error > Expected a value after the operator, but got "
-                  << getTokenTypeName(current->TYPE) << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected a value after the operator, but got "
+        //           << getTokenTypeName(current->TYPE) << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected a value after the operator, but got " + getTokenTypeName(current->TYPE));
     }
 
     AST_NODE *operandNode = new AST_NODE();
     operandNode->TYPE = NODE_INT;
     operandNode->VALUE = current->value;
 
-    std::cout << "DEBUG: Found operand value: " << current->value << std::endl;
+    // std::cout << "DEBUG: Found operand value: " << current->value << std::endl;
     proceed(TOKEN_INTEGER_VAL);
 
     operatorNode->CHILD = operandNode;
     indexNode->CHILD = operatorNode;
 
-    std::cout << "DEBUG: Exiting parseDotExpression, current token: "
-              << getTokenTypeName(current->TYPE) << std::endl;
+    // std::cout << "DEBUG: Exiting parseDotExpression, current token: "
+    //           << getTokenTypeName(current->TYPE) << std::endl;
 
     return indexNode;
 }
@@ -1220,9 +1204,10 @@ AST_NODE *Parser::parseKeywordEOF()
     // Check if there are tokens after EOF
     if (cursor < size)
     {
-        std::cerr << "Unexpected token after EOF: "
-                  << getTokenTypeName(tokens[cursor]->TYPE) << std::endl;
-        exit(1);
+        // std::cerr << "Unexpected token after EOF: "
+        //           << getTokenTypeName(tokens[cursor]->TYPE) << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Unexpected token after EOF: " + getTokenTypeName(tokens[cursor]->TYPE));
     }
 
     AST_NODE *node = new AST_NODE();
@@ -1249,8 +1234,9 @@ AST_NODE *Parser::parseKeywordPrint()
     // Check for opening parenthesis
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "Expected '(' after print keyword" << std::endl;
-        exit(1);
+        // std::cerr << "Expected '(' after print keyword" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after print keyword.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -1260,8 +1246,9 @@ AST_NODE *Parser::parseKeywordPrint()
     // Check for closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "Expected ')' after print argument" << std::endl;
-        exit(1);
+        // std::cerr << "Expected ')' after print argument" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after print argument.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -1286,8 +1273,9 @@ AST_NODE *Parser::parseKeywordInput()
     // Your lexer gives us TOKEN_INPUT_TYPE directly
     if (current->TYPE != TOKEN_INPUT_TYPE)
     {
-        std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected input type after 'input' keyword" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected input type after keyword 'input'.");
     }
 
     // Parse the input type (already parsed by lexer as TOKEN_INPUT_TYPE)
@@ -1300,8 +1288,9 @@ AST_NODE *Parser::parseKeywordInput()
 
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' following input." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' following input." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' following input.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -1313,23 +1302,26 @@ AST_NODE *Parser::parseKeywordInput()
 
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected ')' follwing the prompt" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ')' follwing the prompt" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' following the input prompt.");
     }
     proceed(TOKEN_RIGHT_PAREN);
     // Expect spaceship operator (=>)
     if (current->TYPE != TOKEN_SPACESHIP)
     {
-        std::cerr << "< Syntax Error > Expected '=>' after input prompt" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '=>' after input prompt" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '=>' after input prompt.");
     }
     proceed(TOKEN_SPACESHIP);
 
     // Expect variable name
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected variable name after '=>'" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected variable name after '=>'" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected variable name after '=>', for input.");
     }
 
     // Create a variable node and add it to sub-statements
@@ -1373,8 +1365,9 @@ AST_NODE *Parser::parseInputType()
     }
     else
     {
-        std::cerr << "< Syntax Error > Invalid input type: " << typeName << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Invalid input type: " << typeName << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Invalid input type: " + typeName);
     }
 
     proceed(TOKEN_INPUT_TYPE);
@@ -1399,7 +1392,7 @@ AST_NODE *Parser::parseInputType()
 AST_NODE *Parser::parseResultStatement()
 {
     // Debug output to track parsing
-    std::cout << "Parsing result statement" << std::endl;
+    // std::cout << "Parsing result statement" << std::endl;
 
     AST_NODE *resultStatement = new AST_NODE();
     resultStatement->TYPE = NODE_RESULTSTATEMENT;
@@ -1407,15 +1400,17 @@ AST_NODE *Parser::parseResultStatement()
 
     if (current->TYPE != TOKEN_SPACESHIP)
     {
-        std::cerr << "< Syntax Error > Expected '=>' after result keyword." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '=>' after result keyword." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '=>' after result keyword.");
     }
     proceed(TOKEN_SPACESHIP);
 
     if (current->TYPE != TOKEN_LEFT_CURL)
     {
-        std::cerr << "< Syntax Error > Expected '{' following the '=>' in result statement." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '{' following the '=>' in result statement." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '{' following the '=>' in result statement.");
     }
     proceed(TOKEN_LEFT_CURL);
 
@@ -1424,13 +1419,14 @@ AST_NODE *Parser::parseResultStatement()
     resultStatement->CHILD = parseExpression();
 
     // Debug output to see what token we're at after parsing the expression
-    std::cout << "After parsing result expression, current token: "
-              << getTokenTypeName(current->TYPE) << std::endl;
+    // std::cout << "After parsing result expression, current token: "
+    //           << getTokenTypeName(current->TYPE) << std::endl;
 
     if (current->TYPE != TOKEN_RIGHT_CURL)
     {
-        std::cerr << "< Syntax Error > Expected '}' to close result statement." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '}' to close result statement." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '}' to close result statement.");
     }
     proceed(TOKEN_RIGHT_CURL);
 
@@ -1474,8 +1470,9 @@ AST_NODE *Parser::parseResultExpression()
     // Expect and Consume the closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_CURL)
     {
-        std::cerr << "< Syntax Error > Expected closing curly brace" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected closing curly brace" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected closing curly brace, '}'.");
     }
     proceed(TOKEN_RIGHT_CURL);
 
@@ -1540,8 +1537,9 @@ AST_NODE *Parser::parseID()
         proceed(TOKEN_ARRAY_ACCESS);
         if (current->TYPE != TOKEN_LEFT_PAREN)
         {
-            std::cerr << "< Syntax Error > Expected '(' after '@'" << std::endl;
-            exit(1);
+            // std::cerr << "< Syntax Error > Expected '(' after '@'" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSyntaxError("Expected '(' after '@'.");
         }
         proceed(TOKEN_LEFT_PAREN);
         AST_NODE *node = new AST_NODE();
@@ -1563,8 +1561,9 @@ AST_NODE *Parser::parseID()
 
         if (current->TYPE != TOKEN_RIGHT_PAREN)
         {
-            std::cerr << "< Syntax Error > Expected ')' after array access" << std::endl;
-            exit(1);
+            // std::cerr << "< Syntax Error > Expected ')' after array access" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSyntaxError("Expected ')' after array access.");
         }
         proceed(TOKEN_RIGHT_PAREN);
         return node;
@@ -1584,8 +1583,9 @@ AST_NODE *Parser::parseID()
                 proceed(TOKEN_COMMA);
             else if (current->TYPE != TOKEN_RIGHT_PAREN)
             {
-                std::cerr << "< Syntax Error > Expected ',' or ')'" << std::endl;
-                exit(1);
+                // std::cerr << "< Syntax Error > Expected ',' or ')'" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSyntaxError("Expected ',' or ')'.");
             }
         }
         proceed(TOKEN_RIGHT_PAREN);
@@ -1650,8 +1650,9 @@ AST_NODE *Parser::parseLeftParen()
     // Expect and Consume the closing parenthesis
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected closing parenthesis" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected closing parenthesis" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected closing parenthesis.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -1669,8 +1670,9 @@ AST_NODE *Parser::parseRightParen()
 {
     // This is handled in left paren
     // if we make it here something is wrong
-    std::cerr << "< Syntax Error > Unexpected right parenthesis." << std::endl;
-    exit(1);
+    // std::cerr << "< Syntax Error > Unexpected right parenthesis." << std::endl;
+    // exit(1);
+    ErrorHandler::getInstance().reportSyntaxError("Unexpected right parenthesis.");
 
     return nullptr;
 }
@@ -1732,8 +1734,9 @@ AST_NODE *Parser::parseDecrementOperator()
 
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "ERROR: Expected identifier after decrement operator." << std::endl;
-        exit(1);
+        // std::cerr << "ERROR: Expected identifier after decrement operator." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected identifier after decrement operator.");
     }
 
     AST_NODE *identNode = new AST_NODE();
@@ -1760,8 +1763,9 @@ AST_NODE *Parser::parseIncrementOperator()
     // Check for identifier after increment
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "ERROR: Expected identifier after increment operator." << std::endl;
-        exit(1);
+        // std::cerr << "ERROR: Expected identifier after increment operator." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected identifier after increment operator.");
     }
 
     // Create identifier node as a child of the increment
@@ -1854,8 +1858,9 @@ AST_NODE *Parser::parseFunctionDecleration()
     // get function name
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Functions must have a name." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Functions must have a name." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Functions must have a name.");
         return nullptr;
     }
     std::string functionName = current->value;
@@ -1868,23 +1873,26 @@ AST_NODE *Parser::parseFunctionDecleration()
 
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Function must have params within parenthesis" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Function must have params within parenthesis" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Function must have params within parenthesis.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
     AST_NODE *params = parseFunctionParams();
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected closing parenthesis after functions params." << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected closing parenthesis after functions params." << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected closing parenthesis after function params.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
     if (current->TYPE != TOKEN_SPACESHIP)
     {
-        std::cerr << "< Syntax Error > Expected spaceship ( => ) following function decleration" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected spaceship ( => ) following function decleration" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected spaceship '=>' following function decleration.");
     }
     proceed(TOKEN_SPACESHIP); // Consume arrow token
 
@@ -1971,14 +1979,16 @@ AST_NODE *Parser::parseParameter()
     }
     else
     {
-        std::cerr << "< Syntax Error > Expected parameter type" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected parameter type" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected parameter type.");
     }
 
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        std::cerr << "< Syntax Error > Expected parameter name" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected parameter name" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected parameter name.");
     }
 
     std::string paramName = current->value;
@@ -2053,8 +2063,9 @@ AST_NODE *Parser::parseLeftCurl()
     // Check for the closing brace
     if (current == nullptr || current->TYPE != TOKEN_RIGHT_CURL)
     {
-        std::cerr << "< Syntax Error > Expected '}' to close block" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '}' to close block" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '}' to close block.");
     }
 
     // Consume the closing brace
@@ -2074,8 +2085,9 @@ AST_NODE *Parser::parseRightCurl()
 {
     // This should not be called directly
     // If we make it here, it means we found a closing brace without a matching open brace
-    std::cerr << "< Syntax Error > Unexpected '}' without matching '{'" << std::endl;
-    exit(1);
+    // std::cerr << "< Syntax Error > Unexpected '}' without matching '{'" << std::endl;
+    // exit(1);
+    ErrorHandler::getInstance().reportSyntaxError("Unexpected '}' without matching '{'");
 
     return nullptr;
 }
@@ -2125,8 +2137,9 @@ AST_NODE *Parser::parseKeywordCheck()
     // Parse the condition
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "Expected '(' after if keyword" << std::endl;
-        exit(1);
+        // std::cerr << "Expected '(' after if keyword" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after 'if' keyword.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
@@ -2134,8 +2147,9 @@ AST_NODE *Parser::parseKeywordCheck()
 
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "Expected ')' after if condition" << std::endl;
-        exit(1);
+        // std::cerr << "Expected ')' after if condition" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after the if condition.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -2176,18 +2190,20 @@ AST_NODE *Parser::parseKeywordIf()
     // Parse the condition
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "Expected '(' after if keyword" << std::endl;
-        exit(1);
+        // std::cerr << "Expected '(' after if keyword" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after keyword 'if'.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
-    std::cout << "After left paren: " << getTokenTypeName(current->TYPE);
+    // std::cout << "After left paren: " << getTokenTypeName(current->TYPE);
     AST_NODE *condition = parseExpression();
 
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "Expected ')' after if condition" << std::endl;
-        exit(1);
+        // std::cerr << "Expected ')' after if condition" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after if condition.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -2244,9 +2260,9 @@ AST_NODE *Parser::parseKeywordIf()
  */
 AST_NODE *Parser::parseKeywordElse()
 {
-    std::cerr << "< Syntax Error > Unexpected 'else' without matching if" << std::endl;
-    exit(1);
-
+    // std::cerr << "< Syntax Error > Unexpected 'else' without matching if" << std::endl;
+    // exit(1);
+    ErrorHandler::getInstance().reportSyntaxError("Unexpected 'else' without matching if");
     return nullptr;
 }
 
@@ -2278,8 +2294,9 @@ AST_NODE *Parser::parseArgs()
 
             if (current->TYPE != TOKEN_SEMICOLON)
             {
-                std::cerr << "< Syntax Error > Expected ';' after initialization in for loop" << std::endl;
-                exit(1);
+                // std::cerr << "< Syntax Error > Expected ';' after initialization in for loop" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSyntaxError("Expected ';' after initialization in for loop.");
             }
             proceed(TOKEN_SEMICOLON);
         }
@@ -2303,8 +2320,9 @@ AST_NODE *Parser::parseArgs()
 
     if (current->TYPE != TOKEN_SEMICOLON)
     {
-        std::cerr << "< Syntax Error > Expected ';' after condition in for loop" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected ';' after condition in for loop" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ';' after condition in for loop.");
     }
 
     proceed(TOKEN_SEMICOLON);
@@ -2337,16 +2355,18 @@ AST_NODE *Parser::parseKeywordFor()
     // Parse for loop parameters
     if (current->TYPE != TOKEN_LEFT_PAREN)
     {
-        std::cerr << "< Syntax Error > Expected '(' after for keyword" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Expected '(' after for keyword" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected '(' after 'for' keyword.");
     }
     proceed(TOKEN_LEFT_PAREN);
 
     AST_NODE *args = parseArgs();
     if (current->TYPE != TOKEN_RIGHT_PAREN)
     {
-        std::cerr << "Expected ')'  after for args" << std::endl;
-        exit(1);
+        // std::cerr << "Expected ')'  after for args" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Expected ')' after 'for' loop arguments.");
     }
     proceed(TOKEN_RIGHT_PAREN);
 
@@ -2479,8 +2499,9 @@ AST_NODE *Parser::parse()
         {
             if (foundBegin)
             {
-                std::cerr << "< Syntax Error > Multiple 'begin' blocks found" << std::endl;
-                exit(1);
+                // std::cerr << "< Syntax Error > Multiple 'begin' blocks found" << std::endl;
+                // exit(1);
+                ErrorHandler::getInstance().reportSyntaxError("Multiple 'begin' blocks found.");
             }
             AST_NODE *statement = parseBeginBlock();
             root->SUB_STATEMENTS.push_back(statement);
@@ -2510,14 +2531,16 @@ AST_NODE *Parser::parse()
         }
         else
         {
-            std::cerr << "< Syntax Error > Program must end with keyword 'end' 1" << std::endl;
-            exit(1);
+            // std::cerr << "< Syntax Error > Program must end with keyword 'end' 1" << std::endl;
+            // exit(1);
+            ErrorHandler::getInstance().reportSyntaxError("Program must end with keyword 'end'");
         }
     }
     else
     {
-        std::cerr << "< Syntax Error > Program must end with keyword 'end' 2" << std::endl;
-        exit(1);
+        // std::cerr << "< Syntax Error > Program must end with keyword 'end' 2" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Program must end with keyword 'end'.");
     }
 
     return root;
@@ -2695,8 +2718,9 @@ AST_NODE *Parser::parseStatement()
 {
     if (current == nullptr)
     {
-        std::cerr << "Unexpected end of file while parsing statement" << std::endl;
-        exit(1);
+        // std::cerr << "Unexpected end of file while parsing statement" << std::endl;
+        // exit(1);
+        ErrorHandler::getInstance().reportSyntaxError("Unexpected end of file while parsing statement.");
     }
 
     AST_NODE *statement = parseByTokenType(statementDispatch);
