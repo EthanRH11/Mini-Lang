@@ -2,6 +2,7 @@
 #include <sstream>
 
 #include "dynamic_array.hpp"
+#include "ErrorHandler.hpp"
 #include "Value.hpp"
 
 DynamicArray::DynamicArray() = default;

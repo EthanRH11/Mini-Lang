@@ -15,6 +15,7 @@
 #include "parser.hpp"
 #include "Value.hpp"
 #include "dynamic_array.hpp"
+#include "ErrorHandler.hpp"
 
 /**
  * @class Interpreter
@@ -172,7 +173,8 @@ private:
             auto arrPtr = value.asArray();
             if (!arrPtr)
             {
-                std::cerr << "Error: null array\n";
+                // std::cerr << "Error: null array\n";
+                ErrorHandler::getInstance().reportSemanticError("Null Array.");
                 return;
             }
 
@@ -217,7 +219,8 @@ private:
         // Validate the node itself
         if (!node)
         {
-            std::cerr << "ERROR: Null node in executeInputStatement" << std::endl;
+            // std::cerr << "ERROR: Null node in executeInputStatement" << std::endl;
+            ErrorHandler::getInstance().reportSemanticError("Null node in executeInputStatement.");
             return Value();
         }
 
@@ -228,18 +231,20 @@ private:
         if (node->CHILD)
         {
             inputType = node->CHILD->VALUE;
-            std::cerr << "DEBUG: Input type: " << inputType << std::endl;
+            // std::cerr << "DEBUG: Input type: " << inputType << std::endl;
         }
         else
         {
-            std::cerr << "WARNING: No input type specified, defaulting to string" << std::endl;
+            // std::cerr << "WARNING: No input type specified, defaulting to string" << std::endl;
+            ErrorHandler::getInstance().reportSemanticError("WARNING -> No input type specified, defaulting to string.");
         }
 
         // Get prompt node safely
         AST_NODE *promptNode = node->SUB_STATEMENTS[0];
         if (!promptNode)
         {
-            std::cerr << "ERROR: Null prompt node" << std::endl;
+            // std::cerr << "ERROR: Null prompt node" << std::endl;
+            ErrorHandler::getInstance().reportSemanticError("Null prompt node.");
             return Value();
         }
 
@@ -254,7 +259,8 @@ private:
         }
         else
         {
-            std::cerr << "WARNING: Empty prompt" << std::endl;
+            // std::cerr << "WARNING: Empty prompt" << std::endl;
+            ErrorHandler::getInstance().reportSemanticError("WARNING -> Empty prompt.");
         }
 
         // Print prompt to console
@@ -270,7 +276,8 @@ private:
         }
         else
         {
-            std::cerr << "ERROR: No target variable for input" << std::endl;
+            // std::cerr << "ERROR: No target variable for input" << std::endl;
+            ErrorHandler::getInstance().reportSemanticError("No target variable for input.");
             return Value();
         }
 

@@ -60,7 +60,7 @@ public:
     char getChar() const;
     std::string getString() const;
 
-    // Getters
+        // Getters
     int asInt() const;
     double asDouble() const;
     bool asBool() const;
