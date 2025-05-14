@@ -85,6 +85,7 @@ public:
         addError(RUNTIME_ERROR, message);
         std::cerr << "RUNTIME ERROR";
         std::cerr << ": " << message << std::endl;
+        exit(1);
     }
 
     /**

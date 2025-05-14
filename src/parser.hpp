@@ -112,6 +112,18 @@ enum NODE_TYPE
 
     NODE_COMMENT,
     NODE_RANGE_OPERATOR,
+
+    NODE_READ_HEADER,
+    NODE_OBJECT,
+    NODE_AVAILABLE,
+    NODE_SECURE,
+    NODE_COLON_COLON,
+    NODE_OBJECT_DEFAULT,
+    NODE_OBJECT_FACTORY,
+    NODE_OBJECT_METHOD,
+    NODE_ARROW_OP,
+    NODE_END_HEADER,
+    NODE_COLON_ACCESSOR,
 };
 
 /**
@@ -315,11 +327,7 @@ private:
     AST_NODE *parseDot(/*const std::string &*/);
     AST_NODE *parseDotExpression();
 
-    /**
-     * @brief parses an array decleration
-     */
-
-    //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
     // Function-related parsing methods
     //---------------------------------------------------------------------
 

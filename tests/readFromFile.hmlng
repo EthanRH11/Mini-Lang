@@ -1,20 +1,7 @@
 @once 
 
-object Person => {
-available:
-    default::Person();
-    factory::Person(int a, char s, int h);
-
-    >>$ Adds 1 years to a objects age identifier.
-    method::agePerson(Person(id)) {
-        id->age = age + 1;
-    }
-secure: 
-    int age;
-    char s;
-    int height;
-};
-
- 
+proc myFoo(int a) => {
+    result => {a + 1};
+}
 
 @last

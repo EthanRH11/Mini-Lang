@@ -1,0 +1,16 @@
+
+proc myFoo(int a, int b) => {
+    int c  = 7;
+    
+    result => {a + b + c};
+}
+
+begin:
+
+    int a = 5;
+    
+    int b = 4;
+
+    out_to_console(myFoo(a, b));
+
+end

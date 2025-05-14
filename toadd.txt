@@ -1,78 +1,7 @@
 Work Through This list to add new things
 
-1. Functions - This would be a major enhancement allowing code reuse and better organization:
-
-2. Additional Operators:
-- Decrement operator (--)
-
-3. While Loops - A simpler loop construct that would complement your for loops:
-   -Do-While Loops 
-   repeat{
-     loop body
-   } check (condition);
-
-   -While Loops
-   check(condition){
-    do this until that condition is false
-   }
-
-
-4. Data Structures:
-- Arrays or lists
-  -Arrays
-  //Define a Array
-  elements<type> => identifier;
-
-  elements<int> => IntegerArray;
-  elements<bool> => BoolArray;
-
-  -Initialize an Array
-  numbers |= (1, 2, 3, 4, 5, 6)   //(If we create flexible sized arrays may be harder on the backend)
-
-  -Initialize with pattern
-  numbers|= repeat(0, 10);  //creates [0,0,0,0,0,0,0,0,0,0]
-
-  -Initialize with range
-  numbers |= range(1..10);  //creates [1,2,3,4,5,6,7,8,9,10]
-
-//Get a single element (at index);
-  int first = numbers@index;
-  int first = numbers@0;
-
-//Get last element 
-int last = numbers@$;
-
-//Add element 
-+> numbers(6); //append 6 to the end
-//remove element
--< numbers(2);  //remove element at index 2
-//Insert at position
-+< numbers(0, 42); //insert 42 at position 0
-
-//get length
-int size = #numbers;
-
-//Sort 
-~> numbers; //sort in ascending order
-<~ numbers; //sort in descending order
-
-- Simple dictionaries/maps
-
-5. Input Handling:
-- A function like input_from_console() to get user input
-
-input<type>("Prompt: ") => identifier;
-
-
 6. File I/O:
 - Read from and write to files
-
-
-
-7. Comments:
-
->>$ Single Line Comments
->>$ $<< Multi Line Comments
 
 
 8. Math Functions:
@@ -121,8 +50,4 @@ library math {
 add math*
 
 
-//TO DO LIST (PRIORITY)
-NEED TO ADD ARRAY INDEX MANIPULATION TO ARRAY ACCESS, so we dont just get the number we can change the number
 
-
-ERROR HANDLER

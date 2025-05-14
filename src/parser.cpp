@@ -56,7 +56,9 @@ void Parser::initializeParserMaps()
         {TOKEN_ARRAY_SORT_DESC, &Parser::parseArraySortDesc},
         {TOKEN_DOT, &Parser::parseDot},
         {TOKEN_SINGLELINE_COMMENT, &Parser::parseSingleLineComment},
-        {TOKEN_MULTILINE_COMMENT, &Parser::parseMultiLineComment}};
+        {TOKEN_MULTILINE_COMMENT, &Parser::parseMultiLineComment},
+
+    };
 
     // Initialize expression dispatch table
     expressionDispatch = {
@@ -173,7 +175,7 @@ Parser::parseByTokenType(const std::unordered_map<tokenType, ParseFunction> &dis
     {
         // std::cerr << "Unexpected Token: " + getTokenTypeName(current->TYPE);
         // exit(1);
-        ErrorHandler::getInstance().reportSyntaxError("Unexpected Token: " + getTokenTypeName(current->TYPE));
+        ErrorHandler::getInstance().reportRuntimeError("Unexpected Token: " + getTokenTypeName(current->TYPE));
         return nullptr;
     }
 }

@@ -1,5 +1,5 @@
 needs: {
-    source: "readFromFile.hmlng
+    source: "readFromFile.hmlng"
 }
 
 proc myFoo (int x) => {
@@ -11,6 +11,6 @@ begin:
     int myInt = 12;
     out_to_console(myFoo(myInt));
 
-    Ball(double r, double pi);
-
+    out_to_console(myFoo(myInt));
+    
 end

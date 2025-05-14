@@ -11,7 +11,7 @@ PROJECT_NAME="parser"
 BUILD_DIR="../build"
 EXECUTABLE="${BUILD_DIR}/${PROJECT_NAME}"
 TEST_DATA_DIR="../tests"
-INPUT_FILE="${TEST_DATA_DIR}/readFromFile.hmlng"
+INPUT_FILE="${TEST_DATA_DIR}/tesl.txt"
 MODE="all"  # Default mode
 
 # Create color codes for output formatting

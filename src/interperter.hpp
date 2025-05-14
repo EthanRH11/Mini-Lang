@@ -66,7 +66,6 @@ private:
     std::ofstream outputFile;                                      ///< File stream for logging output
     Value returnValue;                                             ///< Holds return values from functions
     std::map<std::string, std::stack<Value>> functionReturnValues; ///< Tracks return values for recursive calls
-
     // bool hasReturnValue() const;
     /**
      * @brief Finds a function declaration by name
