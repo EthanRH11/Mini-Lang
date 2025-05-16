@@ -125,6 +125,9 @@ enum NODE_TYPE
     NODE_END_HEADER,
     NODE_COLON_ACCESSOR,
 
+    NODE_HEADER,
+    NODE_NEEDS_BLOCK,
+
 };
 
 /**
@@ -168,12 +171,13 @@ public:
      * Initializes the parser with the token stream and sets up
      * the cursor to begin parsing from the first token.
      */
-    Parser(std::vector<Token *> tokens)
+    Parser(std::vector<Token *> tokens, bool isHeader = false)
     {
         this->tokens = tokens;
         cursor = 0;
         size = tokens.size();
         current = tokens[0];
+        this->isHeader = isHeader;
 
         initializeParserMaps();
     }
@@ -191,6 +195,7 @@ private:
     size_t cursor;               // Current position in the token stream
     size_t size;                 // Total number of tokens
     Token *current;              // Current token being processed
+    bool isHeader = false;
 
     std::string arrayIDforDot; // helper string for dot function
     using ParseFunction = AST_NODE *(Parser::*)();
@@ -241,6 +246,7 @@ private:
     // Parsing Header Files
 
     AST_NODE *parseHeaderFile();
+    bool processHeaderFile(AST_NODE *headerNode, const std::string &headerPath);
     //---------------------------------------------------------------------
     // Parse methods for various language constructs
     //---------------------------------------------------------------------
@@ -331,6 +337,9 @@ private:
     AST_NODE *parseArraySortDesc();
     AST_NODE *parseDot(/*const std::string &*/);
     AST_NODE *parseDotExpression();
+
+    AST_NODE *parseReadHeader();
+    AST_NODE *parseEndHeader();
 
     //---------------------------------------------------------------------
     // Function-related parsing methods

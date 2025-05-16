@@ -4,6 +4,11 @@
 #include "ErrorHandler.hpp"
 #include <iostream>
 
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <fstream>
 /**
  * @brief Initialize the maps used by the parser
  */
@@ -57,6 +62,9 @@ void Parser::initializeParserMaps()
         {TOKEN_DOT, &Parser::parseDot},
         {TOKEN_SINGLELINE_COMMENT, &Parser::parseSingleLineComment},
         {TOKEN_MULTILINE_COMMENT, &Parser::parseMultiLineComment},
+        {TOKEN_KEYWORD_NEEDS, &Parser::parseHeaderFile},
+        {TOKEN_READ_HEADER, &Parser::parseReadHeader},
+        {TOKEN_END_HEADER, &Parser::parseEndHeader},
 
     };
 
@@ -149,6 +157,8 @@ void Parser::initializeParserMaps()
         {TOKEN_KEYWORD_FUNCTION, NODE_FUNCTION_DECLERATION},
         {TOKEN_KEYWORD_RESULT, NODE_RESULTSTATEMENT},
         {TOKEN_KEYWORD_INPUT, NODE_KEYWORD_INPUT},
+        {TOKEN_READ_HEADER, NODE_READ_HEADER},
+        {TOKEN_END_HEADER, NODE_END_HEADER},
 
     };
 }
@@ -307,6 +317,65 @@ Token *Parser::peakAhead()
     }
 }
 
+//------------------------------------------------------------------
+// Parse read and end header
+//------------------------------------------------------------------
+// AST_NODE *Parser::parseReadHeader()
+// {
+//     AST_NODE *readHeader = new AST_NODE();
+//     readHeader->TYPE = NODE_READ_HEADER;
+//     readHeader->VALUE = "@once";
+//     if (!proceed(TOKEN_READ_HEADER))
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '@once' directive");
+//         return nullptr;
+//     }
+
+//     return readHeader;
+// }
+// AST_NODE *Parser::parseEndHeader()
+// {
+//     AST_NODE *endHeader = new AST_NODE();
+//     endHeader->TYPE = NODE_END_HEADER;
+//     endHeader->VALUE = "@last";
+//     if (!proceed(TOKEN_END_HEADER))
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '@last' directive.");
+//         return nullptr;
+//     }
+//     return endHeader;
+// }
+AST_NODE *Parser::parseReadHeader()
+{
+    AST_NODE *readHeader = new AST_NODE();
+    readHeader->TYPE = NODE_READ_HEADER;
+    readHeader->VALUE = "@once";
+    if (!proceed(TOKEN_READ_HEADER))
+    {
+        if (!isHeader)
+        {
+            ErrorHandler::getInstance().reportSyntaxError("Expected '@once' directive");
+        }
+        return nullptr;
+    }
+
+    return readHeader;
+}
+AST_NODE *Parser::parseEndHeader()
+{
+    AST_NODE *endHeader = new AST_NODE();
+    endHeader->TYPE = NODE_END_HEADER;
+    endHeader->VALUE = "@last";
+    if (!proceed(TOKEN_END_HEADER))
+    {
+        if (!isHeader)
+        {
+            ErrorHandler::getInstance().reportSyntaxError("Expected '@last' directive.");
+        }
+        return nullptr;
+    }
+    return endHeader;
+}
 //-------------------------------------------------------------------
 // Value parsing methods
 //-------------------------------------------------------------------
@@ -1156,6 +1225,182 @@ AST_NODE *Parser::parseDotExpression()
     //           << getTokenTypeName(current->TYPE) << std::endl;
 
     return indexNode;
+}
+
+//-------------------------------------------------------------------
+// Parse Header File
+//-------------------------------------------------------------------
+AST_NODE *Parser::parseHeaderFile()
+{
+    // Create node for the needs block
+    AST_NODE *needsNode = new AST_NODE();
+    needsNode->TYPE = NODE_NEEDS_BLOCK;
+
+    // We've already matched the 'needs:' token
+    advanceCursor(); // Move past NEEDS token
+
+    // Expect left curl brace
+    if (getCurrentToken()->TYPE != TOKEN_LEFT_CURL)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '{' after needs: directive");
+        return needsNode; // Return incomplete node to continue parsing
+    }
+    advanceCursor(); // Move past '{'
+
+    // Process the contents of the needs block
+    while (getCurrentToken()->TYPE != TOKEN_RIGHT_CURL && getCurrentToken()->TYPE != TOKEN_EOF)
+    {
+        // We expect source and filename pairs
+        if (getCurrentToken()->TYPE == TOKEN_HEADER_FILE ||
+            (getCurrentToken()->TYPE == TOKEN_IDENTIFIER && getCurrentToken()->value == "source"))
+        {
+
+            advanceCursor(); // Move past 'source'
+
+            // Expect string for filename
+            if (getCurrentToken()->TYPE != TOKEN_STRING_VAL)
+            {
+                ErrorHandler::getInstance().reportSyntaxError("Expected string filename after source");
+                // Skip to next token and try to continue parsing
+                advanceCursor();
+                continue;
+            }
+
+            // Get the filename
+            std::string headerFileName = getCurrentToken()->value;
+
+            // Create a node for this header include
+            AST_NODE *headerNode = new AST_NODE();
+            headerNode->TYPE = NODE_READ_HEADER;
+            headerNode->VALUE = headerFileName;
+
+            // Process the included file here
+            processHeaderFile(headerNode, headerFileName);
+
+            // Add the header node to the needs block
+            needsNode->SUB_STATEMENTS.push_back(headerNode);
+
+            advanceCursor(); // Move past filename
+        }
+        else
+        {
+            // Unexpected token in needs block
+            ErrorHandler::getInstance().reportSyntaxError("Unexpected token in needs: block: " +
+                                                          getCurrentToken()->value);
+            advanceCursor(); // Skip it and continue
+        }
+    }
+
+    // Expect right curl brace
+    if (getCurrentToken()->TYPE != TOKEN_RIGHT_CURL)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '}' to close needs: block");
+        return needsNode; // Return incomplete node
+    }
+
+    advanceCursor(); // Move past '}'
+
+    return needsNode;
+}
+/**
+ * @brief Process an include file
+ * @param headerNode The AST node representing the header inclusion
+ * @param headerPath the path to the header file
+ * @return true if successful, false on error
+ */
+bool Parser::processHeaderFile(AST_NODE *headerNode, const std::string &headerFileName)
+{
+    // Keep track of included headers to prevent circular inclusion
+    static std::unordered_set<std::string> includedHeaders;
+
+    // Check for circular inclusion
+    if (includedHeaders.find(headerFileName) != includedHeaders.end())
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Circular header inclusion detected: " + headerFileName);
+        return false;
+    }
+
+    // Add this file to the included set
+    includedHeaders.insert(headerFileName);
+
+    // Open the header file
+    std::ifstream headerFile(headerFileName);
+    if (!headerFile.is_open())
+    {
+        // Try different paths
+        std::vector<std::string> pathsToTry = {
+            "./tests/" + headerFileName,
+            "../tests/" + headerFileName,
+            "tests/" + headerFileName,
+            "./" + headerFileName,
+            "../" + headerFileName};
+
+        bool fileOpened = false;
+        for (const auto &path : pathsToTry)
+        {
+            headerFile.open(path);
+            if (headerFile.is_open())
+            {
+                fileOpened = true;
+                break;
+            }
+        }
+
+        if (!fileOpened)
+        {
+            ErrorHandler::getInstance().reportSyntaxError("Could not open header file: " + headerFileName);
+            includedHeaders.erase(headerFileName);
+            return false;
+        }
+    }
+
+    // Read the content
+    std::string headerContent((std::istreambuf_iterator<char>(headerFile)),
+                              std::istreambuf_iterator<char>());
+
+    // Create a lexer for the header content
+    Lexer headerLexer(headerContent);
+    std::vector<Token *> headerTokens = headerLexer.tokenize();
+
+    // Debug Log for header tokens
+    std::cout << "Header File Tokens: " << std::endl;
+    for (const auto &token : headerTokens)
+    {
+        std::cout << "Token: " << getTokenTypeName(token->TYPE)
+                  << " | Value: " << token->value << std::endl;
+    }
+
+    bool hasOnceDirective = false;
+    bool hasLastDirective = false;
+
+    if (!headerTokens.empty())
+    {
+        if (headerTokens[0]->TYPE == TOKEN_READ_HEADER)
+        {
+            hasOnceDirective = true;
+        }
+        if (headerTokens.back()->TYPE == TOKEN_END_HEADER)
+        {
+            hasLastDirective = true;
+        }
+    }
+
+    std::cout << "Header has @once: " << (hasOnceDirective ? "Yes" : "No") << std::endl;
+    std::cout << "Header has @last: " << (hasLastDirective ? "Yes" : "No") << std::endl;
+
+    // Create a parser for the header tokens - setting isHeader flag to true
+    Parser headerParser(headerTokens, true);
+
+    // Parse the header
+    AST_NODE *headerAST = headerParser.parse();
+
+        // Attach the header AST to our node
+    headerNode->CHILD = headerAST;
+
+    // Remove this file from the included set once we're done
+    includedHeaders.erase(headerFileName);
+
+    return true;
 }
 
 //-------------------------------------------------------------------
@@ -2499,6 +2744,10 @@ AST_NODE *Parser::parse()
 
         if (current->TYPE == TOKEN_KEYWORD_BEGIN)
         {
+            if (isHeader)
+            {
+                ErrorHandler::getInstance().reportSyntaxError("Header files should not contain 'begin' blocks");
+            }
             if (foundBegin)
             {
                 // std::cerr << "< Syntax Error > Multiple 'begin' blocks found" << std::endl;
@@ -2524,25 +2773,29 @@ AST_NODE *Parser::parse()
         }
     }
 
-    if (cursor < size && tokens[cursor]->TYPE == TOKEN_EOF)
+    if (!isHeader)
     {
-        if (tokens[cursor]->value == "end")
+        if (cursor < size && tokens[cursor]->TYPE == TOKEN_EOF)
         {
-            current = tokens[cursor];
-            root->SUB_STATEMENTS.push_back(parseKeywordEOF());
+            if (tokens[cursor]->value == "end")
+            {
+                current = tokens[cursor];
+                root->SUB_STATEMENTS.push_back(parseKeywordEOF());
+            }
+            else
+            {
+                ErrorHandler::getInstance().reportSyntaxError("Program Must end with keyword 'end'");
+            }
         }
         else
         {
-            // std::cerr << "< Syntax Error > Program must end with keyword 'end' 1" << std::endl;
-            // exit(1);
             ErrorHandler::getInstance().reportSyntaxError("Program must end with keyword 'end'");
         }
-    }
-    else
-    {
-        // std::cerr << "< Syntax Error > Program must end with keyword 'end' 2" << std::endl;
-        // exit(1);
-        ErrorHandler::getInstance().reportSyntaxError("Program must end with keyword 'end'.");
+
+        if (!foundBegin)
+        {
+            ErrorHandler::getInstance().reportSyntaxError("Main program must have 'begin' block");
+        }
     }
 
     return root;
@@ -2702,6 +2955,14 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_ARRAY_INDEX";
     case NODE_DOT:
         return "NODE_DOT";
+    case NODE_READ_HEADER:
+        return "NODE_READ_HEADER";
+    case NODE_END_HEADER:
+        return "NODE_END_HEADER";
+    case NODE_HEADER:
+        return "NODE_HEADER";
+    case NODE_NEEDS_BLOCK:
+        return "NODE_NEEDS_BLOCK";
     default:
         return "Unknown node";
     }

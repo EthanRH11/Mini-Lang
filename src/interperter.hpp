@@ -60,6 +60,11 @@ public:
      */
     void execute();
 
+    const std::map<std::string, std::stack<Value>> &getFunctionReturnValues() const
+    {
+        return functionReturnValues;
+    }
+
 private:
     AST_NODE *root;                                                ///< Root of the abstract syntax tree
     std::map<std::string, Value> variables;                        ///< Symbol table for variable storage

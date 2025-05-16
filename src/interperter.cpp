@@ -323,6 +323,7 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             // std::cerr << "ERROR: Undefined variable: '" << node->VALUE << "'" << std::endl;
             // exit(1);
             ErrorHandler::getInstance().reportSemanticError("Undefined variable: '" + node->VALUE + "'");
+            return Value();
         }
     case NODE_LESS_EQUAL:
         if (node->SUB_STATEMENTS.size() >= 2)
@@ -626,7 +627,7 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
 
         int index = std::stoi(node->CHILD->VALUE);
 
-        if (index < 0 || index >= array->getLength())
+        if (index < 0 || static_cast<size_t>(index) >= array->getLength())
         {
             // std::cerr << "Error: Array index out of bounds: " << index << std::endl;
             // exit(1);
@@ -690,8 +691,8 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             break;
         case NODE_DIVISION:
-            if (operandValue.isInt() && operandValue.asInt() == 0 ||
-                operandValue.isDouble() && operandValue.asDouble() == 0.0)
+            if ((operandValue.isInt() && operandValue.asInt() == 0) ||
+                (operandValue.isDouble() && operandValue.asDouble() == 0.0))
             {
                 // std::cerr << "Error: Division by zero" << std::endl;
                 // exit(1);
@@ -1582,14 +1583,68 @@ void Interpreter::executeNode(AST_NODE *node)
  * @param name The name of the function to find
  * @return AST_NODE* Pointer to the function node, or nullptr if not found
  */
+// AST_NODE *Interpreter::findFunctionByName(const std::string &name)
+// {
+//     for (auto &stmt : root->SUB_STATEMENTS)
+//     {
+//         if (stmt->TYPE == NODE_FUNCTION_DECLERATION && stmt->VALUE == name)
+//         {
+//             return stmt;
+//         }
+//     }
+//     return nullptr;
+// }
+
 AST_NODE *Interpreter::findFunctionByName(const std::string &name)
 {
-    for (auto &stmt : root->SUB_STATEMENTS)
+    // Helper function for recursive search
+    std::function<AST_NODE *(AST_NODE *)> searchNodeForFunction =
+        [&](AST_NODE *node) -> AST_NODE *
     {
-        if (stmt->TYPE == NODE_FUNCTION_DECLERATION && stmt->VALUE == name)
+        if (!node)
+            return nullptr;
+
+        // Check if this node is the function we're looking for
+        if (node->TYPE == NODE_FUNCTION_DECLERATION && node->VALUE == name)
         {
-            return stmt;
+            return node;
         }
-    }
-    return nullptr;
+
+        // Search in sub-statements
+        for (auto &subNode : node->SUB_STATEMENTS)
+        {
+            // For header inclusions, check their children too
+            if (subNode->TYPE == NODE_READ_HEADER && subNode->CHILD)
+            {
+                AST_NODE *headerRoot = subNode->CHILD;
+                AST_NODE *result = searchNodeForFunction(headerRoot);
+                if (result)
+                    return result;
+            }
+            else
+            {
+                // Direct check for function in current sub-statement
+                if (subNode->TYPE == NODE_FUNCTION_DECLERATION && subNode->VALUE == name)
+                {
+                    return subNode;
+                }
+
+                // Recursively search this sub-statement
+                AST_NODE *result = searchNodeForFunction(subNode);
+                if (result)
+                    return result;
+            }
+        }
+
+        // Check child node if it exists
+        if (node->CHILD)
+        {
+            return searchNodeForFunction(node->CHILD);
+        }
+
+        return nullptr;
+    };
+
+    // Start the search from the root
+    return searchNodeForFunction(root);
 }

@@ -17,6 +17,8 @@ void printNodes(AST_NODE *node, int depth = 0);
 void deleteASTTree(AST_NODE *node);
 void printUsage(const char *programName);
 void filterComments(AST_NODE *node);
+void printFunctionReturnValues(const std::map<std::string, std::stack<Value>> &functionReturnValues);
+void printValue(const Value &value);
 
 int main(int argc, char *argv[])
 {
@@ -148,9 +150,16 @@ int main(int argc, char *argv[])
             std::cout << "\n===== PROGRAM OUTPUT =====\n"
                       << std::endl;
 
+            std::cout << "Executing the interpreter..." << std::endl;
             Interpreter interperter(root);
+            std::cout << "Calling execute()..." << std::endl;
             interperter.execute();
+            std::cout << "Getting function return values..." << std::endl;
+            auto returnValues = interperter.getFunctionReturnValues();
+            std::cout << "Function return values map has " << returnValues.size() << " entries" << std::endl;
 
+            std::cout << "Printing function return values..." << std::endl;
+            printFunctionReturnValues(returnValues);
             if (ErrorHandler::getInstance().hasError())
             {
                 std::cout << "\n===== RUNTIME ERRORS =====\n"
@@ -305,5 +314,89 @@ void filterComments(AST_NODE *node)
     {
         delete node->CHILD;
         node->CHILD = nullptr;
+    }
+}
+
+void printFunctionReturnValues(const std::map<std::string, std::stack<Value>> &functionReturnValues)
+{
+    std::cout << "===== Function Return Values =====" << std::endl;
+
+    if (functionReturnValues.empty())
+    {
+        std::cout << "  Map is empty" << std::endl;
+        return;
+    }
+
+    for (const auto &pair : functionReturnValues)
+    {
+        std::cout << "Function: \"" << pair.first << "\"" << std::endl;
+
+        // Copy the stack to iterate through it
+        std::stack<Value> stackCopy = pair.second;
+        int stackSize = stackCopy.size();
+
+        if (stackSize == 0)
+        {
+            std::cout << "  Stack is empty" << std::endl;
+            continue;
+        }
+
+        std::cout << "  Stack size: " << stackSize << std::endl;
+
+        // Store values in a vector to print in original order
+        std::vector<Value> values;
+        while (!stackCopy.empty())
+        {
+            values.push_back(stackCopy.top());
+            stackCopy.pop();
+        }
+
+        // Print in reverse order (original stack order)
+        for (int i = values.size() - 1; i >= 0; i--)
+        {
+            std::cout << "  Level " << (values.size() - i) << ": ";
+            printValue(values[i]);
+            std::cout << std::endl;
+        }
+
+        std::cout << "------------------------" << std::endl;
+    }
+
+    std::cout << "==================================" << std::endl;
+}
+
+/**
+ * @brief Helper function to print a Value object
+ * @param value The Value object to print
+ */
+void printValue(const Value &value)
+{
+    if (value.isInt())
+    {
+        std::cout << "Int: " << value.asInt();
+    }
+    else if (value.isDouble())
+    {
+        std::cout << "Double: " << value.asDouble();
+    }
+    else if (value.isChar())
+    {
+        std::cout << "Char: '" << value.asChar() << "'";
+    }
+    else if (value.isString())
+    {
+        std::cout << "String: \"" << value.asString() << "\"";
+    }
+    else if (value.isBool())
+    {
+        std::cout << "Bool: " << (value.asBool() ? "true" : "false");
+    }
+    else if (value.isArray())
+    {
+        std::cout << "Array of size " << value.asArray()->getLength();
+    }
+    else
+    {
+        std::cout << "Unknown or Null Value";
     }
 }

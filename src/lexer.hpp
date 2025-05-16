@@ -160,6 +160,9 @@ public:
     Token *processSingleLineComment();
     Token *processMultiLineComment();
 
+    Token *processNeedsBlock();
+    Token *processSourceDirective();
+
     Token *processInputType();
 
     // Handles string literals ("example")

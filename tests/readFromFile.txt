@@ -1,16 +1,12 @@
 needs: {
-    source: "readFromFile.hmlng"
+    source: "tests/readFromFile.hmlng"
 }
 
-proc myFoo (int x) => {
-    x = x * 2;
-    result => {x};
-}
 
 begin:
     int myInt = 12;
     out_to_console(myFoo(myInt));
-
-    out_to_console(myFoo(myInt));
+    ...
+    
     
 end

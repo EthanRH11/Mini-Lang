@@ -103,7 +103,8 @@ void Lexer::initializeLexerMaps()
         {"secure", TOKEN_KEYWORD_SECURE},
         {"default", TOKEN_OBJECT_DEFAULT},
         {"factory", TOKEN_OBJECT_FACTORY},
-        {"method", TOKEN_OBJECT_METHOD}};
+        {"method", TOKEN_OBJECT_METHOD},
+        {"needs:", TOKEN_KEYWORD_NEEDS}};
 }
 
 /**
@@ -527,6 +528,59 @@ Token *Lexer::processCharLiteral()
 }
 
 /**
+ * @brief Process needs block
+ * @return Token point for the needs block
+ */
+Token *Lexer::processNeedsBlock()
+{
+    Token *needsToken = new Token{TOKEN_KEYWORD_NEEDS, "needs:"};
+    checkAndSkip();
+
+    if (current != '{')
+    {
+        ErrorHandler::getInstance().reportLexicalError("Expected '{' after 'needs:' directive");
+    }
+    return needsToken;
+}
+
+/**
+ * @brief Processes a source specification within a needs block
+ * @return Token pointer for the source directive
+ *
+ * Handles 'source:'
+ */
+Token *Lexer::processSourceDirective()
+{
+    std::string sourceKeyword;
+    while (std::isalpha(current))
+    {
+        sourceKeyword += current;
+        advanceCursor();
+    }
+
+    if (sourceKeyword != "source")
+    {
+        ErrorHandler::getInstance().reportLexicalError("Expected 'source' directive in needs block");
+    }
+
+    if (current != ':')
+    {
+        ErrorHandler::getInstance().reportLexicalError("Expected ':' after 'source' directive");
+    }
+    advanceCursor();
+
+    Token *sourceToken = new Token{TOKEN_HEADER_FILE, "source"};
+
+    checkAndSkip();
+
+    if (current != '"')
+    {
+        ErrorHandler::getInstance().reportLexicalError("Expected string literal for filename after 'source:'");
+    }
+    return sourceToken;
+}
+
+/**
  * @brief Processes input type specification like <int>, <double>, etc.
  * @return Token pointer representing the input type
  * @throws std::runtime_error if the input type format is invalid
@@ -701,6 +755,26 @@ std::vector<Token *> Lexer::tokenize()
             {
                 Token *token = processBool();
                 tokens.push_back(token);
+            }
+            else if (current == 'n' && matchKeyword("needs:"))
+            {
+                consumeKeyword("needs:");
+                tokens.push_back(new Token{TOKEN_KEYWORD_NEEDS, "needs:"});
+            }
+            else if (current == 's' && matchKeyword("source"))
+            {
+                consumeKeyword("source");
+                checkAndSkip();
+
+                if (current == ':')
+                {
+                    advanceCursor();
+                    tokens.push_back(new Token{TOKEN_HEADER_FILE, "source"});
+                }
+                else
+                {
+                    tokens.push_back(new Token{TOKEN_IDENTIFIER, "source"});
+                }
             }
             else
             {
