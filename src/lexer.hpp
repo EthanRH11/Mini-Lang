@@ -115,6 +115,10 @@ enum tokenType
     TOKEN_END_HEADER,
     TOKEN_COLON_ACCESSOR,
 
+    TOKEN_KEYWORD_NEEDS,
+    TOKEN_HEADER_FILE,
+    TOKEN_COLON,
+
 };
 
 //

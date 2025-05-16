@@ -845,7 +845,10 @@ std::string getTokenTypeName(tokenType type)
         {TOKEN_OBJECT_METHOD, "TOKEN_OBJECT_METHOD"},
         {TOKEN_ARROW_OP, "TOKEN_ARROW_OP"},
         {TOKEN_END_HEADER, "TOKEN_END_HEADER"},
-        {TOKEN_COLON_ACCESSOR, "TOKEN_COLON_ACCESSOR"}};
+        {TOKEN_COLON_ACCESSOR, "TOKEN_COLON_ACCESSOR"},
+        {TOKEN_KEYWORD_NEEDS, "TOKEN_KEYWORD_NEEDS"},
+        {TOKEN_COLON, "TOKEN_COLON"},
+        {TOKEN_HEADER_FILE, "TOKEN_HEADER_FILE"}};
 
     auto it = tokenTypeNames.find(type);
     if (it != tokenTypeNames.end())

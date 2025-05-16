@@ -124,6 +124,7 @@ enum NODE_TYPE
     NODE_ARROW_OP,
     NODE_END_HEADER,
     NODE_COLON_ACCESSOR,
+
 };
 
 /**
@@ -237,6 +238,10 @@ private:
     void advanceCursor();
 
     //---------------------------------------------------------------------
+    // Parsing Header Files
+
+    AST_NODE *parseHeaderFile();
+    //---------------------------------------------------------------------
     // Parse methods for various language constructs
     //---------------------------------------------------------------------
 
@@ -327,7 +332,7 @@ private:
     AST_NODE *parseDot(/*const std::string &*/);
     AST_NODE *parseDotExpression();
 
-        //---------------------------------------------------------------------
+    //---------------------------------------------------------------------
     // Function-related parsing methods
     //---------------------------------------------------------------------
 
