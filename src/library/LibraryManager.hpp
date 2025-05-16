@@ -9,23 +9,29 @@
 class LibraryManager
 {
 private:
-    // Library names to their AST root
+    //--------------------------
+    // Structures within manager
+    //--------------------------
+    // Maps library names to their AST roots
     std::unordered_map<std::string, AST_NODE *> libraries;
-    // Function names to their definitions
+
+    // Maps function names to their definitions
     std::unordered_map<std::string, AST_NODE *> functionRegistry;
-    // loaded libraries, preventing duplicates
+
+    // Set of loaded libraries
     std::unordered_set<std::string> loadedLibraries;
-    // Paths for finding libraries
+
+    // Search paths for libraries
     std::vector<std::string> libraryPaths;
 
-    // Find a library in search paths
-    std::string findLibraryFile(const std::string &name);
+    // Find a library file
+    std::string findLibraryFile(const std::string &libraryName);
 
-    // Parse a library file into an AST
+    // Parse a library file
     AST_NODE *parseLibraryFile(const std::string &filePath);
 
-    // Register all functions in a specific library
-    void registerLibraryFunctions(const std::string &libName, AST_NODE *ast);
+    // Register all functions in a library
+    void registerLibraryFunctions(const std::string &libraryName, AST_NODE *libraryAST);
 
 public:
     LibraryManager();
