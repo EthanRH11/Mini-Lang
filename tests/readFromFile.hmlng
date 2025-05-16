@@ -4,4 +4,10 @@ proc myFoo(int a) => {
     result => {a + 1};
 }
 
+proc calculateArea(int h, int w) => {
+    int area = h * w;
+
+    result => {area};
+}
+
 @last

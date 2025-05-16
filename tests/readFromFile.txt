@@ -7,6 +7,11 @@ begin:
     int myInt = 12;
     out_to_console(myFoo(myInt));
     ...
+
+    int height = 10;
+    int width = 5;
+    out_to_console(calculateArea(height, width));
+    ...
     
     
 end
