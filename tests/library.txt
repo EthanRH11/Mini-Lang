@@ -1,0 +1,4 @@
+needs: {
+    source: "readFromFile.hlmng",
+    library: Math
+}

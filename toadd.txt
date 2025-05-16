@@ -50,4 +50,8 @@ library math {
 add math*
 
 
+TO NOTE:
+  When Implementing library manager, it will be a middle man in the interpreter.
 
+  When we encounter a library token, we need to essentially skip it and make a node saying we need/want they library, this will allow the interpreter
+  to know we need information from that folder.
