@@ -118,6 +118,7 @@ enum tokenType
     TOKEN_KEYWORD_NEEDS,
     TOKEN_HEADER_FILE,
     TOKEN_COLON,
+    TOKEN_LIBRARY,
 
 };
 

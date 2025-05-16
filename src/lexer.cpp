@@ -104,7 +104,8 @@ void Lexer::initializeLexerMaps()
         {"default", TOKEN_OBJECT_DEFAULT},
         {"factory", TOKEN_OBJECT_FACTORY},
         {"method", TOKEN_OBJECT_METHOD},
-        {"needs:", TOKEN_KEYWORD_NEEDS}};
+        {"needs:", TOKEN_KEYWORD_NEEDS},
+        {"library", TOKEN_LIBRARY}};
 }
 
 /**
