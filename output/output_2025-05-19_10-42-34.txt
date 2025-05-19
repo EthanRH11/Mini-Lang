@@ -1,0 +1,52 @@
+Iteration:0
+Current guess:1.57
+x / guess:2
+guess + (x/guess):3.57
+Final new_guess:1.785
+Iteration:1
+Current guess:1.785
+x / guess:1.7591
+guess + (x/guess):3.5441
+Final new_guess:1.77205
+Iteration:2
+Current guess:1.77205
+x / guess:1.77196
+guess + (x/guess):3.54401
+Final new_guess:1.772
+Iteration:3
+Current guess:1.772
+x / guess:1.772
+guess + (x/guess):3.54401
+Final new_guess:1.772
+Iteration:4
+Current guess:1.772
+x / guess:1.772
+guess + (x/guess):3.54401
+Final new_guess:1.772
+Iteration:5
+Current guess:1.772
+x / guess:1.772
+guess + (x/guess):3.54401
+Final new_guess:1.772
+Iteration:6
+Current guess:1.772
+x / guess:1.772
+guess + (x/guess):3.54401
+Final new_guess:1.772
+Iteration:7
+Current guess:1.772
+x / guess:1.772
+guess + (x/guess):3.54401
+Final new_guess:1.772
+Iteration:8
+Current guess:1.772
+x / guess:1.772
+guess + (x/guess):3.54401
+Final new_guess:1.772
+Iteration:9
+Current guess:1.772
+x / guess:1.772
+guess + (x/guess):3.54401
+Final new_guess:1.772
+1.772
+5

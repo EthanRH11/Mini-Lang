@@ -1394,7 +1394,7 @@ bool Parser::processHeaderFile(AST_NODE *headerNode, const std::string &headerFi
     // Parse the header
     AST_NODE *headerAST = headerParser.parse();
 
-        // Attach the header AST to our node
+    // Attach the header AST to our node
     headerNode->CHILD = headerAST;
 
     // Remove this file from the included set once we're done

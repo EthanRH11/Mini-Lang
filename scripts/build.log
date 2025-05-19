@@ -1,22 +1,22 @@
-Compilation started at Fri May 16 12:09:08 EDT 2025
+Compilation started at Mon May 19 10:39:03 EDT 2025
 ../src/lexer.cpp: In member function ‘Token* Lexer::processBool()’:
-../src/lexer.cpp:277:1: warning: control reaches end of non-void function [-Wreturn-type]
-  277 | }
+../src/lexer.cpp:278:1: warning: control reaches end of non-void function [-Wreturn-type]
+  278 | }
       | ^
 ../src/lexer.cpp: In member function ‘Token* Lexer::processOperator()’:
-../src/lexer.cpp:444:1: warning: control reaches end of non-void function [-Wreturn-type]
-  444 | }
+../src/lexer.cpp:445:1: warning: control reaches end of non-void function [-Wreturn-type]
+  445 | }
       | ^
 ../src/lexer.cpp: In member function ‘Token* Lexer::processStringLiteral()’:
-../src/lexer.cpp:479:55: warning: control reaches end of non-void function [-Wreturn-type]
-  479 |         ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
+../src/lexer.cpp:480:55: warning: control reaches end of non-void function [-Wreturn-type]
+  480 |         ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
       |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
 ../src/lexer.cpp: In member function ‘Token* Lexer::processCharLiteral()’:
-../src/lexer.cpp:527:51: warning: control reaches end of non-void function [-Wreturn-type]
-  527 |     ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
+../src/lexer.cpp:528:51: warning: control reaches end of non-void function [-Wreturn-type]
+  528 |     ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
       |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ../src/lexer.cpp: In member function ‘Token* Lexer::processInputType()’:
-../src/lexer.cpp:629:1: warning: control reaches end of non-void function [-Wreturn-type]
-  629 | }
+../src/lexer.cpp:630:1: warning: control reaches end of non-void function [-Wreturn-type]
+  630 | }
       | ^
-Test Log Entry Fri May 16 12:09:11 EDT 2025
+Test Log Entry Mon May 19 10:39:07 EDT 2025
