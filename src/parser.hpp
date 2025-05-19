@@ -127,7 +127,7 @@ enum NODE_TYPE
 
     NODE_HEADER,
     NODE_NEEDS_BLOCK,
-
+    NODE_CONST_NUM,
 };
 
 /**
@@ -196,6 +196,7 @@ private:
     size_t size;                 // Total number of tokens
     Token *current;              // Current token being processed
     bool isHeader = false;
+    bool isConst = false;
 
     std::string arrayIDforDot; // helper string for dot function
     using ParseFunction = AST_NODE *(Parser::*)();
@@ -255,7 +256,7 @@ private:
     AST_NODE *parseKeywordEOF();
     AST_NODE *parseSemicolon();
     AST_NODE *parseBeginBlock();
-
+    AST_NODE *parseKeywordConst();
     // I/O statements
     AST_NODE *parseKeywordPrint();
 

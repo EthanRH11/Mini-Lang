@@ -105,7 +105,8 @@ void Lexer::initializeLexerMaps()
         {"factory", TOKEN_OBJECT_FACTORY},
         {"method", TOKEN_OBJECT_METHOD},
         {"needs:", TOKEN_KEYWORD_NEEDS},
-        {"library", TOKEN_LIBRARY}};
+        {"library", TOKEN_LIBRARY},
+        {"const", TOKEN_CONST_NUM}};
 }
 
 /**
@@ -673,12 +674,6 @@ Token *Lexer::processKeyword()
         return new Token{TOKEN_KEYWORD_BEGIN, "begin"};
     }
 
-    // Debug print for "range" and "repeat"
-    if (keyword == "range" || keyword == "repeat")
-    {
-        // std::cerr << "DEBUG: Found keyword '" << keyword << "'" << std::endl;
-    }
-
     // Look up in keyword map
     auto it = KeywordMap.find(keyword);
     if (it != KeywordMap.end())
@@ -941,7 +936,8 @@ std::string getTokenTypeName(tokenType type)
         {TOKEN_COLON_ACCESSOR, "TOKEN_COLON_ACCESSOR"},
         {TOKEN_KEYWORD_NEEDS, "TOKEN_KEYWORD_NEEDS"},
         {TOKEN_COLON, "TOKEN_COLON"},
-        {TOKEN_HEADER_FILE, "TOKEN_HEADER_FILE"}};
+        {TOKEN_HEADER_FILE, "TOKEN_HEADER_FILE"},
+        {TOKEN_CONST_NUM, "TOKEN_CONST_NUM"}};
 
     auto it = tokenTypeNames.find(type);
     if (it != tokenTypeNames.end())

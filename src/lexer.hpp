@@ -120,6 +120,8 @@ enum tokenType
     TOKEN_COLON,
     TOKEN_LIBRARY,
 
+    TOKEN_CONST_NUM,
+
 };
 
 //

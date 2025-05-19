@@ -46,8 +46,6 @@ library math {
   }
 }
 
-// In main programFile
-add math*
 
 
 TO NOTE:
