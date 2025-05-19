@@ -21,8 +21,8 @@ private:
     // Set of loaded libraries
     std::unordered_set<std::string> loadedLibraries;
 
-    // Search paths for libraries
-    std::vector<std::string> libraryPaths;
+    // Single directory for libraries
+    std::string libraryDirectory;
 
     // Find a library file
     std::string findLibraryFile(const std::string &libraryName);
@@ -48,6 +48,8 @@ public:
     bool isLibraryLoaded(const std::string &name) const;
 
     std::vector<std::string> getAvailableLibraries() const;
+
+    void walkASTForFunctions(AST_NODE *node);
 };
 
 #endif // LIBRARY_MANAGER_HPP
