@@ -22,6 +22,7 @@ begin:
     arr.(11 - 4);
     out_to_console("Index after subtraction operation: " +  arr@(11));
     ...
+    out_to_console(arr@(11));
     out_to_console("Index prior to operation: " + arr@(18));
     ...
     arr.(18 / 2);

@@ -1,0 +1,12 @@
+begin:
+
+    int negativeInt = -5;
+    
+    out_to_console(negativeInt);
+    ...
+
+    int x = 6;
+    int math = x - 3; 
+    out_to_console(math);
+    ...
+end

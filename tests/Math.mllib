@@ -31,9 +31,12 @@ begin:
 
     int num = -4;
 
+    double test = -11;
+
     out_to_console(sqrt(myNumb));  
     ...
     out_to_console(abs(num));
     ...
+    out_to_console(abs(test));
 
 end

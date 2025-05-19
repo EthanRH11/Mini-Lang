@@ -80,6 +80,12 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
     if (!node)
         return Value(0);
 
+    std::cout << "DEBUG: evaluateExpression called with node type: " << getNodeTypeName(node->TYPE) << std::endl;
+    if (!node->VALUE.empty())
+    {
+        std::cout << "DEBUG: Node value: " << node->VALUE << std::endl;
+    }
+
     // Initialize variables that could be referenced in switch cases at the beginning
     Value left;
     Value right;
@@ -127,8 +133,36 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         return Value(0);
     case NODE_SUBT:
-        if (node->SUB_STATEMENTS.size() >= 2)
+        std::cout << "DEBUG: NODE_SUBT case reached" << std::endl;
+        std::cout << "DEBUG: SUB_STATEMENTS size: " << node->SUB_STATEMENTS.size() << std::endl;
+
+        if (node->SUB_STATEMENTS.size() == 1)
         {
+            std::cout << "DEBUG: Entering unary minus branch" << std::endl;
+            // Unary minus (negative number)
+            Value operand = evaluateExpression(node->SUB_STATEMENTS[0]);
+            std::cout << "DEBUG: Unary minus - operand value: " << operand.toString() << std::endl;
+
+            if (operand.isInt())
+            {
+                std::cout << "DEBUG: Operand is int, negating: " << -operand.asInt() << std::endl;
+                return Value(-operand.asInt());
+            }
+            else if (operand.isDouble())
+            {
+                std::cout << "DEBUG: Operand is double, negating: " << -operand.asDouble() << std::endl;
+                return Value(-operand.asDouble());
+            }
+            else
+            {
+                std::cout << "DEBUG: Cannot negate non-numeric value" << std::endl;
+                ErrorHandler::getInstance().reportSemanticError("Cannot negate non-numeric value.");
+                return Value(0);
+            }
+        }
+        else if (node->SUB_STATEMENTS.size() >= 2)
+        {
+            // Binary subtraction (your existing code)
             left = evaluateExpression(node->SUB_STATEMENTS[0]);
             right = evaluateExpression(node->SUB_STATEMENTS[1]);
 
@@ -144,7 +178,6 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
             }
             else
             {
-                // std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
                 ErrorHandler::getInstance().reportSemanticError("Cannot subtract non-numeric value.");
                 return Value(0);
             }
@@ -652,25 +685,6 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         case NODE_ADD:
             resultOfExpression = currentValueOfIndex + operandValue;
             break;
-        case NODE_SUBT:
-            if (currentValueOfIndex.isInt() && operandValue.isInt())
-            {
-                resultOfExpression = Value(currentValueOfIndex.asInt() - operandValue.asInt());
-            }
-            else if ((currentValueOfIndex.isInt() || currentValueOfIndex.isDouble()) &&
-                     (operandValue.isInt() || operandValue.isDouble()))
-            {
-                double leftVal = currentValueOfIndex.isInt() ? currentValueOfIndex.asInt() : currentValueOfIndex.asDouble();
-                double rightVal = operandValue.isInt() ? operandValue.asInt() : operandValue.asDouble();
-                resultOfExpression = Value(leftVal - rightVal);
-            }
-            else
-            {
-                // std::cerr << "Error: Cannot subtract non-numeric values" << std::endl;
-                // exit(1);
-                ErrorHandler::getInstance().reportSemanticError("Cannot subtract non-numeric values.");
-            }
-            break;
         case NODE_MULT:
             if (currentValueOfIndex.isInt() && operandValue.isInt())
             {
@@ -715,6 +729,23 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
                 // std::cerr << "Error: Cannot divide non-numeric values" << std::endl;
                 // exit(1);
                 ErrorHandler::getInstance().reportSemanticError("Cannot divide non-numeric values.");
+            }
+            break;
+        case NODE_SUBT:
+            if (currentValueOfIndex.isInt() && operandValue.isInt())
+            {
+                resultOfExpression = Value(currentValueOfIndex.asInt() - operandValue.asInt());
+            }
+            else if ((currentValueOfIndex.isInt() || currentValueOfIndex.isDouble()) &&
+                     (operandValue.isInt() || operandValue.isDouble()))
+            {
+                double leftVal = currentValueOfIndex.isInt() ? currentValueOfIndex.asInt() : currentValueOfIndex.asDouble();
+                double rightVal = operandValue.isInt() ? operandValue.asInt() : operandValue.asDouble();
+                resultOfExpression = Value(leftVal - rightVal);
+            }
+            else
+            {
+                ErrorHandler::getInstance().reportSemanticError("Cannot subtract non-numeric values.");
             }
             break;
         case NODE_MODULUS:
@@ -937,6 +968,11 @@ void Interpreter::executeNode(AST_NODE *node)
     if (!node)
         return;
 
+    std::cout << "DEBUG: executeNode called with node type: " << getNodeTypeName(node->TYPE) << std::endl;
+    if (!node->VALUE.empty())
+    {
+        std::cout << "DEBUG: Node value: " << node->VALUE << std::endl;
+    }
     switch (node->TYPE)
     {
     case NODE_ROOT:

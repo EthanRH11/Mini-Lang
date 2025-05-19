@@ -289,6 +289,24 @@ Token *Lexer::processNumber()
 {
     std::string number;
     bool isDouble = false;
+    bool isNegative = false;
+
+    if (current == '-')
+    {
+        isNegative = true;
+        number += current;
+        advanceCursor();
+    }
+
+    if (!std::isdigit(current))
+    {
+        if (isNegative)
+        {
+            cursor--;
+            current = source[cursor];
+            return new Token{TOKEN_OPERATOR_SUBT, "-"};
+        }
+    }
 
     // Collect digits and at most one decimal point
     while (std::isdigit(current))
