@@ -49,7 +49,7 @@ To build and run the parser, follow these steps:
 
 - **Development Stage**: The project is still in progress.
 - **What’s Done**: Tokenizer, Parser, and Interperter are built.
-- **Next Steps**: Implementing Error Class to handle errors within the language better. Implementing more data structures.
+- **Next Steps**: Implementing Library Manager / System. Allows users to include pre determined libraries, as well as user defined libraries / "headers".
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
