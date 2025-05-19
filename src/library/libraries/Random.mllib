@@ -1,0 +1,26 @@
+<<$ Everything in this function, will need to be built into the interpreter.
+    Nothing will be able to work/run without being built in. $>>
+
+
+proc random() => {
+}
+
+proc random_int(int min, int max) => {
+    >>$ return random integer between min and max 
+}
+
+proc random_float(double min, double max) => {
+
+}
+
+proc coinFlip() => {
+
+}
+
+proc diceRoll() => {
+
+}
+
+proc genPin(int digits) => {
+
+}
