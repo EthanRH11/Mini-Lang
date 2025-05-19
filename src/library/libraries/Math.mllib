@@ -1,6 +1,10 @@
-<<$ Math Library for Mini Lang
-    Library Manager handles all functions and calls to them.
-$>>
+proc abs(int x) => {
+    if (x < 0) {
+        result => {-x};
+    } else {
+        result => {x};
+    }
+}
 
 proc sqrt(int x) => {
     if(x == 0) {
@@ -18,10 +22,42 @@ proc sqrt(int x) => {
     result => {guess};
 }
 
-proc abs(int x) => {
-    if (x < 0) {
-        result => {-x};
+proc pow(double base, double exponent) => {
+    double epsilon = 0.000001;
+
+    >>$ check if exponent is close to 0
+    if(abs(exponent) < epsilon) {
+        result => {1.0};
+    }
+
+    >>$ check if base is close to 0
+    if(abs(base) < epsilon) {
+        result => {0.0};
+    }
+
+    double result_val = 1.0;
+    double remaining_exp = exponent;
+
+    check (remaining_exp > 0.0) {
+        result_val = result_val * base;
+        remaining_exp = remaining_exp - 1.0;
+    }
+
+    result => {result_val};
+}
+
+proc min(double a, double b) => {
+    if (a < b) {
+        result => {a};
     } else {
-        result => {x};
+        result => {b};
+    }
+}
+
+proc max(double a, double b) => {
+    if(a > b) {
+        result => {a};
+    } else {
+        result => {b};
     }
 }

@@ -22,21 +22,49 @@ proc sqrt(int x) => {
     result => {guess};
 }
 
+proc pow(double base, double exponent) => {
+    double epsilon = 0.000001;
+
+    >>$ check if exponent is close to 0
+    if(abs(exponent) < epsilon) {
+        result => {1.0};
+    }
+
+    >>$ check if base is close to 0
+    if(abs(base) < epsilon) {
+        result => {0.0};
+    }
+
+    double result_val = 1.0;
+    double remaining_exp = exponent;
+
+    check (remaining_exp > 0.0) {
+        result_val = result_val * base;
+        remaining_exp = remaining_exp - 1.0;
+    }
+
+    result => {result_val};
+}
+
+proc min(double a, double b) => {
+    if (a < b) {
+        result => {a};
+    } else {
+        result => {b};
+    }
+}
+
+proc max(double a, double b) => {
+    if(a > b) {
+        result => {a};
+    } else {
+        result => {b};
+    }
+}
+
 
 begin:
 
-    int myNumb = 5.0;
 
-    double  pi = 3.14
-
-    int num = -4;
-
-    double test = -11;
-
-    out_to_console(sqrt(myNumb));  
-    ...
-    out_to_console(abs(num));
-    ...
-    out_to_console(abs(test));
 
 end

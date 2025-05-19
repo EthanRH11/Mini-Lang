@@ -1,4 +1,4 @@
-Compilation started at Mon May 19 11:21:26 EDT 2025
+Compilation started at Mon May 19 11:37:25 EDT 2025
 ../src/lexer.cpp: In member function ‘Token* Lexer::processBool()’:
 ../src/lexer.cpp:278:1: warning: control reaches end of non-void function [-Wreturn-type]
   278 | }
@@ -19,4 +19,4 @@ Compilation started at Mon May 19 11:21:26 EDT 2025
 ../src/lexer.cpp:648:1: warning: control reaches end of non-void function [-Wreturn-type]
   648 | }
       | ^
-Test Log Entry Mon May 19 11:21:30 EDT 2025
+Test Log Entry Mon May 19 11:37:28 EDT 2025
