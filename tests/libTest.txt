@@ -1,7 +1,9 @@
 needs: {
-    library: "Random",
     source: "tests/readFromFile.hmlng"    
 }
+
+library :: "Random"
+
     
 begin:
     int x = 5;
