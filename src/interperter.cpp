@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <variant>
 #include <memory>
+#include <random>
 
 #include "interperter.hpp"
 #include "Value.hpp"
@@ -814,6 +815,31 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         std::string funcName = node->VALUE;
         // std::cout << "Entering Function: " << funcName << " depth: " << recursionDepth << std::endl;
         std::string callID = generateCallID(funcName, recursionDepth);
+        // ** Handle random library functions first ** //
+        if (funcName == "randomInt")
+        {
+            Value result = evaluateRandomInt(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "coinFlip")
+        {
+            Value result = evaluateCoinFlip(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "diceRoll")
+        {
+            Value result = evaluateDiceRoll(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "generatePin")
+        {
+            Value result = evaluateGeneratePin(node);
+            recursionDepth--;
+            return result;
+        }
 
         // Look up function definition
         AST_NODE *funcDef = findFunctionByName(funcName);
@@ -1619,17 +1645,6 @@ void Interpreter::executeNode(AST_NODE *node)
  * @param name The name of the function to find
  * @return AST_NODE* Pointer to the function node, or nullptr if not found
  */
-// AST_NODE *Interpreter::findFunctionByName(const std::string &name)
-// {
-//     for (auto &stmt : root->SUB_STATEMENTS)
-//     {
-//         if (stmt->TYPE == NODE_FUNCTION_DECLERATION && stmt->VALUE == name)
-//         {
-//             return stmt;
-//         }
-//     }
-//     return nullptr;
-// }
 
 AST_NODE *Interpreter::findFunctionByName(const std::string &name)
 {
@@ -1683,4 +1698,130 @@ AST_NODE *Interpreter::findFunctionByName(const std::string &name)
 
     // Start the search from the root
     return searchNodeForFunction(root);
+}
+
+void Interpreter::evaluateImport(AST_NODE *node)
+{
+    std::string libraryName = node->VALUE;
+    LibraryManager &libraryManager = LibraryManager::getInstance();
+
+    if (libraryManager.isLibraryLoaded(libraryName))
+    {
+        return; // already loaded do nothing
+    }
+
+    if (libraryName == "random")
+    {
+        AST_NODE *randomLibraryAST = libraryManager.generateRandomAST();
+
+        libraryManager.loadPreCompiledLibrary(libraryName, randomLibraryAST);
+
+        return;
+    }
+
+    if (!libraryManager.loadLibrary(libraryName))
+    {
+        ErrorHandler::getInstance().reportRuntimeError("Failed to load library: " + libraryName);
+    }
+}
+
+Value Interpreter::evaluateRandomInt(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() < 2)
+    {
+        ErrorHandler::getInstance().reportRuntimeError("randomInt requires two arguments: min and max.");
+        return Value(0);
+    }
+
+    Value minVal = evaluateExpression(node->SUB_STATEMENTS[0]);
+    Value maxVal = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+    int min = minVal.asInt();
+    int max = maxVal.asInt();
+
+    if (min > max)
+    {
+        ErrorHandler::getInstance().reportRuntimeError("randomInt: min must be less than or equal to max.");
+        std::swap(min, max);
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(min, max);
+
+    int result = distrib(gen);
+    return Value(result);
+}
+
+Value Interpreter::evaluateCoinFlip(AST_NODE *node)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 1);
+
+    bool result = (distrib(gen) == 1);
+    return Value(result); // true or false;
+}
+
+Value Interpreter::evaluateDiceRoll(AST_NODE *node)
+{
+    int sides = 6;
+
+    if (!node->SUB_STATEMENTS.empty())
+    {
+        Value sidesVal = evaluateExpression(node->SUB_STATEMENTS[0]);
+        sides = sidesVal.asInt();
+
+        if (sides < 6)
+        {
+            ErrorHandler::getInstance().reportRuntimeError("diceRoll: Minimum number of sides is 6.");
+            sides = 6;
+        }
+        else if (sides > 20)
+        {
+            ErrorHandler::getInstance().reportRuntimeError("diceRoll: Maximum number of sides is 20.");
+            sides = 20;
+        }
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(1, sides);
+
+    int result = distrib(gen);
+    return Value(result);
+}
+
+Value Interpreter::evaluateGeneratePin(AST_NODE *node)
+{
+    int digits = 4;
+
+    if (!node->SUB_STATEMENTS.empty())
+    {
+        Value digitsVal = evaluateExpression(node->SUB_STATEMENTS[0]);
+        digits = digitsVal.asInt();
+
+        if (digits < 1)
+        {
+            ErrorHandler::getInstance().reportRuntimeError("generatePin: Minimum number of digits is 1.");
+            digits = 1;
+        }
+        else if (digits > 100)
+        {
+            ErrorHandler::getInstance().reportRuntimeError("generatePin: Maximum number of digits is 100.");
+            digits = 100;
+        }
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 9);
+
+    std::string pin;
+    for (int i = 0; i < digits; i++)
+    {
+        pin += std::to_string(distrib(gen));
+    }
+
+    return Value(pin);
 }

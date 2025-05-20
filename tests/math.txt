@@ -1,10 +1,12 @@
 <<$ Everything in this function, will need to be built into the interpreter.
     Nothing will be able to work/run without being built in. $>>
 
-
+>>$ Returns a random number 1 - 1000
 proc random() => {
+
 }
 
+>>$ 
 proc random_int(int min, int max) => {
     >>$ return random integer between min and max 
 }

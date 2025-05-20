@@ -16,6 +16,7 @@
 #include "Value.hpp"
 #include "dynamic_array.hpp"
 #include "ErrorHandler.hpp"
+#include "library/LibraryManager.hpp"
 
 /**
  * @class Interpreter
@@ -37,6 +38,7 @@ public:
     Interpreter(AST_NODE *root) : root(root)
     {
         setupOutputFile();
+        LibraryManager &libraryManager = LibraryManager::getInstance();
     }
 
     /**
@@ -78,6 +80,13 @@ private:
      * @return Pointer to the function's AST node or nullptr if not found
      */
     AST_NODE *findFunctionByName(const std::string &name);
+
+    /**
+     * @brief handles the imports of standard libraries
+     * @param node uses the import node
+     *
+     */
+    void evaluateImport(AST_NODE *node);
 
     /**
      * @brief Executes a node in the AST
@@ -379,6 +388,12 @@ private:
     {
         return !returnValue.isNone();
     }
+
+    // Functions for random Library
+    Value evaluateRandomInt(AST_NODE *node);
+    Value evaluateCoinFlip(AST_NODE *node);
+    Value evaluateDiceRoll(AST_NODE *node);
+    Value evaluateGeneratePin(AST_NODE *node);
 };
 
 #endif // INTERPRETER_HPP

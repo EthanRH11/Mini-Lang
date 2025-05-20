@@ -9,23 +9,31 @@
 #include <unordered_map>
 
 namespace fs = std::filesystem;
-// // Maps library names to their AST roots
-// std::unordered_map<std::string, AST_NODE *> libraries;
-
-// // Maps function names to their definitions
-// std::unordered_map<std::string, AST_NODE *> functionRegistry;
-
-// // Set of loaded libraries
-// std::unordered_set<std::string> loadedLibraries;
-
-// // Search paths for libraries
-// std::vector<std::string> libraryPaths;
 
 LibraryManager::LibraryManager()
 {
     libraryDirectory = "./libraries/";
 }
 LibraryManager::~LibraryManager() {}
+
+bool LibraryManager::loadPreCompiledLibrary(const std::string &name, AST_NODE *node)
+{
+    if (loadedLibraries.find(name) != loadedLibraries.end())
+    {
+        return true;
+    }
+    if (node == nullptr)
+    {
+        ErrorHandler::getInstance().reportRuntimeError("Cannot load null library: " + name);
+        return false;
+    }
+
+    libraries[name] = node;
+    registerLibraryFunctions(name, node);
+    loadedLibraries.insert(name);
+
+    return true;
+}
 
 bool LibraryManager::loadLibrary(const std::string &name)
 {
@@ -178,4 +186,59 @@ void LibraryManager::walkASTForFunctions(AST_NODE *node)
             walkASTForFunctions(child);
         }
     }
+}
+
+AST_NODE *LibraryManager::generateRandomAST()
+{
+    AST_NODE *root = new AST_NODE();
+    root->TYPE = ROOT_LIBRARY;
+    root->VALUE = "Random";
+
+    AST_NODE *randomInt = new AST_NODE();
+    randomInt->TYPE = NODE_RANDOMINT;
+    randomInt->VALUE = "randomInt";
+
+    AST_NODE *min = new AST_NODE();
+    min->TYPE = NODE_PARAM;
+    min->VALUE = "min";
+
+    AST_NODE *max = new AST_NODE();
+    max->TYPE = NODE_PARAM;
+    max->VALUE = "max";
+
+    randomInt->SUB_STATEMENTS.push_back(min);
+    randomInt->SUB_STATEMENTS.push_back(max);
+
+    AST_NODE *coinFlip = new AST_NODE();
+    coinFlip->TYPE = NODE_COINFLIP;
+    coinFlip->VALUE = "coinFlip";
+
+    AST_NODE *diceRoll = new AST_NODE();
+    diceRoll->TYPE = NODE_DICEROLL;
+    diceRoll->VALUE = "diceRoll";
+
+    AST_NODE *side = new AST_NODE();
+    side->TYPE = NODE_PARAM;
+    side->VALUE = "sides";
+    side->CHILD = nullptr;
+
+    diceRoll->SUB_STATEMENTS.push_back(side);
+
+    AST_NODE *generatePin = new AST_NODE();
+    generatePin->TYPE = NODE_GENERATEPIN;
+    generatePin->VALUE = "generatePin";
+
+    AST_NODE *digits = new AST_NODE();
+    digits->TYPE = NODE_PARAM;
+    digits->VALUE = "digits";
+    digits->CHILD = nullptr;
+
+    generatePin->SUB_STATEMENTS.push_back(digits);
+
+    root->SUB_STATEMENTS.push_back(randomInt);
+    root->SUB_STATEMENTS.push_back(coinFlip);
+    root->SUB_STATEMENTS.push_back(generatePin);
+    root->SUB_STATEMENTS.push_back(diceRoll);
+
+    return root;
 }

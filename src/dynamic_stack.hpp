@@ -1,0 +1,4 @@
+#ifndef DYNAMIC_STACK_HPP
+#define DYNAMIC_STACK_HPP
+
+#endif // DYNAMIC_STACK_HPP

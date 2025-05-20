@@ -38,7 +38,7 @@ public:
     ~LibraryManager();
 
     void addSearchPath(const std::string &path);
-
+    bool LibraryManager::loadPreCompiledLibrary(const std::string &name, AST_NODE *node);
     bool loadLibrary(const std::string &name);
 
     AST_NODE *findFunction(const std::string &name);
@@ -50,6 +50,14 @@ public:
     std::vector<std::string> getAvailableLibraries() const;
 
     void walkASTForFunctions(AST_NODE *node);
+
+    AST_NODE *generateRandomAST();
+
+    static LibraryManager &getInstance()
+    {
+        static LibraryManager instance;
+        return instance;
+    }
 };
 
 #endif // LIBRARY_MANAGER_HPP

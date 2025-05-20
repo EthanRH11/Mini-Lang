@@ -1,4 +1,17 @@
-Compilation started at Mon May 19 12:09:15 EDT 2025
+Compilation started at Tue May 20 13:13:00 EDT 2025
+In file included from ../src/interperter.hpp:19,
+                 from ../src/interperter.cpp:13:
+../src/library/LibraryManager.hpp:41:10: error: extra qualification ‘LibraryManager::’ on member ‘loadPreCompiledLibrary’ [-fpermissive]
+   41 |     bool LibraryManager::loadPreCompiledLibrary(const std::string &name, AST_NODE *node);
+      |          ^~~~~~~~~~~~~~
+../src/interperter.hpp: In constructor ‘Interpreter::Interpreter(AST_NODE*)’:
+../src/interperter.hpp:41:25: warning: unused variable ‘libraryManager’ [-Wunused-variable]
+   41 |         LibraryManager &libraryManager = LibraryManager::getInstance();
+      |                         ^~~~~~~~~~~~~~
+../src/interperter.cpp: In member function ‘Value Interpreter::evaluateCoinFlip(AST_NODE*)’:
+../src/interperter.cpp:1756:47: warning: unused parameter ‘node’ [-Wunused-parameter]
+ 1756 | Value Interpreter::evaluateCoinFlip(AST_NODE *node)
+      |                                     ~~~~~~~~~~^~~~
 ../src/lexer.cpp: In member function ‘Token* Lexer::processBool()’:
 ../src/lexer.cpp:279:1: warning: control reaches end of non-void function [-Wreturn-type]
   279 | }
@@ -19,4 +32,12 @@ Compilation started at Mon May 19 12:09:15 EDT 2025
 ../src/lexer.cpp:649:1: warning: control reaches end of non-void function [-Wreturn-type]
   649 | }
       | ^
-Test Log Entry Mon May 19 12:09:18 EDT 2025
+In file included from ../src/interperter.hpp:19,
+                 from ../src/pilotParser.cpp:10:
+../src/library/LibraryManager.hpp:41:10: error: extra qualification ‘LibraryManager::’ on member ‘loadPreCompiledLibrary’ [-fpermissive]
+   41 |     bool LibraryManager::loadPreCompiledLibrary(const std::string &name, AST_NODE *node);
+      |          ^~~~~~~~~~~~~~
+../src/interperter.hpp: In constructor ‘Interpreter::Interpreter(AST_NODE*)’:
+../src/interperter.hpp:41:25: warning: unused variable ‘libraryManager’ [-Wunused-variable]
+   41 |         LibraryManager &libraryManager = LibraryManager::getInstance();
+      |                         ^~~~~~~~~~~~~~

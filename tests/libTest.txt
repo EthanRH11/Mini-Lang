@@ -1,0 +1,21 @@
+needs: {
+    library: "Random",
+    source: "tests/readFromFile.hmlng"    
+}
+    
+begin:
+    int x = 5;
+    int z = 10;
+
+    out_to_console(myFoo(x));
+    ...
+    out_to_console("The above number should be: 6"); ...
+
+    int y = randomInt;
+    out_to_console(y);
+    ...
+    out_to_console(diceRoll());
+    ...
+    out_to_console(generatePin(4));
+
+end
