@@ -105,8 +105,8 @@ void Lexer::initializeLexerMaps()
         {"factory", TOKEN_OBJECT_FACTORY},
         {"method", TOKEN_OBJECT_METHOD},
         {"needs:", TOKEN_KEYWORD_NEEDS},
-        {"library", TOKEN_LIBRARY},
-        {"const", TOKEN_CONST_NUM}};
+        {"const", TOKEN_CONST_NUM},
+    };
 }
 
 /**
@@ -600,6 +600,37 @@ Token *Lexer::processSourceDirective()
     return sourceToken;
 }
 
+Token *Lexer::processLibraryDirective()
+{
+    std::string library;
+    while (std::isalpha(current))
+    {
+        library += current;
+        advanceCursor();
+    }
+
+    if (library != "library")
+    {
+        ErrorHandler::getInstance().reportLexicalError("Expected 'library' directive in needs block");
+    }
+
+    if (current != ':')
+    {
+        ErrorHandler::getInstance().reportLexicalError("Expected ':' after 'library' directive");
+    }
+    advanceCursor();
+
+    Token *libraryDirective = new Token{TOKEN_LIBRARY, "library"};
+
+    checkAndSkip();
+
+    if (current != '"')
+    {
+        ErrorHandler::getInstance().reportLexicalError("Expected string literal for filename after 'library:'");
+    }
+    return libraryDirective;
+}
+
 /**
  * @brief Processes input type specification like <int>, <double>, etc.
  * @return Token pointer representing the input type
@@ -790,6 +821,20 @@ std::vector<Token *> Lexer::tokenize()
                     tokens.push_back(new Token{TOKEN_IDENTIFIER, "source"});
                 }
             }
+            else if (current == 'l' && matchKeyword("library"))
+            {
+                consumeKeyword("library");
+                checkAndSkip();
+                if (current == ':')
+                {
+                    advanceCursor();
+                    tokens.push_back(new Token{TOKEN_LIBRARY, "library"});
+                }
+                else
+                {
+                    tokens.push_back(new Token{TOKEN_IDENTIFIER, "library"});
+                }
+            }
             else
             {
                 // Process keywords and identifiers
@@ -937,7 +982,8 @@ std::string getTokenTypeName(tokenType type)
         {TOKEN_KEYWORD_NEEDS, "TOKEN_KEYWORD_NEEDS"},
         {TOKEN_COLON, "TOKEN_COLON"},
         {TOKEN_HEADER_FILE, "TOKEN_HEADER_FILE"},
-        {TOKEN_CONST_NUM, "TOKEN_CONST_NUM"}};
+        {TOKEN_CONST_NUM, "TOKEN_CONST_NUM"},
+        {TOKEN_LIBRARY, "TOKEN_LIBRARY"}};
 
     auto it = tokenTypeNames.find(type);
     if (it != tokenTypeNames.end())

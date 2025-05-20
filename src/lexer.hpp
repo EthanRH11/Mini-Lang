@@ -165,6 +165,7 @@ public:
 
     Token *processNeedsBlock();
     Token *processSourceDirective();
+    Token *processLibraryDirective();
 
     Token *processInputType();
 
