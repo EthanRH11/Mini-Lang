@@ -167,7 +167,7 @@ void LibraryManager::walkASTForFunctions(AST_NODE *node)
         return;
     }
 
-    if (node->TYPE == NODE_FUNCTION)
+    if (node->TYPE == NODE_FUNCTION_DECLERATION)
     {
         std::string functionName = node->VALUE;
 

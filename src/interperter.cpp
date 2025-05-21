@@ -1700,28 +1700,76 @@ AST_NODE *Interpreter::findFunctionByName(const std::string &name)
     return searchNodeForFunction(root);
 }
 
+// void Interpreter::evaluateImport(AST_NODE *node)
+// {
+//     std::string libraryName = node->VALUE;
+//     LibraryManager &libraryManager = LibraryManager::getInstance();
+
+//     if (libraryManager.isLibraryLoaded(libraryName))
+//     {
+//         return; // already loaded do nothing
+//     }
+
+//     if (libraryName == "random")
+//     {
+//         AST_NODE *randomLibraryAST = libraryManager.generateRandomAST();
+
+//         libraryManager.loadPreCompiledLibrary(libraryName, randomLibraryAST);
+
+//         return;
+//     }
+
+//     if (!libraryManager.loadLibrary(libraryName))
+//     {
+//         ErrorHandler::getInstance().reportRuntimeError("Failed to load library: " + libraryName);
+//     }
+// }
 void Interpreter::evaluateImport(AST_NODE *node)
 {
+    if (!node)
+    {
+        std::cerr << "ERROR: Null import node" << std::endl;
+        return;
+    }
+
     std::string libraryName = node->VALUE;
+    std::cerr << "DEBUG: Importing library: " << libraryName << std::endl;
+
     LibraryManager &libraryManager = LibraryManager::getInstance();
 
     if (libraryManager.isLibraryLoaded(libraryName))
     {
+        std::cerr << "DEBUG: Library already loaded: " << libraryName << std::endl;
         return; // already loaded do nothing
     }
 
-    if (libraryName == "random")
+    if (libraryName == "Random")
     {
+        std::cerr << "DEBUG: Generating Random library AST" << std::endl;
         AST_NODE *randomLibraryAST = libraryManager.generateRandomAST();
 
-        libraryManager.loadPreCompiledLibrary(libraryName, randomLibraryAST);
+        if (libraryManager.loadPreCompiledLibrary(libraryName, randomLibraryAST))
+        {
+            std::cerr << "DEBUG: Successfully loaded Random library" << std::endl;
+        }
+        else
+        {
+            std::cerr << "ERROR: Failed to load Random library" << std::endl;
+        }
 
         return;
     }
 
+    std::cerr << "DEBUG: Attempting to load library from file: " << libraryName << std::endl;
+
     if (!libraryManager.loadLibrary(libraryName))
     {
+        std::cerr << "ERROR: Failed to load library: " << libraryName << std::endl;
         ErrorHandler::getInstance().reportRuntimeError("Failed to load library: " + libraryName);
+    }
+    else
+    {
+        std::cerr << "DEBUG: Successfully loaded library: " << libraryName << std::endl;
     }
 }
 

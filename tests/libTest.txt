@@ -1,6 +1,7 @@
 needs: {
     source: "tests/readFromFile.hmlng"    
     library: "Random"
+    library: "Math"
 }
 
 
@@ -20,5 +21,10 @@ begin:
     out_to_console(diceRoll(20));
     ...
     out_to_console(generatePin(4));
+    ...
 
+    int g = 49;
+
+    out_to_console(sqrt(g));
+    ...
 end
