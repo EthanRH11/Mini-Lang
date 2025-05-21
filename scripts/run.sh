@@ -8,6 +8,8 @@ set -e
 
 # Configuration variables
 PROJECT_NAME="parser"
+SRC_DIR="../src"
+LIBRARY_DIR="../src/library"
 BUILD_DIR="../build"
 EXECUTABLE="${BUILD_DIR}/${PROJECT_NAME}"
 TEST_DATA_DIR="../tests"
@@ -60,11 +62,52 @@ if [[ "$MODE" != "lex" && "$MODE" != "parse" && "$MODE" != "interpret" && "$MODE
     exit 1
 fi
 
-# Check if executable exists
-# ... [rest of your existing executable checks]
-
 # Check if input file exists
-# ... [rest of your existing input file checks]
+if [[ ! -f "$INPUT_FILE" ]]; then
+    echo -e "${RED}Error: Input file not found at ${INPUT_FILE}${NC}"
+    exit 1
+fi
+
+# Check if executable exists or needs to be rebuilt
+if [[ ! -f "$EXECUTABLE" || $(find "$SRC_DIR" -name "*.cpp" -newer "$EXECUTABLE" 2>/dev/null | wc -l) -gt 0 || $(find "$LIBRARY_DIR" -name "*.cpp" -newer "$EXECUTABLE" 2>/dev/null | wc -l) -gt 0 ]]; then
+    echo -e "${YELLOW}Building/rebuilding executable...${NC}"
+    
+    # Create build directory if it doesn't exist
+    mkdir -p "$BUILD_DIR"
+    cd "$BUILD_DIR"
+    
+    # Clean up any old object files to prevent linking issues
+    rm -f *.o
+    
+    # Collect source files with proper deduplication
+    SRC_FILES=$(find "$SRC_DIR" -name "*.cpp" -not -path "$LIBRARY_DIR/*" | sort -u)
+    LIB_FILES=$(find "$LIBRARY_DIR" -name "*.cpp" 2>/dev/null | sort -u)
+    
+    # Compile each source file to an object file
+    echo -e "${BLUE}Compiling source files...${NC}"
+    OBJECTS=""
+    
+    for src in $SRC_FILES $LIB_FILES; do
+        obj=$(basename "$src" .cpp).o
+        echo -e "${YELLOW}Compiling: $src${NC}"
+        g++ -std=c++17 -Wall -Wextra -I"$SRC_DIR" -c "$src" -o "$obj"
+        OBJECTS="$OBJECTS $obj"
+    done
+    
+    # Link all object files
+    echo -e "${BLUE}Linking: g++ $OBJECTS -o ${PROJECT_NAME}${NC}"
+    g++ $OBJECTS -o "${PROJECT_NAME}"
+    
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}Compilation successful!${NC}"
+    else
+        echo -e "${RED}Compilation failed!${NC}"
+        exit 1
+    fi
+    
+    # Return to the original directory
+    cd - > /dev/null
+fi
 
 # Print execution information
 echo -e "${YELLOW}Execution mode: ${MODE}${NC}"
@@ -81,4 +124,17 @@ START_TIME=$(date +%s.%N)
 "$EXECUTABLE" "$INPUT_FILE" "$MODE"
 EXIT_CODE=$?
 
-# ... [rest of your timing and completion code]
+# Calculate execution time
+END_TIME=$(date +%s.%N)
+EXECUTION_TIME=$(echo "$END_TIME - $START_TIME" | bc)
+
+# Check the exit code and display appropriate message
+if [[ $EXIT_CODE -eq 0 ]]; then
+    echo -e "${GREEN}----------------------------------------${NC}"
+    echo -e "${GREEN}Program completed successfully in ${EXECUTION_TIME} seconds${NC}"
+else
+    echo -e "${RED}----------------------------------------${NC}"
+    echo -e "${RED}Program failed with exit code: ${EXIT_CODE}${NC}"
+fi
+
+exit $EXIT_CODE

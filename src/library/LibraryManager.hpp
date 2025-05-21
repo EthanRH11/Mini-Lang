@@ -38,7 +38,7 @@ public:
     ~LibraryManager();
 
     void addSearchPath(const std::string &path);
-    bool LibraryManager::loadPreCompiledLibrary(const std::string &name, AST_NODE *node);
+    bool loadPreCompiledLibrary(const std::string &name, AST_NODE *node);
     bool loadLibrary(const std::string &name);
 
     AST_NODE *findFunction(const std::string &name);

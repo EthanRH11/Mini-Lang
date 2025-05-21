@@ -38,7 +38,7 @@ public:
     Interpreter(AST_NODE *root) : root(root)
     {
         setupOutputFile();
-        LibraryManager &libraryManager = LibraryManager::getInstance();
+        // LibraryManager &libraryManager = LibraryManager::getInstance();
     }
 
     /**
@@ -391,7 +391,7 @@ private:
 
     // Functions for random Library
     Value evaluateRandomInt(AST_NODE *node);
-    Value evaluateCoinFlip(AST_NODE *node);
+    Value evaluateCoinFlip();
     Value evaluateDiceRoll(AST_NODE *node);
     Value evaluateGeneratePin(AST_NODE *node);
 };

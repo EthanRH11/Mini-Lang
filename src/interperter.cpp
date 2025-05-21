@@ -824,7 +824,7 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         else if (funcName == "coinFlip")
         {
-            Value result = evaluateCoinFlip(node);
+            Value result = evaluateCoinFlip();
             recursionDepth--;
             return result;
         }
@@ -1753,7 +1753,7 @@ Value Interpreter::evaluateRandomInt(AST_NODE *node)
     return Value(result);
 }
 
-Value Interpreter::evaluateCoinFlip(AST_NODE *node)
+Value Interpreter::evaluateCoinFlip()
 {
     std::random_device rd;
     std::mt19937 gen(rd());

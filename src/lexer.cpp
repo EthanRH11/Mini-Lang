@@ -106,7 +106,7 @@ void Lexer::initializeLexerMaps()
         {"method", TOKEN_OBJECT_METHOD},
         {"needs:", TOKEN_KEYWORD_NEEDS},
         {"const", TOKEN_CONST_NUM},
-    };
+        {"library", TOKEN_LIBRARY}};
 }
 
 /**
@@ -275,6 +275,7 @@ Token *Lexer::processBool()
     {
         // throw std::runtime_error("Invalid boolean literal: " + boolStr);
         ErrorHandler::getInstance().reportRuntimeError("Invalid boolean literal: " + boolStr);
+        return nullptr;
     }
 }
 
@@ -461,6 +462,7 @@ Token *Lexer::processOperator()
 
     // throw std::runtime_error("Error: Unknown operator: " + op);
     ErrorHandler::getInstance().reportLexicalError("Unknown operator: " + op);
+    return nullptr;
 }
 
 /**
@@ -497,6 +499,7 @@ Token *Lexer::processStringLiteral()
     {
         // throw std::runtime_error("Error: Invalid string literal.");
         ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
+        return nullptr;
     }
 }
 
@@ -545,6 +548,7 @@ Token *Lexer::processCharLiteral()
 
     // throw std::runtime_error("Error: Invalid character literal format.");
     ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
+    return nullptr;
 }
 
 /**
@@ -655,6 +659,7 @@ Token *Lexer::processInputType()
         {
             // throw std::runtime_error("Error: Unterminated input type specification.");
             ErrorHandler::getInstance().reportLexicalError("Unterminated input type specification.");
+            return nullptr;
         }
         advanceCursor();
 
@@ -670,12 +675,14 @@ Token *Lexer::processInputType()
         {
             // throw std::runtime_error("Error: Invalid input type: " + typeName);
             ErrorHandler::getInstance().reportLexicalError("Invalid input type: " + typeName);
+            return nullptr;
         }
     }
     else
     {
         // throw std::runtime_error("Error: Expected '<' for input type specification.");
         ErrorHandler::getInstance().reportLexicalError("Expected '<' for input type specification.");
+        return nullptr;
     }
 }
 
@@ -825,13 +832,29 @@ std::vector<Token *> Lexer::tokenize()
             {
                 consumeKeyword("library");
                 checkAndSkip();
+
+                // Important: Check if current is ':' exactly like you do for "source:"
                 if (current == ':')
                 {
-                    advanceCursor();
-                    tokens.push_back(new Token{TOKEN_LIBRARY, "library"});
+                    advanceCursor();                                       // Consume the colon
+                    tokens.push_back(new Token{TOKEN_LIBRARY, "library"}); // Use TOKEN_LIBRARY token type
+
+                    checkAndSkip(); // Skip whitespace before string
+
+                    // Process the string that follows
+                    if (current == '"')
+                    {
+                        Token *stringToken = processStringLiteral();
+                        tokens.push_back(stringToken);
+                    }
+                    else
+                    {
+                        ErrorHandler::getInstance().reportLexicalError("Expected string literal after 'library:'");
+                    }
                 }
                 else
                 {
+                    // If no colon, treat as a normal identifier
                     tokens.push_back(new Token{TOKEN_IDENTIFIER, "library"});
                 }
             }

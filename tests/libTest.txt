@@ -1,8 +1,9 @@
 needs: {
     source: "tests/readFromFile.hmlng"    
+    library: "Random"
 }
 
-library :: "Random"
+
 
     
 begin:

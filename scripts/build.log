@@ -1,43 +1,14 @@
-Compilation started at Tue May 20 13:32:47 EDT 2025
-In file included from ../src/interperter.hpp:19,
-                 from ../src/interperter.cpp:13:
-../src/library/LibraryManager.hpp:41:10: error: extra qualification ‘LibraryManager::’ on member ‘loadPreCompiledLibrary’ [-fpermissive]
-   41 |     bool LibraryManager::loadPreCompiledLibrary(const std::string &name, AST_NODE *node);
-      |          ^~~~~~~~~~~~~~
-../src/interperter.hpp: In constructor ‘Interpreter::Interpreter(AST_NODE*)’:
-../src/interperter.hpp:41:25: warning: unused variable ‘libraryManager’ [-Wunused-variable]
-   41 |         LibraryManager &libraryManager = LibraryManager::getInstance();
-      |                         ^~~~~~~~~~~~~~
-../src/interperter.cpp: In member function ‘Value Interpreter::evaluateCoinFlip(AST_NODE*)’:
-../src/interperter.cpp:1756:47: warning: unused parameter ‘node’ [-Wunused-parameter]
- 1756 | Value Interpreter::evaluateCoinFlip(AST_NODE *node)
-      |                                     ~~~~~~~~~~^~~~
-../src/lexer.cpp: In member function ‘Token* Lexer::processBool()’:
-../src/lexer.cpp:279:1: warning: control reaches end of non-void function [-Wreturn-type]
-  279 | }
-      | ^
-../src/lexer.cpp: In member function ‘Token* Lexer::processOperator()’:
-../src/lexer.cpp:464:1: warning: control reaches end of non-void function [-Wreturn-type]
-  464 | }
-      | ^
-../src/lexer.cpp: In member function ‘Token* Lexer::processStringLiteral()’:
-../src/lexer.cpp:499:55: warning: control reaches end of non-void function [-Wreturn-type]
-  499 |         ErrorHandler::getInstance().reportLexicalError("Invalid string literal.");
-      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
-../src/lexer.cpp: In member function ‘Token* Lexer::processCharLiteral()’:
-../src/lexer.cpp:547:51: warning: control reaches end of non-void function [-Wreturn-type]
-  547 |     ErrorHandler::getInstance().reportLexicalError("Invalid character literal format.");
-      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../src/lexer.cpp: In member function ‘Token* Lexer::processInputType()’:
-../src/lexer.cpp:680:1: warning: control reaches end of non-void function [-Wreturn-type]
-  680 | }
-      | ^
-In file included from ../src/interperter.hpp:19,
-                 from ../src/pilotParser.cpp:10:
-../src/library/LibraryManager.hpp:41:10: error: extra qualification ‘LibraryManager::’ on member ‘loadPreCompiledLibrary’ [-fpermissive]
-   41 |     bool LibraryManager::loadPreCompiledLibrary(const std::string &name, AST_NODE *node);
-      |          ^~~~~~~~~~~~~~
-../src/interperter.hpp: In constructor ‘Interpreter::Interpreter(AST_NODE*)’:
-../src/interperter.hpp:41:25: warning: unused variable ‘libraryManager’ [-Wunused-variable]
-   41 |         LibraryManager &libraryManager = LibraryManager::getInstance();
-      |                         ^~~~~~~~~~~~~~
+Compilation started at Wed May 21 10:39:22 EDT 2025
+../src/parser.cpp: In member function ‘AST_NODE* Parser::parseHeaderFile()’:
+../src/parser.cpp:1286:62: warning: suggest parentheses around ‘&&’ within ‘||’ [-Wparentheses]
+ 1286 |                  getCurrentToken()->TYPE == TOKEN_IDENTIFIER && getCurrentToken()->value == "library")
+      |                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/bin/ld: /tmp/ccNkbLuA.o: in function `Interpreter::evaluateImport(AST_NODE*)':
+/home/ehicks12/Projects/Current/Mini-Lang/scripts/../src/interperter.cpp:1708:(.text+0xa1d1): undefined reference to `LibraryManager::isLibraryLoaded(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) const'
+/usr/bin/ld: /home/ehicks12/Projects/Current/Mini-Lang/scripts/../src/interperter.cpp:1715:(.text+0xa205): undefined reference to `LibraryManager::generateRandomAST()'
+/usr/bin/ld: /home/ehicks12/Projects/Current/Mini-Lang/scripts/../src/interperter.cpp:1717:(.text+0xa220): undefined reference to `LibraryManager::loadPreCompiledLibrary(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, AST_NODE*)'
+/usr/bin/ld: /home/ehicks12/Projects/Current/Mini-Lang/scripts/../src/interperter.cpp:1722:(.text+0xa23a): undefined reference to `LibraryManager::loadLibrary(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)'
+/usr/bin/ld: /tmp/ccNkbLuA.o: in function `LibraryManager::getInstance()':
+/home/ehicks12/Projects/Current/Mini-Lang/scripts/../src/library/LibraryManager.hpp:58:(.text._ZN14LibraryManager11getInstanceEv[_ZN14LibraryManager11getInstanceEv]+0x44): undefined reference to `LibraryManager::LibraryManager()'
+/usr/bin/ld: /home/ehicks12/Projects/Current/Mini-Lang/scripts/../src/library/LibraryManager.hpp:58:(.text._ZN14LibraryManager11getInstanceEv[_ZN14LibraryManager11getInstanceEv]+0x5f): undefined reference to `LibraryManager::~LibraryManager()'
+collect2: error: ld returned 1 exit status

@@ -1282,6 +1282,28 @@ AST_NODE *Parser::parseHeaderFile()
 
             advanceCursor(); // Move past filename
         }
+        else if (getCurrentToken()->TYPE == TOKEN_LIBRARY ||
+                 (getCurrentToken()->TYPE == TOKEN_IDENTIFIER && getCurrentToken()->value == "library"))
+        {
+            advanceCursor();
+
+            if (getCurrentToken()->TYPE != TOKEN_STRING_VAL)
+            {
+                ErrorHandler::getInstance().reportSyntaxError("Expected string library name after library.");
+                advanceCursor();
+                continue;
+            }
+
+            std::string libraryName = getCurrentToken()->value;
+
+            AST_NODE *libraryNode = new AST_NODE();
+            libraryNode->TYPE = NODE_IMPORT_LIBRARY;
+            libraryNode->VALUE = libraryName;
+
+            needsNode->SUB_STATEMENTS.push_back(libraryNode);
+
+            advanceCursor();
+        }
         else
         {
             // Unexpected token in needs block
@@ -2963,6 +2985,8 @@ std::string getNodeTypeName(NODE_TYPE type)
         return "NODE_HEADER";
     case NODE_NEEDS_BLOCK:
         return "NODE_NEEDS_BLOCK";
+    case NODE_IMPORT_LIBRARY:
+        return "NODE_IMPORT_LIBRARY";
     default:
         return "Unknown node";
     }
