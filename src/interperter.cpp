@@ -3,12 +3,14 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>
+#include <cctype>
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
 #include <variant>
 #include <memory>
 #include <random>
+#include <cmath>
 
 #include "interperter.hpp"
 #include "Value.hpp"
@@ -837,6 +839,48 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         else if (funcName == "generatePin")
         {
             Value result = evaluateGeneratePin(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "sqrt")
+        {
+            Value result = evaluateSQRT(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "abs")
+        {
+            Value result = evaluateABS(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "pow")
+        {
+            Value result = evaluatePOW(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "min")
+        {
+            Value result = evaluateMIN(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "max")
+        {
+            Value result = evaluateMAX(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "ceil")
+        {
+            Value result = evaluateCEIL(node);
+            recursionDepth--;
+            return result;
+        }
+        else if (funcName == "floor")
+        {
+            Value result = evaluateFLOOR(node);
             recursionDepth--;
             return result;
         }
@@ -1700,76 +1744,34 @@ AST_NODE *Interpreter::findFunctionByName(const std::string &name)
     return searchNodeForFunction(root);
 }
 
-// void Interpreter::evaluateImport(AST_NODE *node)
-// {
-//     std::string libraryName = node->VALUE;
-//     LibraryManager &libraryManager = LibraryManager::getInstance();
-
-//     if (libraryManager.isLibraryLoaded(libraryName))
-//     {
-//         return; // already loaded do nothing
-//     }
-
-//     if (libraryName == "random")
-//     {
-//         AST_NODE *randomLibraryAST = libraryManager.generateRandomAST();
-
-//         libraryManager.loadPreCompiledLibrary(libraryName, randomLibraryAST);
-
-//         return;
-//     }
-
-//     if (!libraryManager.loadLibrary(libraryName))
-//     {
-//         ErrorHandler::getInstance().reportRuntimeError("Failed to load library: " + libraryName);
-//     }
-// }
 void Interpreter::evaluateImport(AST_NODE *node)
 {
-    if (!node)
-    {
-        std::cerr << "ERROR: Null import node" << std::endl;
-        return;
-    }
-
     std::string libraryName = node->VALUE;
-    std::cerr << "DEBUG: Importing library: " << libraryName << std::endl;
-
     LibraryManager &libraryManager = LibraryManager::getInstance();
 
     if (libraryManager.isLibraryLoaded(libraryName))
     {
-        std::cerr << "DEBUG: Library already loaded: " << libraryName << std::endl;
         return; // already loaded do nothing
     }
 
-    if (libraryName == "Random")
+    if (libraryName == "random")
     {
-        std::cerr << "DEBUG: Generating Random library AST" << std::endl;
         AST_NODE *randomLibraryAST = libraryManager.generateRandomAST();
 
-        if (libraryManager.loadPreCompiledLibrary(libraryName, randomLibraryAST))
-        {
-            std::cerr << "DEBUG: Successfully loaded Random library" << std::endl;
-        }
-        else
-        {
-            std::cerr << "ERROR: Failed to load Random library" << std::endl;
-        }
+        libraryManager.loadPreCompiledLibrary(libraryName, randomLibraryAST);
 
         return;
     }
+    else if (libraryName == "Math")
+    {
+        AST_NODE *mathLibraryAST = libraryManager.generateMathAST();
 
-    std::cerr << "DEBUG: Attempting to load library from file: " << libraryName << std::endl;
+        libraryManager.loadPreCompiledLibrary(libraryName, mathLibraryAST);
+    }
 
     if (!libraryManager.loadLibrary(libraryName))
     {
-        std::cerr << "ERROR: Failed to load library: " << libraryName << std::endl;
         ErrorHandler::getInstance().reportRuntimeError("Failed to load library: " + libraryName);
-    }
-    else
-    {
-        std::cerr << "DEBUG: Successfully loaded library: " << libraryName << std::endl;
     }
 }
 
@@ -1872,4 +1874,150 @@ Value Interpreter::evaluateGeneratePin(AST_NODE *node)
     }
 
     return Value(pin);
+}
+
+Value Interpreter::evaluateABS(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.empty())
+    {
+        ErrorHandler::getInstance().reportRuntimeError("abs: Must have value to evaluate absolute.");
+        return Value(0);
+    }
+
+    Value absVal = evaluateExpression(node->SUB_STATEMENTS[0]);
+
+    if (absVal.isNumeric())
+    {
+        return Value(std::abs(absVal.asDoubleSafe()));
+    }
+    else
+    {
+        std::stringstream errorMsg;
+        ErrorHandler::getInstance().reportRuntimeError("abs: Expected numeric value.");
+        return Value(0);
+    }
+}
+Value Interpreter::evaluateSQRT(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.empty())
+    {
+        ErrorHandler::getInstance().reportRuntimeError("sqrt: Must have value to evaluate square root.");
+        return Value(0);
+    }
+
+    Value sqrtVal = evaluateExpression(node->SUB_STATEMENTS[0]);
+
+    if (sqrtVal.isNumeric())
+    {
+        return Value(std::sqrt(sqrtVal.asDoubleSafe()));
+    }
+    else
+    {
+        ErrorHandler::getInstance().reportRuntimeError("sqrt: Expected numerical value.");
+        return Value(0);
+    }
+}
+Value Interpreter::evaluatePOW(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() != 2)
+    {
+        ErrorHandler::getInstance().reportRuntimeError("pow: Expected two values to evaluate power.");
+        return Value(0);
+    }
+
+    Value base = evaluateExpression(node->SUB_STATEMENTS[0]);
+    Value exponent = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+    if (base.isNumeric() && exponent.isNumeric())
+    {
+        return Value(std::pow(base.asDoubleSafe(), exponent.asDoubleSafe()));
+    }
+    else
+    {
+        ErrorHandler::getInstance().reportRuntimeError("pow: Expected numerical values.");
+        return Value(0);
+    }
+}
+Value Interpreter::evaluateMIN(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() != 2)
+    {
+        ErrorHandler::getInstance().reportRuntimeError("min: Expected two values to compare.");
+        return Value(0);
+    }
+
+    Value a = evaluateExpression(node->SUB_STATEMENTS[0]);
+    Value b = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+    if (a.isNumeric() && b.isNumeric())
+    {
+        return Value(std::min(a.asDoubleSafe(), b.asDoubleSafe()));
+    }
+    else
+    {
+        ErrorHandler::getInstance().reportRuntimeError("min: Expected numerical values.");
+        return Value(0);
+    }
+}
+Value Interpreter::evaluateMAX(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() != 2)
+    {
+        ErrorHandler::getInstance().reportRuntimeError("max: Expected two values to evaluate max.");
+        return Value(0);
+    }
+
+    Value a = evaluateExpression(node->SUB_STATEMENTS[0]);
+    Value b = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+    if (a.isNumeric() && b.isNumeric())
+    {
+        return Value(std::max(a.asDoubleSafe(), b.asDoubleSafe()));
+    }
+    else
+    {
+        ErrorHandler::getInstance().reportRuntimeError("max: Expected two numerical values.");
+        return Value(0);
+    }
+}
+
+Value Interpreter::evaluateCEIL(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.empty())
+    {
+        ErrorHandler::getInstance().reportRuntimeError("ceil: Expeceted a numerical value for param.");
+        return Value(0);
+    }
+
+    Value value = evaluateExpression(node->SUB_STATEMENTS[0]);
+
+    if (value.isNumeric())
+    {
+        return Value(std::ceil(value.asDoubleSafe()));
+    }
+    else
+    {
+        ErrorHandler::getInstance().reportRuntimeError("ceil: Expected a numeric value to calculate ceiling.");
+        return Value(0);
+    }
+}
+Value Interpreter::evaluateFLOOR(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.empty())
+    {
+        ErrorHandler::getInstance().reportRuntimeError("floor: Expeceted a numerical value for param.");
+        return Value(0);
+    }
+
+    Value value = evaluateExpression(node->SUB_STATEMENTS[0]);
+
+    if (value.isNumeric())
+    {
+        return Value(std::floor(value.asDoubleSafe()));
+    }
+    else
+    {
+        ErrorHandler::getInstance().reportRuntimeError("floor: Expected a numeric value to calculate floor.");
+        return Value(0);
+    }
 }

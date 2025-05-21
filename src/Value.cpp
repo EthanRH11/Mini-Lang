@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iomanip>
+#include <cctype>
 
 #include "dynamic_array.hpp"
 #include "Value.hpp"
@@ -263,4 +264,22 @@ std::ostream &operator<<(std::ostream &os, const Value &v)
 {
     os << v.toString();
     return os;
+}
+
+bool Value::isNumeric() const
+{
+    return isInt() || isDouble();
+}
+double Value::asDoubleSafe() const
+{
+    if (isDouble())
+    {
+        return asDouble();
+    }
+    else if (isInt())
+    {
+        return static_cast<double>(asInt());
+    }
+
+    throw std::runtime_error("Value is not numeric.");
 }

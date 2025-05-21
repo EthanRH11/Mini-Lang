@@ -242,3 +242,105 @@ AST_NODE *LibraryManager::generateRandomAST()
 
     return root;
 }
+
+AST_NODE *LibraryManager::generateMathAST()
+{
+    AST_NODE *root = new AST_NODE();
+    root->TYPE = ROOT_LIBRARY;
+    root->VALUE = "Math";
+
+    AST_NODE *abs = new AST_NODE();
+    abs->TYPE = NODE_ABSOLUTE;
+    abs->VALUE = "abs";
+
+    AST_NODE *absVal = new AST_NODE();
+    absVal->TYPE = NODE_PARAM;
+    absVal->VALUE = "absValue";
+
+    abs->SUB_STATEMENTS.push_back(absVal);
+
+    AST_NODE *sqrt = new AST_NODE();
+    sqrt->TYPE = NODE_SQRT;
+    sqrt->VALUE = "sqrt";
+
+    AST_NODE *sqrtVal = new AST_NODE();
+    sqrtVal->TYPE = NODE_PARAM;
+    sqrtVal->VALUE = "sqrtValue";
+
+    sqrt->SUB_STATEMENTS.push_back(sqrtVal);
+
+    AST_NODE *pow = new AST_NODE();
+    pow->TYPE = NODE_POW;
+    pow->VALUE = "pow";
+
+    AST_NODE *base = new AST_NODE();
+    AST_NODE *exponent = new AST_NODE();
+
+    base->TYPE = NODE_PARAM;
+    exponent->TYPE = NODE_PARAM;
+    base->VALUE = "base";
+    exponent->VALUE = "exponent";
+
+    pow->SUB_STATEMENTS.push_back(base);
+    pow->SUB_STATEMENTS.push_back(exponent);
+
+    AST_NODE *min = new AST_NODE();
+    min->TYPE = NODE_MIN;
+    min->VALUE = "min";
+
+    AST_NODE *a = new AST_NODE();
+    AST_NODE *b = new AST_NODE();
+
+    a->TYPE = NODE_PARAM;
+    b->TYPE = NODE_PARAM;
+    a->VALUE = "a";
+    b->VALUE = "b";
+
+    min->SUB_STATEMENTS.push_back(a);
+    min->SUB_STATEMENTS.push_back(b);
+
+    AST_NODE *max = new AST_NODE();
+    max->TYPE = NODE_MAX;
+    max->VALUE = "max";
+
+    AST_NODE *left = new AST_NODE();
+    AST_NODE *right = new AST_NODE();
+
+    left->TYPE = NODE_PARAM;
+    right->TYPE = NODE_PARAM;
+    left->VALUE = "left";
+    right->VALUE = "right";
+
+    max->SUB_STATEMENTS.push_back(left);
+    max->SUB_STATEMENTS.push_back(right);
+
+    AST_NODE *ceil = new AST_NODE();
+    ceil->TYPE = NODE_CEIL;
+    ceil->VALUE = "ceil";
+
+    AST_NODE *ceilParam = new AST_NODE();
+    ceilParam->TYPE = NODE_PARAM;
+    ceilParam->VALUE = "ceilParam";
+
+    ceil->SUB_STATEMENTS.push_back(ceilParam);
+
+    AST_NODE *floor = new AST_NODE();
+    floor->TYPE = NODE_FLOOR;
+    floor->VALUE = "floor";
+
+    AST_NODE *floorParam = new AST_NODE();
+    floorParam->TYPE = NODE_PARAM;
+    floorParam->VALUE = "floorParam";
+
+    floor->SUB_STATEMENTS.push_back(floorParam);
+
+    root->SUB_STATEMENTS.push_back(abs);
+    root->SUB_STATEMENTS.push_back(sqrt);
+    root->SUB_STATEMENTS.push_back(pow);
+    root->SUB_STATEMENTS.push_back(min);
+    root->SUB_STATEMENTS.push_back(max);
+    root->SUB_STATEMENTS.push_back(ceil);
+    root->SUB_STATEMENTS.push_back(floor);
+
+    return root;
+}

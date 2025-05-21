@@ -52,6 +52,7 @@ public:
     void walkASTForFunctions(AST_NODE *node);
 
     AST_NODE *generateRandomAST();
+    AST_NODE *generateMathAST();
 
     static LibraryManager &getInstance()
     {

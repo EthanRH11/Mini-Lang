@@ -394,6 +394,14 @@ private:
     Value evaluateCoinFlip();
     Value evaluateDiceRoll(AST_NODE *node);
     Value evaluateGeneratePin(AST_NODE *node);
+    // Functions for math library
+    Value evaluateABS(AST_NODE *node);
+    Value evaluateSQRT(AST_NODE *node);
+    Value evaluatePOW(AST_NODE *node);
+    Value evaluateMIN(AST_NODE *node);
+    Value evaluateMAX(AST_NODE *node);
+    Value evaluateCEIL(AST_NODE *node);
+    Value evaluateFLOOR(AST_NODE *node);
 };
 
 #endif // INTERPRETER_HPP

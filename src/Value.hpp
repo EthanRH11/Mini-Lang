@@ -51,6 +51,9 @@ public:
     bool isArray() const;
     bool isNone() const;
     bool isInitialize() const { return !isNone(); }
+    bool isNumeric() const;
+
+    double asDoubleSafe() const;
 
     // Add these to Value.hpp in the public section
     bool isInteger() const;
@@ -60,7 +63,7 @@ public:
     char getChar() const;
     std::string getString() const;
 
-        // Getters
+    // Getters
     int asInt() const;
     double asDouble() const;
     bool asBool() const;
