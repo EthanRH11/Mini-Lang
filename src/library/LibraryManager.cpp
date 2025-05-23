@@ -150,7 +150,7 @@ AST_NODE *LibraryManager::parseLibraryFile(const std::string &filePath)
 }
 
 //     // Register all functions in a library
-void LibraryManager::registerLibraryFunctions(const std::string &libraryName, AST_NODE *libraryAST)
+void LibraryManager::registerLibraryFunctions([[maybe_unused]] const std::string &libraryName, AST_NODE *libraryAST)
 {
     if (libraryAST == nullptr)
     {

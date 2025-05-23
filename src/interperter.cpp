@@ -20,6 +20,65 @@
 
 namespace fs = std::filesystem;
 
+void Interpreter::initializeInterperterMaps()
+{
+    nodeExecutors = {
+        // type literals
+        {NODE_INT_LITERAL, &Interpreter::evaluateIntLiteral},
+        {NODE_DOUBLE_LITERAL, &Interpreter::evaluateDoubleLiteral},
+        {NODE_CHAR_LITERAL, &Interpreter::evaluateCharLiteral},
+        {NODE_STRING_LITERAL, &Interpreter::evaluateStringLiteral},
+        {NODE_BOOL_LITERAL, &Interpreter::evaluateBoolLiteral},
+        // Operators
+        {NODE_ADD, &Interpreter::evaluateAdd},
+        {NODE_SUBT, &Interpreter::evaluateSubt},
+        {NODE_MULT, &Interpreter::evaluateMult},
+        {NODE_DIVISION, &Interpreter::evaluateDiv},
+        {NODE_MODULUS, &Interpreter::evaluateMod},
+        {NODE_OPERATOR_DECREMENT, &Interpreter::evaluateDecrement},
+        {NODE_OPERATOR_INCREMENT, &Interpreter::evaluateIncrement},
+        // Input
+        {NODE_KEYWORD_INPUT, &Interpreter::executeInputStatement},
+        // Comparison Ops
+        {NODE_NOT_EQUAL, &Interpreter::evaluateNotEqual},
+        {NODE_LESS_THAN, &Interpreter::evaluateLessThan},
+        {NODE_GREATER_THAN, &Interpreter::evaluateGreaterThan},
+        {NODE_LESS_EQUAL, &Interpreter::evaluateLessEqual},
+        // Newline
+        {NODE_NEWLINE, &Interpreter::evaluateNewLine},
+        // Array Stuff
+        {NODE_ARRAY_DECLARATION, &Interpreter::evaluateArrayDecleration},
+        {NODE_ARRAY_REPEAT, &Interpreter::evaluateArrayRepeat},
+        {NODE_ARRAY_LENGTH, &Interpreter::evaluateArrayLength},
+        {NODE_ARRAY_ACCESS, &Interpreter::evaluateArrayAccess},
+        {NODE_ARRAY_ASSIGN, &Interpreter::evaluateArrayAssign},
+        {NODE_ARRAY_INIT, &Interpreter::evaluateArrayInit},
+        {NODE_ARRAY_RANGE, &Interpreter::evaluateArrayRange},
+        {NODE_ARRAY_INSERT, &Interpreter::evaluateArrayInsert},
+        {NODE_ARRAY_REMOVE, &Interpreter::evaluateArrayRemove},
+        {NODE_DOT, &Interpreter::evaluateArrayIndexMod},
+        {NODE_ARRAY_SORT_ASC, &Interpreter::evaluateArraySortAsc},
+        {NODE_ARRAY_SORT_DESC, &Interpreter::evaluateArraySortDesc},
+
+        {NODE_FUNCTION_CALL, &Interpreter::evaluateFunctionCall},
+        {NODE_PAREN_EXPR, &Interpreter::evaluateParenExpr},
+    };
+
+    standardLib = {
+        {"randomInt", &Interpreter::evaluateRandomInt},
+        {"coinFlip", &Interpreter::evaluateCoinFlip},
+        {"diceRoll", &Interpreter::evaluateDiceRoll},
+        {"generatePin", &Interpreter::evaluateGeneratePin},
+        {"sqrt", &Interpreter::evaluateSQRT},
+        {"abs", &Interpreter::evaluateABS},
+        {"pow", &Interpreter::evaluatePOW},
+        {"min", &Interpreter::evaluateMIN},
+        {"max", &Interpreter::evaluateMAX},
+        {"ceil", &Interpreter::evaluateCEIL},
+        {"floor", &Interpreter::evaluateFLOOR},
+    };
+}
+
 /**
  * @brief Sets up the output file for the interpreter
  *
@@ -826,7 +885,7 @@ Value Interpreter::evaluateExpression(AST_NODE *node)
         }
         else if (funcName == "coinFlip")
         {
-            Value result = evaluateCoinFlip();
+            Value result = evaluateCoinFlip(node);
             recursionDepth--;
             return result;
         }
@@ -1803,7 +1862,7 @@ Value Interpreter::evaluateRandomInt(AST_NODE *node)
     return Value(result);
 }
 
-Value Interpreter::evaluateCoinFlip()
+Value Interpreter::evaluateCoinFlip([[maybe_unused]] AST_NODE *node)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -2021,3 +2080,152 @@ Value Interpreter::evaluateFLOOR(AST_NODE *node)
         return Value(0);
     }
 }
+
+// Type Literals
+Value Interpreter::evaluateIntLiteral(AST_NODE *node) { return Value(std::stoi(node->VALUE)); }
+Value Interpreter::evaluateDoubleLiteral(AST_NODE *node) { return Value(std::stod(node->VALUE)); }
+Value Interpreter::evaluateBoolLiteral(AST_NODE *node) { return node->VALUE == "true" ? Value(true) : Value(false); }
+Value Interpreter::evaluateCharLiteral(AST_NODE *node) { return node->VALUE.length() == 1 ? Value(node->VALUE[0]) : Value('\0'); }
+Value Interpreter::evaluateStringLiteral(AST_NODE *node) { return Value(node->VALUE); }
+// Operator (+, -, /) Functions
+Value Interpreter::evaluateAdd(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() >= 2)
+    {
+        Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+        Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+        return left + right;
+    }
+    return Value(0);
+}
+Value Interpreter::evaluateSubt(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() == 1)
+    {
+        Value operand = evaluateExpression(node->SUB_STATEMENTS[0]);
+
+        if (operand.isNumeric())
+        {
+            return operand.isInt() ? Value(-operand.asInt()) : Value(-operand.asDouble());
+        }
+        else
+        {
+            ErrorHandler::getInstance().reportSemanticError("Cannot negate non-numeric value.");
+            return Value(0);
+        }
+    }
+    else if (node->SUB_STATEMENTS.size() >= 2)
+    {
+        Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+        Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+        if (left.isNumeric() && right.isNumeric())
+        {
+            double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+            double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+
+            return Value(leftVal - rightVal);
+        }
+        else
+        {
+            ErrorHandler::getInstance().reportSemanticError("Cannot perform subtraction on non numeric values.");
+            return Value(0);
+        }
+    }
+    return Value(0);
+}
+Value Interpreter::evaluateMult(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() >= 2)
+    {
+        Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+        Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+        if (left.isNumeric() && right.isNumeric())
+        {
+            double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+            double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+
+            return Value(leftVal * rightVal);
+        }
+        else
+        {
+            ErrorHandler::getInstance().reportSemanticError("Cannot perform multiplication on non-numeric values.");
+            return Value(0);
+        }
+    }
+    return Value(0);
+}
+Value Interpreter::evaluateDiv(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() >= 2)
+    {
+        Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+        Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+        if (left.isNumeric() && right.isNumeric())
+        {
+            double leftVal = left.isInt() ? left.asInt() : left.asDouble();
+            double rightVal = right.isInt() ? right.asInt() : right.asDouble();
+
+            if (rightVal == 0)
+            {
+                ErrorHandler::getInstance().reportSemanticError("Division by zero is not allowed.");
+                return Value(0);
+            }
+
+            return Value(leftVal / rightVal);
+        }
+        else
+        {
+            ErrorHandler::getInstance().reportSemanticError("Cannot perform division on non-numeric values.");
+            return Value(0);
+        }
+    }
+    return Value(0);
+}
+Value Interpreter::evaluateMod(AST_NODE *node)
+{
+    if (node->SUB_STATEMENTS.size() >= 2)
+    {
+        Value left = evaluateExpression(node->SUB_STATEMENTS[0]);
+        Value right = evaluateExpression(node->SUB_STATEMENTS[1]);
+
+        if (left.isInt() && right.isInt())
+        {
+            if (right.asInt() == 0)
+            {
+                ErrorHandler::getInstance().reportSemanticError("Modulus by zero is not allowed.");
+                return Value(0);
+            }
+            return Value(left.asInt() % right.asInt());
+        }
+    }
+    return Value(0);
+}
+Value Interpreter::evaluateDecrement(AST_NODE *node) {}
+Value Interpreter::evaluateIncrement(AST_NODE *node) {}
+// Comparison Ops
+Value Interpreter::evaluateNotEqual(AST_NODE *node) {}
+Value Interpreter::evaluateLessThan(AST_NODE *node) {}
+Value Interpreter::evaluateGreaterThan(AST_NODE *node) {}
+Value Interpreter::evaluateLessEqual(AST_NODE *node) {}
+// Newline
+Value Interpreter::evaluateNewLine(AST_NODE *node) {}
+// Array stuff
+Value Interpreter::evaluateArrayDecleration(AST_NODE *node) {}
+Value Interpreter::evaluateArrayRepeat(AST_NODE *node) {}
+Value Interpreter::evaluateArrayLength(AST_NODE *node) {}
+Value Interpreter::evaluateArrayAccess(AST_NODE *node) {}
+Value Interpreter::evaluateArrayAssign(AST_NODE *node) {}
+Value Interpreter::evaluateArrayInit(AST_NODE *node) {}
+Value Interpreter::evaluateArrayRange(AST_NODE *node) {}
+Value Interpreter::evaluateArrayInsert(AST_NODE *node) {}
+Value Interpreter::evaluateArrayRemove(AST_NODE *node) {}
+Value Interpreter::evaluateArrayIndexMod(AST_NODE *node) {} // NODE_DOT
+Value Interpreter::evaluateArraySortAsc(AST_NODE *node) {}
+Value Interpreter::evaluateArraySortDesc(AST_NODE *node) {}
+
+// Other stuff
+Value Interpreter::evaluateFunctionCall(AST_NODE *node) {}

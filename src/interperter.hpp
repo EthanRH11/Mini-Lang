@@ -75,8 +75,12 @@ private:
     std::map<std::string, std::stack<Value>> functionReturnValues; ///< Tracks return values for recursive calls
 
     using evaluatorFunction = Value (Interpreter::*)(AST_NODE *);
+    using standardLibrary = Value (Interpreter::*)(AST_NODE *);
     // Map node types to their corresponding execute functions (void return)
-    std::unordered_map<NODE_TYPE, void (Interpreter::*)(AST_NODE *)> nodeExecutors;
+    std::unordered_map<std::string, standardLibrary> standardLib;
+    std::unordered_map<NODE_TYPE, evaluatorFunction> nodeExecutors;
+
+    void initializeInterperterMaps();
     /**
      * @brief Finds a function declaration by name
      * @param name The name of the function to find
@@ -394,7 +398,7 @@ private:
 
     // Functions for random Library
     Value evaluateRandomInt(AST_NODE *node);
-    Value evaluateCoinFlip();
+    Value evaluateCoinFlip([[maybe_unused]] AST_NODE *node);
     Value evaluateDiceRoll(AST_NODE *node);
     Value evaluateGeneratePin(AST_NODE *node);
     // Functions for math library
@@ -405,6 +409,7 @@ private:
     Value evaluateMAX(AST_NODE *node);
     Value evaluateCEIL(AST_NODE *node);
     Value evaluateFLOOR(AST_NODE *node);
+
     // Type Literals
     Value evaluateIntLiteral(AST_NODE *node);
     Value evaluateDoubleLiteral(AST_NODE *node);
