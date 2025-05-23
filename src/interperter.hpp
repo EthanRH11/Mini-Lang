@@ -74,6 +74,9 @@ private:
     Value returnValue;                                             ///< Holds return values from functions
     std::map<std::string, std::stack<Value>> functionReturnValues; ///< Tracks return values for recursive calls
 
+    using evaluatorFunction = Value (Interpreter::*)(AST_NODE *);
+    // Map node types to their corresponding execute functions (void return)
+    std::unordered_map<NODE_TYPE, void (Interpreter::*)(AST_NODE *)> nodeExecutors;
     /**
      * @brief Finds a function declaration by name
      * @param name The name of the function to find
@@ -402,5 +405,43 @@ private:
     Value evaluateMAX(AST_NODE *node);
     Value evaluateCEIL(AST_NODE *node);
     Value evaluateFLOOR(AST_NODE *node);
+    // Type Literals
+    Value evaluateIntLiteral(AST_NODE *node);
+    Value evaluateDoubleLiteral(AST_NODE *node);
+    Value evaluateBoolLiteral(AST_NODE *node);
+    Value evaluateCharLiteral(AST_NODE *node);
+    Value evaluateStringLiteral(AST_NODE *node);
+    // Operator (+, -, /) Functions
+    Value evaluateAdd(AST_NODE *node);
+    Value evaluateSubt(AST_NODE *node);
+    Value evaluateMult(AST_NODE *node);
+    Value evaluateDiv(AST_NODE *node);
+    Value evaluateMod(AST_NODE *node);
+    Value evaluateDecrement(AST_NODE *node);
+    Value evaluateIncrement(AST_NODE *node);
+    // Comparison Ops
+    Value evaluateNotEqual(AST_NODE *node);
+    Value evaluateLessThan(AST_NODE *node);
+    Value evaluateGreaterThan(AST_NODE *node);
+    Value evaluateLessEqual(AST_NODE *node);
+    // Newline
+    Value evaluateNewLine(AST_NODE *node);
+    // Array stuff
+    Value evaluateArrayDecleration(AST_NODE *node);
+    Value evaluateArrayRepeat(AST_NODE *node);
+    Value evaluateArrayLength(AST_NODE *node);
+    Value evaluateArrayAccess(AST_NODE *node);
+    Value evaluateArrayAssign(AST_NODE *node);
+    Value evaluateArrayInit(AST_NODE *node);
+    Value evaluateArrayRange(AST_NODE *node);
+    Value evaluateArrayInsert(AST_NODE *node);
+    Value evaluateArrayRemove(AST_NODE *node);
+    Value evaluateArrayIndexMod(AST_NODE *node); // NODE_DOT
+    Value evaluateArraySortAsc(AST_NODE *node);
+    Value evaluateArraySortDesc(AST_NODE *node);
+
+    // Other stuff
+    Value evaluateFunctionCall(AST_NODE *node);
+    Value evaluateParenExpr(AST_NODE *node) { return evaluateExpression(node->CHILD); }
 };
 #endif // INTERPRETER_HPP
