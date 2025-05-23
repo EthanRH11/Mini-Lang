@@ -1,0 +1,51 @@
+# Ignore build directory (all build artifacts go here)
+build/
+
+# Object files and libraries
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+
+# Executables and linker outputs
+*.exe
+*.out
+*.app
+*.elf
+*.ilk
+*.map
+*.exp
+
+# CMake files (if you ever generate build files in-source)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+
+# Generated dependency files
+*.d
+
+# Code coverage and profiling
+*.gcda
+*.gcno
+*.gcov
+*.prof
+
+# Editor swap/backup files
+*~
+*.swp
+*.swo
+
+# IDE directories
+.vscode/
+.idea/
+
+# macOS Finder
+.DS_Store
+
+# Logs
+*.log
