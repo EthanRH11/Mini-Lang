@@ -38,7 +38,7 @@ public:
     Interpreter(AST_NODE *root) : root(root)
     {
         setupOutputFile();
-        // LibraryManager &libraryManager = LibraryManager::getInstance();
+        initializeInterperterMaps();
     }
 
     /**
@@ -234,7 +234,7 @@ private:
      */
     Value executeInputStatement(AST_NODE *node)
     {
-        // std::cerr << "DEBUG: Entering executeInputStatement" << std::endl;
+        // std::cerr << "DEBUG: Entering d" << std::endl;
 
         // Validate the node itself
         if (!node)
