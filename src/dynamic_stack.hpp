@@ -25,12 +25,13 @@ public:
    Stack &operator=(const Stack &);
    Stack(const Stack &other);
    Stack(Stack &&other);
+   Stack(Node<T> *);
 
    // Stack operations
    void push(const T &val); // add value to stack
    void pop();              // remove top of stack
-   T &tos();                // return value at top of stack
-   const T &top() const;
+   T tos();                 // return value at top of stack
+   const T top() const;
 
    void clear();             // clear the stack
    T peek(std::size_t n);    // peek at the value at the nth position
