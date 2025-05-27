@@ -1,0 +1,17 @@
+@once
+
+object => identifier() {
+allowed:
+    >>$ Creates default object
+    default::identifier();
+    >>$ Creates a new object each call (factory)
+    factory::identifier() => {};
+    >>$ functions that are defined in an object, only accessible to objects.
+    method::calcArea();
+
+    >>$ Prints current object
+    output::out_to_console();
+secure:
+    takes int x;
+    takes double y = 0;
+}

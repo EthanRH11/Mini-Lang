@@ -53,3 +53,6 @@ TO NOTE:
 
   When we encounter a library token, we need to essentially skip it and make a node saying we need/want they library, this will allow the interpreter
   to know we need information from that folder.
+
+TO DO:
+Object programming
