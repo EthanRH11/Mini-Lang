@@ -2444,6 +2444,139 @@ AST_NODE *Parser::parseKeywordCheck()
 
     return node;
 }
+/**
+ * @brief Parses an objects definition
+ * @return AST_NODE representing the objects definition
+ * @throws exit with syntax error
+ */
+AST_NODE *Parser::parseObjectDefinition()
+{
+    proceed(TOKEN_KEYWORD_OBJECT);
+
+    if (current->TYPE != TOKEN_SPACESHIP)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '=>' following keyword object.");
+        return nullptr;
+    }
+    proceed(TOKEN_SPACESHIP);
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_OBJECT;
+    std::string objectName = current->value;
+    node->VALUE = objectName;
+    proceed(TOKEN_IDENTIFIER);
+
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected left paren '(' following object identifier.");
+        return nullptr;
+    }
+    proceed(TOKEN_LEFT_PAREN);
+    if (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected right paren ')' following left paren.");
+        return nullptr;
+    }
+    proceed(TOKEN_RIGHT_PAREN);
+    if (current->TYPE != TOKEN_LEFT_CURL)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected left curl '{' to begin defining object.");
+        return nullptr;
+    }
+    proceed(TOKEN_LEFT_CURL);
+
+    while (current->TYPE != TOKEN_RIGHT_CURL && current->TYPE != TOKEN_END_HEADER)
+    {
+        if (current->TYPE == TOKEN_KEYWORD_AVAILABLE)
+        {
+            AST_NODE *availableBlock = parseAvailableBlock();
+            if (availableBlock)
+                node->SUB_STATEMENTS.push_back(availableBlock);
+        }
+        else if (current->TYPE == TOKEN_KEYWORD_SECURE)
+        {
+            AST_NODE *secureBlock = parseSecureBlock();
+            if (secureBlock)
+                node->SUB_STATEMENTS.push_back(secureBlock);
+        }
+        else if (current->TYPE == TOKEN_SINGLELINE_COMMENT)
+        {
+            advanceCursor();
+        }
+        else
+        {
+            advanceCursor();
+        }
+    }
+
+    if (!proceed(TOKEN_RIGHT_CURL))
+        return nullptr;
+    return node;
+}
+AST_NODE *Parser::parseAvailableBlock()
+{
+    AST_NODE *availableBlock = new AST_NODE();
+    availableBlock->TYPE = NODE_AVAILABLE;
+
+    if (!proceed(TOKEN_KEYWORD_AVAILABLE))
+        return nullptr;
+    if (!proceed(TOKEN_COLON_ACCESSOR))
+        return nullptr;
+
+    while (current->TYPE != NODE_SECURE && current->TYPE != NODE_END_HEADER)
+    {
+        if (current->TYPE == TOKEN_OBJECT_DEFAULT)
+        {
+            AST_NODE *defaultBlock = parseDefaultConstructor();
+            availableBlock->SUB_STATEMENTS.push_back(defaultBlock);
+        }
+        else if (current->TYPE == TOKEN_OBJECT_FACTORY)
+        {
+            AST_NODE *factoryBlock = parseFactoryConstructor();
+            availableBlock->SUB_STATEMENTS.push_back(factoryBlock);
+        }
+        else if (current->TYPE == TOKEN_OBJECT_METHOD)
+        {
+            AST_NODE *methodBlock = parseObjectMethod();
+            availableBlock->SUB_STATEMENTS.push_back(methodBlock);
+        }
+        else
+        {
+            ErrorHandler::getInstance().reportSyntaxError("Expected either 'default', 'factory', or 'method' within the available block.");
+            return nullptr;
+        }
+    }
+    return availableBlock;
+}
+
+// NEED TO RECONFIGURE, NOT SURE WHERE TO GO FROM HERE RIGHT NOW.
+AST_NODE *Parser::parseSecureBlock()
+{
+    AST_NODE *secureBlock = new AST_NODE();
+    secureBlock->TYPE = NODE_SECURE;
+
+    if (!proceed(TOKEN_KEYWORD_SECURE))
+        return nullptr;
+    if (!proceed(TOKEN_COLON_ACCESSOR))
+        return nullptr;
+
+    while (current->TYPE != TOKEN_RIGHT_CURL && current->TYPE != TOKEN_END_HEADER)
+    {
+        if (current->TYPE == TOKEN_OBJECT_PARAMS)
+        {
+            proceed(TOKEN_OBJECT_PARAMS);
+
+            AST_NODE *takesDecl = new AST_NODE();
+            takesDecl->TYPE = NODE_TAKES_DECLERATION;
+            takesDecl->VALUE = current->value;
+            advanceCursor();
+            //????????????
+        }
+    }
+}
+AST_NODE *parseDefaultConstructor();
+AST_NODE *parseFactoryConstructor();
+AST_NODE *parseObjectMethod();
 
 /**
  * @brief Parses an if statement

@@ -121,6 +121,7 @@ enum NODE_TYPE
     NODE_OBJECT_DEFAULT,
     NODE_OBJECT_FACTORY,
     NODE_OBJECT_METHOD,
+    NODE_TAKES_DECLERATION,
     NODE_ARROW_OP,
     NODE_END_HEADER,
     NODE_COLON_ACCESSOR,
@@ -356,6 +357,13 @@ private:
 
     AST_NODE *parseReadHeader();
     AST_NODE *parseEndHeader();
+
+    AST_NODE *parseObjectDefinition();
+    AST_NODE *parseAvailableBlock();
+    AST_NODE *parseSecureBlock();
+    AST_NODE *parseDefaultConstructor();
+    AST_NODE *parseFactoryConstructor();
+    AST_NODE *parseObjectMethod();
 
     //---------------------------------------------------------------------
     // Function-related parsing methods

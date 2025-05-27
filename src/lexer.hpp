@@ -121,6 +121,7 @@ enum tokenType
     TOKEN_LIBRARY,
 
     TOKEN_CONST_NUM,
+    TOKEN_OBJECT_PARAMS,
 
 };
 

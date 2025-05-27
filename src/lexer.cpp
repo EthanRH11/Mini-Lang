@@ -106,7 +106,8 @@ void Lexer::initializeLexerMaps()
         {"method", TOKEN_OBJECT_METHOD},
         {"needs:", TOKEN_KEYWORD_NEEDS},
         {"const", TOKEN_CONST_NUM},
-        {"library", TOKEN_LIBRARY}};
+        {"library", TOKEN_LIBRARY},
+        {"takes", TOKEN_OBJECT_PARAMS}};
 }
 
 /**
@@ -1006,7 +1007,9 @@ std::string getTokenTypeName(tokenType type)
         {TOKEN_COLON, "TOKEN_COLON"},
         {TOKEN_HEADER_FILE, "TOKEN_HEADER_FILE"},
         {TOKEN_CONST_NUM, "TOKEN_CONST_NUM"},
-        {TOKEN_LIBRARY, "TOKEN_LIBRARY"}};
+        {TOKEN_LIBRARY, "TOKEN_LIBRARY"},
+        {TOKEN_OBJECT_PARAMS, "TOKEN_OBJECT_PARAMS"},
+    };
 
     auto it = tokenTypeNames.find(type);
     if (it != tokenTypeNames.end())
