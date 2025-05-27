@@ -329,6 +329,19 @@ private:
                                   lowerInput == "yes" || lowerInput == "y");
                 result = Value(boolValue);
             }
+            else if (inputType == "char")
+            {
+                char c = '\n';
+                for (char ch : userInput)
+                {
+                    if (!std::isspace((unsigned char)ch))
+                    {
+                        c = ch;
+                        break;
+                    }
+                }
+                result = Value(c);
+            }
             else
             {
                 result = Value(userInput);
