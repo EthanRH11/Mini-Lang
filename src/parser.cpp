@@ -2552,29 +2552,94 @@ AST_NODE *Parser::parseAvailableBlock()
 // NEED TO RECONFIGURE, NOT SURE WHERE TO GO FROM HERE RIGHT NOW.
 AST_NODE *Parser::parseSecureBlock()
 {
+    // create the secure‐block node
     AST_NODE *secureBlock = new AST_NODE();
     secureBlock->TYPE = NODE_SECURE;
 
-    if (!proceed(TOKEN_KEYWORD_SECURE))
-        return nullptr;
-    if (!proceed(TOKEN_COLON_ACCESSOR))
+    // consume “secure:”
+    if (!proceed(TOKEN_KEYWORD_SECURE) || !proceed(TOKEN_COLON_ACCESSOR))
         return nullptr;
 
-    while (current->TYPE != TOKEN_RIGHT_CURL && current->TYPE != TOKEN_END_HEADER)
+    // while we still see “takes”
+    while (current->TYPE == TOKEN_OBJECT_PARAMS)
     {
-        if (current->TYPE == TOKEN_OBJECT_PARAMS)
-        {
-            proceed(TOKEN_OBJECT_PARAMS);
+        // consume the “takes” keyword
+        proceed(TOKEN_OBJECT_PARAMS);
 
-            AST_NODE *takesDecl = new AST_NODE();
-            takesDecl->TYPE = NODE_TAKES_DECLERATION;
-            takesDecl->VALUE = current->value;
+        // create a node for this parameter
+        AST_NODE *param = new AST_NODE();
+        param->TYPE = NODE_TAKES_DECLERATION;
+
+        // --- 1) parse the parameter’s type (e.g. “int” or “double”) ---
+        if (current->TYPE == TOKEN_IDENTIFIER)
+        {
+            param->VALUE = current->value; // store the type name
             advanceCursor();
-            //????????????
         }
+        else
+        {
+            ErrorHandler::getInstance().reportSyntaxError("Expected type in secure block");
+            delete param;
+            return nullptr;
+        }
+
+        // --- 2) parse the parameter’s name ---
+        AST_NODE *nameNode = new AST_NODE();
+        nameNode->TYPE = NODE_IDENTIFIER;
+        if (current->TYPE == TOKEN_IDENTIFIER)
+        {
+            nameNode->VALUE = current->value;
+            advanceCursor();
+        }
+        else
+        {
+            ErrorHandler::getInstance().reportSyntaxError("Expected parameter name");
+            delete nameNode;
+            delete param;
+            return nullptr;
+        }
+        param->CHILD = nameNode; // attach the name under .CHILD
+
+        // attach this parameter under the secure block
+        secureBlock->SUB_STATEMENTS.push_back(param);
+    }
+
+    // finally consume the closing “}” (or whatever ends the block)
+    if (!proceed(TOKEN_RIGHT_CURL))
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '}' at end of secure block");
+        return nullptr;
+    }
+
+    return secureBlock;
+}
+
+AST_NODE *Parser::parseDefaultConstructor()
+{
+    if (current->TYPE != TOKEN_OBJECT_DEFAULT)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected default constructor.");
+        return nullptr;
+    }
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_OBJECT_DEFAULT;
+    proceed(TOKEN_OBJECT_DEFAULT);
+
+    if (current->TYPE != TOKEN_COLON_OOP)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '::' following the default decleration.");
+        return nullptr;
+    }
+
+    proceed(TOKEN_COLON_OOP);
+
+    if (!proceed(TOKEN_LEFT_PAREN) && !proceed(TOKEN_RIGHT_PAREN))
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected opening '(' and closing ')' following default.");
+        return nullptr;
     }
 }
-AST_NODE *parseDefaultConstructor();
 AST_NODE *parseFactoryConstructor();
 AST_NODE *parseObjectMethod();
 
