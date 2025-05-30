@@ -2523,7 +2523,7 @@ AST_NODE *Parser::parseAvailableBlock()
     if (!proceed(TOKEN_COLON_ACCESSOR))
         return nullptr;
 
-    while (current->TYPE != NODE_SECURE && current->TYPE != NODE_END_HEADER)
+    while (current->TYPE != TOKEN_KEYWORD_SECURE && current->TYPE != TOKEN_END_HEADER)
     {
         if (current->TYPE == TOKEN_OBJECT_DEFAULT)
         {
@@ -2639,8 +2639,24 @@ AST_NODE *Parser::parseDefaultConstructor()
         ErrorHandler::getInstance().reportSyntaxError("Expected opening '(' and closing ')' following default.");
         return nullptr;
     }
+    return node;
 }
-AST_NODE *parseFactoryConstructor();
+AST_NODE *Parser::parseFactoryConstructor()
+{
+    if (current->TYPE != TOKEN_OBJECT_DEFAULT)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected keyword default.");
+        return nullptr;
+    }
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_OBJECT_FACTORY;
+    proceed(TOKEN_OBJECT_FACTORY);
+
+    if (current->TYPE != TOKEN_COLON_OOP)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '::' following factory decleration.");
+    }
+}
 AST_NODE *parseObjectMethod();
 
 /**
