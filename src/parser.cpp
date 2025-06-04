@@ -2643,11 +2643,14 @@ AST_NODE *Parser::parseDefaultConstructor()
 }
 AST_NODE *Parser::parseFactoryConstructor()
 {
-    if (current->TYPE != TOKEN_OBJECT_DEFAULT)
+    //    factory::ball() => {ball};
+
+    if (current->TYPE != TOKEN_OBJECT_FACTORY)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected keyword default.");
+        ErrorHandler::getInstance().reportSyntaxError("Expected keyword factory.");
         return nullptr;
     }
+
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_OBJECT_FACTORY;
     proceed(TOKEN_OBJECT_FACTORY);
@@ -2655,9 +2658,48 @@ AST_NODE *Parser::parseFactoryConstructor()
     if (current->TYPE != TOKEN_COLON_OOP)
     {
         ErrorHandler::getInstance().reportSyntaxError("Expected '::' following factory decleration.");
+        return nullptr;
     }
+    proceed(TOKEN_COLON_OOP);
+
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected an object factory identifier.");
+        return nullptr;
+    }
+    std::string factoryName;
+    factoryName = current->value;
+    node->VALUE = factoryName;
+
+    if (!proceed(TOKEN_LEFT_PAREN))
+        return nullptr;
+    if (!proceed(TOKEN_RIGHT_PAREN))
+        return nullptr;
+    if (!proceed(TOKEN_SPACESHIP))
+        return nullptr;
+
+    if (current->TYPE != TOKEN_LEFT_CURL)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '{' to hold factory name");
+        return nullptr;
+    }
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected factory name within '{}'");
+        return nullptr;
+    }
+    if (current->TYPE != TOKEN_RIGHT_CURL)
+    {
+        ErrorHandler::getInstance().reportSyntaxError("Expected '}' to hold factory name");
+        return nullptr;
+    }
+
+    return node;
 }
-AST_NODE *parseObjectMethod();
+AST_NODE *Parser::parseObjectMethod()
+{
+    //  method::calcArea(int x, int y) => {
+}
 
 /**
  * @brief Parses an if statement
