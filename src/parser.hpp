@@ -144,6 +144,10 @@ enum NODE_TYPE
     NODE_MAX,
     NODE_CEIL,
     NODE_FLOOR,
+
+    NODE_PARAM_NAME,
+    NODE_PARAM_TYPE,
+
 };
 
 /**

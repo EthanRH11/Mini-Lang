@@ -2,11 +2,8 @@
 
 object => ball() {
 available:
-    >>$ Creates default object
     default::ball();
-    >>$ Creates a new object each call (factory)
     factory::ball() => {ball};
-    >>$ functions that are defined in an object, only accessible to objects.
     method::calcArea(int x, int y) => {
         result => {x * y};
     }
@@ -14,3 +11,5 @@ secure:
     takes int x;
     takes double y = 0;
 }
+
+@last

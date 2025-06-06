@@ -65,7 +65,7 @@ void Parser::initializeParserMaps()
         {TOKEN_KEYWORD_NEEDS, &Parser::parseHeaderFile},
         {TOKEN_READ_HEADER, &Parser::parseReadHeader},
         {TOKEN_END_HEADER, &Parser::parseEndHeader},
-
+        {TOKEN_KEYWORD_OBJECT, &Parser::parseObjectDefinition},
     };
 
     // Initialize expression dispatch table
@@ -2523,8 +2523,9 @@ AST_NODE *Parser::parseAvailableBlock()
     if (!proceed(TOKEN_COLON_ACCESSOR))
         return nullptr;
 
-    while (current->TYPE != TOKEN_KEYWORD_SECURE && current->TYPE != TOKEN_END_HEADER)
+    while (current->TYPE != TOKEN_KEYWORD_SECURE && current->TYPE != TOKEN_END_HEADER && current->TYPE != TOKEN_RIGHT_CURL)
     {
+        std::cout << "DEBUG: current token" << getTokenTypeName(current->TYPE);
         if (current->TYPE == TOKEN_OBJECT_DEFAULT)
         {
             AST_NODE *defaultBlock = parseDefaultConstructor();
@@ -2549,28 +2550,94 @@ AST_NODE *Parser::parseAvailableBlock()
     return availableBlock;
 }
 
-// NEED TO RECONFIGURE, NOT SURE WHERE TO GO FROM HERE RIGHT NOW.
+// // NEED TO RECONFIGURE, NOT SURE WHERE TO GO FROM HERE RIGHT NOW.
+// AST_NODE *Parser::parseSecureBlock()
+// {
+//     // create the secure‐block node
+//     AST_NODE *secureBlock = new AST_NODE();
+//     secureBlock->TYPE = NODE_SECURE;
+
+//     // consume “secure:”
+//     if (!proceed(TOKEN_KEYWORD_SECURE) || !proceed(TOKEN_COLON_ACCESSOR))
+//         return nullptr;
+
+//     // while we still see “takes”
+//     while (current->TYPE == TOKEN_OBJECT_PARAMS)
+//     {
+//         // consume the “takes” keyword
+//         proceed(TOKEN_OBJECT_PARAMS);
+
+//         // create a node for this parameter
+//         AST_NODE *param = new AST_NODE();
+//         param->TYPE = NODE_TAKES_DECLERATION;
+
+//         // --- 1) parse the parameter’s type (e.g. “int” or “double”) ---
+//         if (current->TYPE == TOKEN_IDENTIFIER)
+//         {
+//             param->VALUE = current->value; // store the type name
+//             advanceCursor();
+//         }
+//         else
+//         {
+//             ErrorHandler::getInstance().reportSyntaxError("Expected type in secure block");
+//             delete param;
+//             return nullptr;
+//         }
+
+//         // --- 2) parse the parameter’s name ---
+//         AST_NODE *nameNode = new AST_NODE();
+//         nameNode->TYPE = NODE_IDENTIFIER;
+//         if (current->TYPE == TOKEN_IDENTIFIER)
+//         {
+//             nameNode->VALUE = current->value;
+//             advanceCursor();
+//         }
+//         else
+//         {
+//             ErrorHandler::getInstance().reportSyntaxError("Expected parameter name");
+//             delete nameNode;
+//             delete param;
+//             return nullptr;
+//         }
+//         param->CHILD = nameNode; // attach the name under .CHILD
+
+//         // attach this parameter under the secure block
+//         secureBlock->SUB_STATEMENTS.push_back(param);
+//     }
+
+//     // finally consume the closing “}” (or whatever ends the block)
+//     if (!proceed(TOKEN_RIGHT_CURL))
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '}' at end of secure block");
+//         return nullptr;
+//     }
+
+//     return secureBlock;
+// }
 AST_NODE *Parser::parseSecureBlock()
 {
-    // create the secure‐block node
+    // Create the secure‐block node
     AST_NODE *secureBlock = new AST_NODE();
     secureBlock->TYPE = NODE_SECURE;
 
-    // consume “secure:”
-    if (!proceed(TOKEN_KEYWORD_SECURE) || !proceed(TOKEN_COLON_ACCESSOR))
+    // 1) Consume “secure”
+    if (!proceed(TOKEN_KEYWORD_SECURE))
+        return nullptr;
+    // 2) Consume “:”
+    if (!proceed(TOKEN_COLON_ACCESSOR))
         return nullptr;
 
-    // while we still see “takes”
+    // 3) Parse zero or more “takes type name [= default];” lines
     while (current->TYPE == TOKEN_OBJECT_PARAMS)
     {
-        // consume the “takes” keyword
+        // Consume the “takes” keyword
         proceed(TOKEN_OBJECT_PARAMS);
 
-        // create a node for this parameter
+        // Create a subnode for this parameter
         AST_NODE *param = new AST_NODE();
         param->TYPE = NODE_TAKES_DECLERATION;
 
-        // --- 1) parse the parameter’s type (e.g. “int” or “double”) ---
+        // 3a) Parse the parameter’s type (e.g. “int” or “double”)
         if (current->TYPE == TOKEN_IDENTIFIER)
         {
             param->VALUE = current->value; // store the type name
@@ -2583,7 +2650,7 @@ AST_NODE *Parser::parseSecureBlock()
             return nullptr;
         }
 
-        // --- 2) parse the parameter’s name ---
+        // 3b) Parse the parameter’s name (identifier)
         AST_NODE *nameNode = new AST_NODE();
         nameNode->TYPE = NODE_IDENTIFIER;
         if (current->TYPE == TOKEN_IDENTIFIER)
@@ -2598,107 +2665,583 @@ AST_NODE *Parser::parseSecureBlock()
             delete param;
             return nullptr;
         }
-        param->CHILD = nameNode; // attach the name under .CHILD
+        // Attach the name under param->CHILD
+        param->CHILD = nameNode;
 
-        // attach this parameter under the secure block
+        // 3c) If there’s a “= defaultValue”, consume that as well
+        if (current->TYPE == TOKEN_EQUALS)
+        {
+            // consume “=”
+            proceed(TOKEN_EQUALS);
+            // Now expect something like an integer, double, or literal for default
+            if (current->TYPE == TOKEN_INTEGER_VAL ||
+                current->TYPE == TOKEN_DOUBLE_VAL ||
+                current->TYPE == TOKEN_STRING_VAL ||
+                current->TYPE == TOKEN_BOOL_VALUE ||
+                current->TYPE == TOKEN_CHAR_VAL)
+            {
+                // (You could create a sub‐AST node for the default‐value expression if you need it.
+                //  For simplicity, we'll just store it in param->SUB_STATEMENTS as a literal node.)
+                AST_NODE *defaultNode = new AST_NODE();
+                switch (current->TYPE)
+                {
+                case TOKEN_INTEGER_VAL:
+                    defaultNode->TYPE = NODE_INT_LITERAL;
+                    defaultNode->VALUE = current->value;
+                    break;
+                case TOKEN_DOUBLE_VAL:
+                    defaultNode->TYPE = NODE_DOUBLE_LITERAL;
+                    defaultNode->VALUE = current->value;
+                    break;
+                case TOKEN_STRING_VAL:
+                    defaultNode->TYPE = NODE_STRING_LITERAL;
+                    defaultNode->VALUE = current->value;
+                    break;
+                case TOKEN_BOOL_VALUE:
+                    defaultNode->TYPE = NODE_BOOL_LITERAL;
+                    defaultNode->VALUE = current->value;
+                    break;
+                case TOKEN_CHAR_VAL:
+                    defaultNode->TYPE = NODE_CHAR_LITERAL;
+                    defaultNode->VALUE = current->value;
+                    break;
+                default:
+                    break;
+                }
+                advanceCursor();
+                param->SUB_STATEMENTS.push_back(defaultNode);
+            }
+            else
+            {
+                ErrorHandler::getInstance().reportSyntaxError(
+                    "Expected literal after '=' in secure block");
+                delete param;
+                return nullptr;
+            }
+        }
+
+        // 3d) Finally, every “takes …” line must end in a semicolon
+        if (!proceed(TOKEN_SEMICOLON))
+        {
+            ErrorHandler::getInstance().reportSyntaxError(
+                "Expected ';' after takes declaration");
+            delete param;
+            return nullptr;
+        }
+
+        // 3e) Attach this parameter under the secure block
         secureBlock->SUB_STATEMENTS.push_back(param);
     }
 
-    // finally consume the closing “}” (or whatever ends the block)
-    if (!proceed(TOKEN_RIGHT_CURL))
-    {
-        ErrorHandler::getInstance().reportSyntaxError("Expected '}' at end of secure block");
-        return nullptr;
-    }
-
+    // **Do not** consume any ‘}’ here. Let parseObjectDefinition() handle it.
     return secureBlock;
 }
 
+// ————————————————
+// parseDefaultConstructor
+// Matches: default::ClassName();
+// ————————————————
+
 AST_NODE *Parser::parseDefaultConstructor()
 {
+    // We know current->TYPE == TOKEN_OBJECT_DEFAULT
     if (current->TYPE != TOKEN_OBJECT_DEFAULT)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected default constructor.");
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected 'default' keyword.");
         return nullptr;
     }
 
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_OBJECT_DEFAULT;
+
+    // 1) consume “default”
     proceed(TOKEN_OBJECT_DEFAULT);
 
-    if (current->TYPE != TOKEN_COLON_OOP)
+    // 2) consume “::”
+    if (!proceed(TOKEN_COLON_OOP))
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected '::' following the default decleration.");
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '::' after 'default'.");
+        delete node;
         return nullptr;
     }
 
-    proceed(TOKEN_COLON_OOP);
-
-    if (!proceed(TOKEN_LEFT_PAREN) && !proceed(TOKEN_RIGHT_PAREN))
+    // 3) read the identifier (should be the class name)
+    if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected opening '(' and closing ')' following default.");
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected class name after 'default::'.");
+        delete node;
         return nullptr;
     }
+    // store the name (e.g. “ball”)
+    node->VALUE = current->value;
+    proceed(TOKEN_IDENTIFIER);
+
+    // 4) expect “(”
+    if (!proceed(TOKEN_LEFT_PAREN))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '(' after default constructor name.");
+        delete node;
+        return nullptr;
+    }
+
+    // 5) expect “)”
+    if (!proceed(TOKEN_RIGHT_PAREN))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected ')' after '('.");
+        delete node;
+        return nullptr;
+    }
+
+    // 6) expect “;”
+    if (!proceed(TOKEN_SEMICOLON))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected ';' after default constructor call.");
+        delete node;
+        return nullptr;
+    }
+
+    // Done
     return node;
 }
+
+// AST_NODE *Parser::parseDefaultConstructor()
+// {
+//     if (current->TYPE != TOKEN_OBJECT_DEFAULT)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected default constructor.");
+//         return nullptr;
+//     }
+
+//     AST_NODE *node = new AST_NODE();
+//     node->TYPE = NODE_OBJECT_DEFAULT;
+//     proceed(TOKEN_OBJECT_DEFAULT);
+
+//     if (current->TYPE != TOKEN_COLON_OOP)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '::' following the default decleration.");
+//         return nullptr;
+//     }
+
+//     proceed(TOKEN_COLON_OOP);
+
+//     if (!proceed(TOKEN_LEFT_PAREN) && !proceed(TOKEN_RIGHT_PAREN))
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected opening '(' and closing ')' following default.");
+//         return nullptr;
+//     }
+//     return node;
+// }
+// ————————————————
+// parseFactoryConstructor
+// Matches: factory::ClassName() => { … } ;
+// (here we assume no semicolon after “}” or you can consume it if needed.)
+// ————————————————
+
 AST_NODE *Parser::parseFactoryConstructor()
 {
-    //    factory::ball() => {ball};
-
+    // We know current->TYPE == TOKEN_OBJECT_FACTORY
     if (current->TYPE != TOKEN_OBJECT_FACTORY)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected keyword factory.");
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected 'factory' keyword.");
         return nullptr;
     }
 
     AST_NODE *node = new AST_NODE();
     node->TYPE = NODE_OBJECT_FACTORY;
+
+    // 1) “factory”
     proceed(TOKEN_OBJECT_FACTORY);
 
-    if (current->TYPE != TOKEN_COLON_OOP)
+    // 2) “::”
+    if (!proceed(TOKEN_COLON_OOP))
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected '::' following factory decleration.");
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '::' after 'factory'.");
+        delete node;
         return nullptr;
     }
-    proceed(TOKEN_COLON_OOP);
 
+    // 3) identifier (class name)
     if (current->TYPE != TOKEN_IDENTIFIER)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected an object factory identifier.");
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected class name after 'factory::'.");
+        delete node;
         return nullptr;
     }
-    std::string factoryName;
-    factoryName = current->value;
-    node->VALUE = factoryName;
+    node->VALUE = current->value; // e.g. “ball”
+    proceed(TOKEN_IDENTIFIER);
 
+    // 4) “(”
     if (!proceed(TOKEN_LEFT_PAREN))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '(' after factory class name.");
+        delete node;
         return nullptr;
-    if (!proceed(TOKEN_RIGHT_PAREN))
-        return nullptr;
-    if (!proceed(TOKEN_SPACESHIP))
-        return nullptr;
+    }
 
+    // 5) “)”
+    if (!proceed(TOKEN_RIGHT_PAREN))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected ')' after '(' in factory.");
+        delete node;
+        return nullptr;
+    }
+
+    // 6) “=>”
+    if (!proceed(TOKEN_SPACESHIP))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '=>' after factory signature.");
+        delete node;
+        return nullptr;
+    }
+
+    // 7) “{”
     if (current->TYPE != TOKEN_LEFT_CURL)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected '{' to hold factory name");
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '{' to begin factory body.");
+        delete node;
         return nullptr;
     }
-    if (current->TYPE != TOKEN_IDENTIFIER)
+    // We delegate to parseLeftCurl(), which consumes “{ … }” and returns its AST
+    AST_NODE *body = parseLeftCurl();
+    if (!body)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected factory name within '{}'");
+        delete node;
         return nullptr;
     }
-    if (current->TYPE != TOKEN_RIGHT_CURL)
+    node->SUB_STATEMENTS.push_back(body);
+
+    // 8) Optionally consume a trailing “;” if your grammar puts one after “}”
+    //    If your language does not use that semicolon, skip this.
+    if (current->TYPE == TOKEN_SEMICOLON)
     {
-        ErrorHandler::getInstance().reportSyntaxError("Expected '}' to hold factory name");
-        return nullptr;
+        proceed(TOKEN_SEMICOLON);
     }
 
     return node;
 }
+
+// AST_NODE *Parser::parseFactoryConstructor()
+// {
+//     //    factory::ball() => {ball};
+
+//     if (current->TYPE != TOKEN_OBJECT_FACTORY)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected keyword factory.");
+//         return nullptr;
+//     }
+
+//     AST_NODE *node = new AST_NODE();
+//     node->TYPE = NODE_OBJECT_FACTORY;
+//     proceed(TOKEN_OBJECT_FACTORY);
+
+//     if (current->TYPE != TOKEN_COLON_OOP)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '::' following factory decleration.");
+//         return nullptr;
+//     }
+//     proceed(TOKEN_COLON_OOP);
+
+//     if (current->TYPE != TOKEN_IDENTIFIER)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected an object factory identifier.");
+//         return nullptr;
+//     }
+//     std::string factoryName;
+//     factoryName = current->value;
+//     node->VALUE = factoryName;
+
+//     if (!proceed(TOKEN_LEFT_PAREN))
+//         return nullptr;
+//     if (!proceed(TOKEN_RIGHT_PAREN))
+//         return nullptr;
+//     if (!proceed(TOKEN_SPACESHIP))
+//         return nullptr;
+
+//     if (current->TYPE != TOKEN_LEFT_CURL)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '{' to hold factory name");
+//         return nullptr;
+//     }
+//     if (current->TYPE != TOKEN_IDENTIFIER)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected factory name within '{}'");
+//         return nullptr;
+//     }
+//     if (current->TYPE != TOKEN_RIGHT_CURL)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '}' to hold factory name");
+//         return nullptr;
+//     }
+
+//     return node;
+// }
+
+// AST_NODE *Parser::parseObjectMethod()
+// {
+//     // 1) “method”
+//     if (current->TYPE != TOKEN_OBJECT_METHOD)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected 'method' keyword.");
+//         return nullptr;
+//     }
+//     AST_NODE *node = new AST_NODE();
+//     node->TYPE = NODE_OBJECT_METHOD;
+//     proceed(TOKEN_OBJECT_METHOD);
+
+//     // 2) “::”
+//     if (!proceed(TOKEN_COLON_OOP))
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '::' after 'method'.");
+//         delete node;
+//         return nullptr;
+//     }
+
+//     // 3) method name
+//     if (current->TYPE != TOKEN_IDENTIFIER)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected method name after 'method::'.");
+//         delete node;
+//         return nullptr;
+//     }
+//     node->VALUE = current->value; // store method name (e.g. "calcArea")
+//     proceed(TOKEN_IDENTIFIER);
+
+//     // 4) parameter list “( type name, type name, … )”
+//     if (current->TYPE != TOKEN_LEFT_PAREN)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '(' after method name.");
+//         delete node;
+//         return nullptr;
+//     }
+//     proceed(TOKEN_LEFT_PAREN);
+
+//     // Loop to parse zero or more “type name” pairs, separated by commas
+//     while (current->TYPE != TOKEN_RIGHT_PAREN)
+//     {
+//         // — parse one “type” (an identifier)
+//         if (current->TYPE != TOKEN_IDENTIFIER)
+//         {
+//             ErrorHandler::getInstance().reportSyntaxError("Expected parameter type.");
+//             delete node;
+//             return nullptr;
+//         }
+//         AST_NODE *paramTypeNode = new AST_NODE();
+//         paramTypeNode->TYPE = NODE_PARAM_TYPE;
+//         paramTypeNode->VALUE = current->value; // e.g. "int"
+//         proceed(TOKEN_IDENTIFIER);
+
+//         // — parse parameter “name”
+//         if (current->TYPE != TOKEN_IDENTIFIER)
+//         {
+//             ErrorHandler::getInstance().reportSyntaxError("Expected parameter name.");
+//             delete paramTypeNode;
+//             delete node;
+//             return nullptr;
+//         }
+//         AST_NODE *paramNameNode = new AST_NODE();
+//         paramNameNode->TYPE = NODE_PARAM_NAME;
+//         paramNameNode->VALUE = current->value; // e.g. "x"
+//         proceed(TOKEN_IDENTIFIER);
+
+//         // attach “type→name” as a small subtree under the method node
+//         paramTypeNode->CHILD = paramNameNode;
+//         node->SUB_STATEMENTS.push_back(paramTypeNode);
+
+//         // If there’s a comma, consume it and loop; else we expect “)”
+//         if (current->TYPE == TOKEN_COMMA)
+//         {
+//             proceed(TOKEN_COMMA);
+//         }
+//         else
+//         {
+//             break;
+//         }
+//     }
+
+//     // 5) closing “)”
+//     if (!proceed(TOKEN_RIGHT_PAREN))
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected ')' after parameter list.");
+//         delete node;
+//         return nullptr;
+//     }
+
+//     // 6) “=>”
+//     if (!proceed(TOKEN_SPACESHIP))
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '=>' after method signature.");
+//         delete node;
+//         return nullptr;
+//     }
+
+//     // 7) the method body: expect “{ … }”
+//     if (current->TYPE != TOKEN_LEFT_CURL)
+//     {
+//         ErrorHandler::getInstance().reportSyntaxError("Expected '{' to begin method body.");
+//         delete node;
+//         return nullptr;
+//     }
+//     // Delegate to your existing parseBlock() (or parseLeftCurl()) to consume “{ … }”.
+//     AST_NODE *bodyBlock = parseLeftCurl();
+//     if (!bodyBlock)
+//     {
+//         delete node;
+//         return nullptr;
+//     }
+
+//     // 8) Attach the body under the method node
+//     node->SUB_STATEMENTS.push_back(bodyBlock);
+//     return node;
+//}
+// ————————————————
+// parseObjectMethod
+// Matches: method::methodName(type name, type name) => { … } ;
+// ————————————————
+
 AST_NODE *Parser::parseObjectMethod()
 {
-    //  method::calcArea(int x, int y) => {
+    // 1) “method”
+    if (current->TYPE != TOKEN_OBJECT_METHOD)
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected 'method' keyword.");
+        return nullptr;
+    }
+
+    AST_NODE *node = new AST_NODE();
+    node->TYPE = NODE_OBJECT_METHOD;
+
+    proceed(TOKEN_OBJECT_METHOD);
+
+    // 2) “::”
+    if (!proceed(TOKEN_COLON_OOP))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '::' after 'method'.");
+        delete node;
+        return nullptr;
+    }
+
+    // 3) method name (identifier)
+    if (current->TYPE != TOKEN_IDENTIFIER)
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected method name after 'method::'.");
+        delete node;
+        return nullptr;
+    }
+    node->VALUE = current->value; // e.g. “calcArea”
+    proceed(TOKEN_IDENTIFIER);
+
+    // 4) “(”
+    if (current->TYPE != TOKEN_LEFT_PAREN)
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '(' after method name.");
+        delete node;
+        return nullptr;
+    }
+    proceed(TOKEN_LEFT_PAREN);
+
+    // 5) zero‐or‐more “type name” pairs, separated by commas, until “)”
+    while (current->TYPE != TOKEN_RIGHT_PAREN)
+    {
+        // type
+        if (current->TYPE != TOKEN_IDENTIFIER)
+        {
+            ErrorHandler::getInstance()
+                .reportSyntaxError("Expected parameter type in method signature.");
+            delete node;
+            return nullptr;
+        }
+        AST_NODE *paramTypeNode = new AST_NODE();
+        paramTypeNode->TYPE = NODE_PARAM_TYPE;
+        paramTypeNode->VALUE = current->value; // e.g. “int”
+        proceed(TOKEN_IDENTIFIER);
+
+        // name
+        if (current->TYPE != TOKEN_IDENTIFIER)
+        {
+            ErrorHandler::getInstance()
+                .reportSyntaxError("Expected parameter name in method signature.");
+            delete paramTypeNode;
+            delete node;
+            return nullptr;
+        }
+        AST_NODE *paramNameNode = new AST_NODE();
+        paramNameNode->TYPE = NODE_PARAM_NAME;
+        paramNameNode->VALUE = current->value; // e.g. “x”
+        proceed(TOKEN_IDENTIFIER);
+
+        // attach “type→name” under method node
+        paramTypeNode->CHILD = paramNameNode;
+        node->SUB_STATEMENTS.push_back(paramTypeNode);
+
+        // if there’s a comma, consume and loop
+        if (current->TYPE == TOKEN_COMMA)
+        {
+            proceed(TOKEN_COMMA);
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    // 6) “)”
+    if (!proceed(TOKEN_RIGHT_PAREN))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected ')' at end of parameter list.");
+        delete node;
+        return nullptr;
+    }
+
+    // 7) “=>”
+    if (!proceed(TOKEN_SPACESHIP))
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '=>' after method signature.");
+        delete node;
+        return nullptr;
+    }
+
+    // 8) “{” and “}” around method body
+    if (current->TYPE != TOKEN_LEFT_CURL)
+    {
+        ErrorHandler::getInstance()
+            .reportSyntaxError("Expected '{' to begin method body.");
+        delete node;
+        return nullptr;
+    }
+    AST_NODE *bodyBlock = parseLeftCurl();
+    if (!bodyBlock)
+    {
+        delete node;
+        return nullptr;
+    }
+    node->SUB_STATEMENTS.push_back(bodyBlock);
+
+    // 9) Optional trailing “;”
+    if (current->TYPE == TOKEN_SEMICOLON)
+    {
+        proceed(TOKEN_SEMICOLON);
+    }
+
+    return node;
 }
 
 /**
