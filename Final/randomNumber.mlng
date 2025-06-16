@@ -1,0 +1,25 @@
+needs: {
+    library: "Random"
+}
+
+proc inputGuess() => {
+    int guess;
+    input<int>("Enter your guess: ") => guess;
+
+    result => {guess};
+}
+
+
+
+begin:
+
+    int x = randomInt(0, 100);
+    out_to_console(x);
+
+    int try = inputGuess();
+
+    if (try == x) {
+        out_to_console("Your guess is correct!");
+    }
+
+end
