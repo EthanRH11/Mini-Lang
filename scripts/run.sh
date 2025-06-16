@@ -13,7 +13,7 @@ LIBRARY_DIR="../src/library"
 BUILD_DIR="../build"
 EXECUTABLE="${BUILD_DIR}/${PROJECT_NAME}"
 TEST_DATA_DIR="../tests"
-INPUT_FILE="${TEST_DATA_DIR}/unitConverter.mlng"
+INPUT_FILE="${TEST_DATA_DIR}/test.txt"
 MODE="all"  # Default mode
 
 # Create color codes for output formatting
